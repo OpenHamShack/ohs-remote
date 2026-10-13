@@ -1,0 +1,31 @@
+# shack-i18n-check for OpenHamShack Remote (repo root): the Android app and
+# the iPad/iPhone and Apple TV apps, checked in one run by tools/i18n.py
+# check. Build output (build/, .gradle, DerivedData, .build is not in the
+# tool's list but holds no sources it reads) is skipped by the tool itself.
+exclude = [
+    # Developer tools that never reach a user: the fake box (its JSON
+    # "error" sentences stand in for the real box's, which belong to that
+    # repo's catalog), the LAN forwarder, the launcher-banner generator and
+    # this check's own runner.
+    "tools/**",
+    "android/tools/**",
+    # Unit tests: their literals are fixtures and expectations, not UI.
+    "android/*/src/test/**",
+    "ios/OpenHamShackKit/Tests/**",
+    # The debug source set (a pretend box advertised over NSD from adb) is
+    # compiled into debug APKs only; a release build has none of it.
+    "android/app/src/debug/**",
+    # Simulator launch arguments, wrapped in #if DEBUG: never in a release.
+    "ios/App/DebugLaunch.swift",
+    # SwiftPM's checkout and build folders when swift test has run here.
+    "ios/**/.build/**",
+    "ios/OpenHamShackMedia/Vendor/**",
+]
+
+[kotlin]
+# The TV kit's own text-taking composables and the sessions' banner line
+# (BoxSession.say, StationFlowSession.say): each puts its argument in front
+# of a person, as Text() does. The Icom kind brought these from
+# stationflow-tv; they check :app's own TvSection()/say() calls as well,
+# now that its Classic WB screens are converted.
+sinks = ["TvSection(", "TvTextDialog(", "say("]

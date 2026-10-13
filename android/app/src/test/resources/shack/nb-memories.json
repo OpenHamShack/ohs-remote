@@ -1,0 +1,76 @@
+{
+    "memories": [
+        {
+            "name": "Lower beacon",
+            "dl": 10489499300.0,
+            "mode": "cw",
+            "builtin": true
+        },
+        {
+            "name": "Middle beacon (PSK)",
+            "dl": 10489748500.0,
+            "mode": "usb",
+            "builtin": true
+        },
+        {
+            "name": "Upper beacon",
+            "dl": 10489999300.0,
+            "mode": "cw",
+            "builtin": true
+        },
+        {
+            "name": "CW segment",
+            "dl": 10489520000.0,
+            "mode": "cw",
+            "builtin": true
+        },
+        {
+            "name": "FT8",
+            "dl": 10489540000.0,
+            "mode": "ft8",
+            "builtin": true
+        },
+        {
+            "name": "Q65-60A",
+            "dl": 10489545000.0,
+            "mode": "q65",
+            "builtin": true
+        },
+        {
+            "name": "JS8Call",
+            "dl": 10489548000.0,
+            "mode": "js8",
+            "builtin": true
+        },
+        {
+            "name": "FreeDV activity",
+            "dl": 10489640000.0,
+            "mode": "freedv",
+            "builtin": true
+        },
+        {
+            "name": "SSB lower",
+            "dl": 10489700000.0,
+            "mode": "usb",
+            "builtin": true
+        },
+        {
+            "name": "SSB upper",
+            "dl": 10489800000.0,
+            "mode": "usb",
+            "builtin": true
+        },
+        {
+            "name": "Emergency",
+            "dl": 10489860000.0,
+            "mode": "usb",
+            "builtin": true
+        },
+        {
+            "name": "Contest FT4/FT8",
+            "dl": 10489870000.0,
+            "mode": "ft8",
+            "builtin": true
+        }
+    ]
+}

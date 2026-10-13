@@ -1,0 +1,17 @@
+# A fake OpenHamShack for testing the apps on real devices, kept running on shack.
+# Settings (clip, codec, packet loss) live in ~/.config/openhamshack-fakebox/env so
+# changing them is an edit and a restart, not a unit change. Install with
+# tools/systemd/install.sh; see docs/TESTING.md.
+[Unit]
+Description=OpenHamShack Remote test fakebox (127.0.0.1:18080/18081)
+After=network-online.target
+
+[Service]
+WorkingDirectory=%h/openhamshack-remote
+EnvironmentFile=-%h/.config/openhamshack-fakebox/env
+ExecStart=/usr/bin/python3 tools/fakebox.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

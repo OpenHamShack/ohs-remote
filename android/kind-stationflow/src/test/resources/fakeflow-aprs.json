@@ -1,0 +1,56 @@
+{
+    "radio": "r2813",
+    "radio_name": "IC-9700",
+    "stations": [
+        {
+            "call": "M0ABC-9",
+            "first": 1791521956.022663,
+            "last": 1791522251.022663,
+            "packets": 4,
+            "kind": "position",
+            "symbol": ">",
+            "symbol_name": "Car",
+            "comment": "Mobile, QRV 145.500",
+            "distance_km": 8,
+            "age_s": 18.7,
+            "stale": false
+        },
+        {
+            "call": "GB7XYZ-10",
+            "first": 1791521656.022663,
+            "last": 1791522226.022663,
+            "packets": 12,
+            "kind": "position",
+            "symbol": "#",
+            "symbol_name": "Digipeater",
+            "comment": "Fake digi, 144.800",
+            "path": "WIDE2-1",
+            "distance_km": 22,
+            "age_s": 43.7,
+            "stale": false
+        },
+        {
+            "call": "G4WX",
+            "first": 1791521356.022663,
+            "last": 1791522136.022663,
+            "packets": 9,
+            "kind": "weather",
+            "symbol": "_",
+            "symbol_name": "Weather station",
+            "status": "12.3C 1012hPa",
+            "age_s": 133.7,
+            "stale": true
+        }
+    ],
+    "packets": [],
+    "placed": 0,
+    "unplaced": 3,
+    "counters": {
+        "packets": 25
+    },
+    "radio_state": {
+        "ok": true,
+        "problems": []
+    },
+    "at": 1791522269.6847432
+}

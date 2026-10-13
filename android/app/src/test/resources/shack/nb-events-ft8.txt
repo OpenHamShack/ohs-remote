@@ -1,0 +1,8 @@
+{"kind": "events", "mode": "ft8", "slot": 1791582570.0, "snr": 1, "dt": 0.0, "df": 754, "text": "DL1ABC F5KLM JN18", "call": "F5KLM", "grid": "JN18", "t": 1791582584.0239727, "dial": 10489540000.0}
+{"kind": "events", "mode": "ft8", "slot": 1791582570.0, "snr": -2, "dt": 0.0, "df": 1095, "text": "CQ SV1QO KM18", "call": "SV1QO", "grid": "KM18", "t": 1791582584.023993, "dial": 10489540000.0}
+{"kind": "events", "mode": "ft8", "slot": 1791582570.0, "snr": -6, "dt": 0.0, "df": 1072, "text": "G4XYZ EA4QRP IN80", "call": "EA4QRP", "grid": "IN80", "t": 1791582584.024002, "dial": 10489540000.0}
+{"kind": "events", "mode": "ft8", "slot": 1791582585.0, "snr": 1, "dt": 0.0, "df": 784, "text": "CQ G4XYZ IO91", "call": "G4XYZ", "grid": "IO91", "t": 1791582598.702389, "dial": 10489540000.0}
+{"kind": "events", "mode": "ft8", "slot": 1791582585.0, "snr": -1, "dt": 0.0, "df": 2440, "text": "CQ DL1ABC JO31", "call": "DL1ABC", "grid": "JO31", "t": 1791582598.7023957, "dial": 10489540000.0}
+{"kind": "events", "mode": "ft8", "slot": 1791582585.0, "snr": -10, "dt": 0.0, "df": 2194, "text": "CQ SV1QO KM18", "call": "SV1QO", "grid": "KM18", "t": 1791582598.7023983, "dial": 10489540000.0}
+{"kind": "events", "mode": "ft8", "slot": 1791582585.0, "snr": 2, "dt": 0.0, "df": 1933, "text": "DL1ABC F5KLM JN18", "call": "F5KLM", "grid": "JN18", "t": 1791582598.7024, "dial": 10489540000.0}
+{"kind": "events", "mode": "ft8", "slot": 1791582585.0, "snr": -9, "dt": 0.0, "df": 1567, "text": "CQ DX OH8ZZ KP24", "call": "OH8ZZ", "grid": "KP24", "t": 1791582598.702402, "dial": 10489540000.0}

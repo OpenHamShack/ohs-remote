@@ -1,0 +1,15 @@
+# Exposes only the fakebox's PIN-gated port on the LAN; the firewall lets in
+# just the test devices (see docs/TESTING.md).
+[Unit]
+Description=OpenHamShack Remote test fakebox on the LAN (198.51.100.208:18181)
+After=network-online.target openhamshack-fakebox.service
+
+[Service]
+WorkingDirectory=%h/openhamshack-remote
+EnvironmentFile=-%h/.config/openhamshack-fakebox/env
+ExecStart=/usr/bin/python3 tools/lanforward.py ${FAKEBOX_LAN_LISTEN} 127.0.0.1:18081
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

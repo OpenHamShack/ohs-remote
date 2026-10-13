@@ -1,0 +1,18 @@
+{
+  "title": "IC-9700", "tx_enabled": false, "rigctl": {"port": 4532, "clients": 1},
+  "digi_modes": ["FT8"], "server_time": 1791520590.3, "version": "1.23.0", "update": null,
+  "selected": "r1", "switching": null,
+  "radios": {
+    "r1": {"connected": true, "error": null, "wanted": true, "link_state": "connected", "radio": "IC-9700",
+      "freq": 432200000, "mode": "FM", "data_mode": false, "mode_label": "FM", "filter": "FIL2",
+      "ptt": false, "vfo": "VFOB", "split": true, "smeter": 181, "smeter_db": 30.2, "power": null, "swr": null,
+      "updated": 1791520590.1, "audio": false, "audio_rate": null, "scope": false, "scope_points": null,
+      "id": "r1", "name": "Shack 9700", "switching": false,
+      "modes": ["LSB", "USB", "AM", "CW", "RTTY", "FM", "CWR", "RTTYR", "DV", "DD"],
+      "data_modes": ["LSB", "USB", "AM", "FM"],
+      "model": {"key": "ic-9700", "name": "IC-9700", "civ_address": "0xA2"},
+      "bands": [{"name": "2m", "hz": 144300000}, {"name": "70cm", "hz": 432200000}, {"name": "23cm", "hz": 1296200000}],
+      "digi": {"mode": null, "armed": false, "transmitting": false, "queued": 0, "callsign": "GM4BRI", "holder": null}
+    }
+  }
+}

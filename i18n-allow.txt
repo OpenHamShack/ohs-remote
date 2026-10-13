@@ -1,0 +1,8 @@
+# Exceptions to shack-i18n-check (docs/I18N.md): literals that are not
+# language. One per line, glob | "JSON literal" | reason; the reason is
+# required, and an entry that matches nothing fails the check. Literals that
+# are language but not yet converted go in i18n-pending.txt, never here.
+android/app/src/main/java/com/openhamshack/remote/ui/TxSettingsPanel.kt | "FEC" | DVB-S/S2's forward error correction, the standard's own abbreviation beside its code rates (1/2, 3/4); the box console and every DATV tool label it so in any language
+android/kind-stationflow/**/ui/*.kt | "VFO A" | the radio's own label for its first VFO, printed on the Icom's panel and LCD; shown as the radio shows it
+android/kind-stationflow/**/ui/*.kt | "VFO B" | the radio's own label for its second VFO, as the Icom prints it
+android/kind-stationflow/**/ui/StationFlowTvScreen.kt | "SPLIT" | the Icom LCD's split indicator, copied as the radio shows it beside the radio-faithful dial

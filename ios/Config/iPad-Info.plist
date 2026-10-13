@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_openhamshack._tcp</string>
+	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>To send this device's camera to your OpenHamShack as its picture, only while you choose to.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>OpenHamShack Remote finds and talks to your OpenHamShack on this network.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>To send sound with the camera picture to your OpenHamShack, only while you choose to.</string>
+</dict>
+</plist>

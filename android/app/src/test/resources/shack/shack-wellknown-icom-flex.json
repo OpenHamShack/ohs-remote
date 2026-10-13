@@ -1,0 +1,86 @@
+{
+    "openhamshack": 1,
+    "contract": "1.0",
+    "controllerId": "00000000-fake-4000-8000-000000000001",
+    "name": "FAKESHACK",
+    "version": "2.0.0-fake",
+    "station": {
+        "callsign": "M0TST",
+        "locator": "IO85",
+        "country": "GB"
+    },
+    "auth": {
+        "token": "api/shack/token",
+        "pair": "api/shack/pair/start",
+        "totp": "per-user",
+        "anonymousView": [
+            "shack-qo100wb"
+        ]
+    },
+    "services": {
+        "base": "api/shack/v1/",
+        "profile": 1
+    },
+    "apps": [
+        {
+            "id": "shack-datv",
+            "kind": "datv",
+            "name": "DATV",
+            "version": "fake",
+            "base": "shack-datv/",
+            "running": false,
+            "txCapable": false,
+            "anonymousView": false
+        },
+        {
+            "id": "shack-flex",
+            "kind": "flex",
+            "name": "Flex",
+            "version": "fake",
+            "base": "shack-flex/",
+            "running": true,
+            "txCapable": true,
+            "anonymousView": false
+        },
+        {
+            "id": "shack-icom",
+            "kind": "icom",
+            "name": "Icom",
+            "version": "fake",
+            "base": "shack-icom/",
+            "running": true,
+            "txCapable": true,
+            "anonymousView": false
+        },
+        {
+            "id": "shack-qo100nb",
+            "kind": "qo100nb",
+            "name": "QO-100 NB",
+            "version": "fake",
+            "base": "shack-qo100nb/",
+            "running": false,
+            "txCapable": true,
+            "anonymousView": false
+        },
+        {
+            "id": "shack-qo100wb",
+            "kind": "qo100wb",
+            "name": "QO-100 WB",
+            "version": "fake",
+            "base": "shack-qo100wb/",
+            "running": false,
+            "txCapable": true,
+            "anonymousView": true
+        },
+        {
+            "id": "shack-radio",
+            "kind": "radio",
+            "name": "Radio",
+            "version": "fake",
+            "base": "shack-radio/",
+            "running": false,
+            "txCapable": true,
+            "anonymousView": false
+        }
+    ]
+}

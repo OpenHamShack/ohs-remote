@@ -1,0 +1,764 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The English catalog (docs/I18N.md). One whole sentence per entry with
+  numbered placeholders, never fragments joined in code: a translation must
+  be free to move the box name or the number. Names are grouped by screen
+  (boxes_, signin_, settings_, tv_, qo100_); common_ is for words that mean
+  the same everywhere (Cancel, Save). Callsigns, addresses, versions and
+  frequencies are data and arrive through placeholders already formatted.
+  Layouts allow 40% more length than the English (I18N.md §1.5).
+-->
+<resources>
+    <string name="app_name">OpenHamShack Remote</string>
+
+    <!-- Words used on several screens -->
+    <string name="common_cancel">Cancel</string>
+    <string name="common_save">Save</string>
+    <string name="common_connecting">Connecting…</string>
+    <!-- A box's software and its version, e.g. "OpenHamShack 0.9.17" -->
+    <string name="box_version">OpenHamShack %1$s</string>
+    <string name="box_pin_entered">PIN entered</string>
+    <string name="box_view_only">view only</string>
+    <string name="box_on_this_network">on this network</string>
+    <string name="boxes_on_this_network">On this network</string>
+    <string name="boxes_add">Add a box</string>
+    <string name="boxes_add_title">Add an OpenHamShack</string>
+    <string name="settings_hardware_decoding">Hardware decoding</string>
+
+    <!-- The phone and tablet box list -->
+    <string name="boxes_settings">Settings</string>
+    <string name="boxes_empty_hint">Add your OpenHamShack by the address you open its console at - for example 198.51.100.40, or its tailnet name. The port is 8080 unless it was changed.</string>
+    <string name="boxes_saved">Saved</string>
+    <string name="boxes_looking_wifi">Looking for OpenHamShack boxes on this Wi-Fi… Over the tailnet or another network, add the box by its address.</string>
+    <string name="boxes_all_saved">Every box found here is saved above.</string>
+    <string name="boxes_found_hint">Found by Bonjour. Tap one to open and save it.</string>
+    <string name="boxes_remove">Remove</string>
+    <string name="boxes_remove_confirm">Tap again to remove</string>
+    <string name="boxes_address_label">Address (host or host:port)</string>
+    <string name="boxes_name_label">Name (optional)</string>
+    <string name="boxes_add_confirm">Add</string>
+
+    <!-- The phone and tablet settings dialog -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_buffer">Picture buffer: %1$d ms</string>
+    <string name="settings_buffer_hint">Lower is closer to live; higher rides out a poor Wi-Fi link. 200-300 ms suits a LAN, 500 ms or more a phone network.</string>
+    <string name="settings_hardware_hint">Turn off if a weak signal\'s picture freezes instead of breaking up: some phones\' decoders stop at damaged frames.</string>
+    <!-- %1$s the remote id (letters and digits), %2$s the app's version -->
+    <string name="settings_about">This phone\'s remote id: %1$s\nOpenHamShack Remote %2$s · GPL-3.0</string>
+
+    <!-- Signing in to a box from the phone or tablet, and the bar above a box -->
+    <string name="signin_back_to_boxes">‹ Boxes</string>
+    <!-- %1$s the box's address -->
+    <string name="link_connecting">Connecting to %1$s…</string>
+    <!-- %1$s the box's version (may be empty), %2$s its address -->
+    <string name="link_up">OpenHamShack %1$s at %2$s</string>
+    <!-- %1$s why, as the network library put it -->
+    <string name="link_down">Not answering: %1$s</string>
+    <string name="signin_box_screen">Box screen</string>
+    <string name="signin_sign_out">Sign out</string>
+    <string name="signin_forget_pin">Forget PIN</string>
+    <string name="signin_enter_pin">Enter PIN</string>
+    <string name="signin_view_only_pin_set">View only. Enter the PIN to control this OpenHamShack.</string>
+    <string name="signin_view_only_no_pin">View only. Set a remote PIN on the box\'s touchscreen (Settings › Security) to allow control from here.</string>
+    <string name="signin_title">Remote PIN</string>
+    <string name="signin_hint">The PIN set on the box (Settings › Security). This phone keeps the session, not the PIN.</string>
+    <string name="signin_confirm">Sign in</string>
+
+    <!-- The TV's box picker, its sign-in and its picture settings -->
+    <string name="tv_receive_only">Receive only on a TV: the box\'s picture, its status, QO-100, and channel changes with the PIN.</string>
+    <string name="tv_looking">Looking for OpenHamShack boxes on this network… Over the tailnet or another network, add the box by its address.</string>
+    <string name="tv_your_boxes">Your boxes</string>
+    <string name="tv_none_yet">None yet: choose one found on the network, or type an address.</string>
+    <string name="tv_type_address">Type an address…</string>
+    <string name="tv_address_where">It is on the box\'s own screen, Settings › Network. Over the tailnet, its tailnet name.</string>
+    <string name="tv_this_tv">This TV</string>
+    <string name="tv_picture_settings">Picture settings</string>
+    <string name="tv_watch">Watch</string>
+    <string name="tv_pin">PIN</string>
+    <string name="tv_new_pin">New PIN</string>
+    <string name="tv_forget">Forget</string>
+    <string name="tv_forget_confirm">Press again to forget</string>
+    <!-- Title of the sign-in dialog for a saved box; %1$s its address -->
+    <string name="tv_pin_for">PIN for %1$s</string>
+    <string name="tv_address_label">Address, e.g. 198.51.100.40</string>
+    <string name="tv_pin_label">Remote PIN (optional: only to change channel)</string>
+    <string name="tv_pin_hint">Watching needs no PIN. Without one the TV shows the picture but cannot change channel.</string>
+    <string name="tv_add_and_watch">Add and watch</string>
+    <string name="tv_buffer">Buffer: %1$d ms</string>
+    <string name="tv_less">Less</string>
+    <string name="tv_more">More</string>
+    <string name="tv_buffer_hint">Lower is closer to live; higher rides out a poor network. 200-300 ms suits a LAN.</string>
+    <string name="tv_on">On</string>
+    <string name="tv_off">Off</string>
+    <string name="tv_hardware_hint">Off (the TV default) shows a weak signal\'s broken-up picture more clearly; on can show grey until the next key frame.</string>
+    <string name="tv_view_only_pin_set">View only: to change channel, choose Tune… and enter the PIN.</string>
+    <string name="tv_no_other_channels">No other channels</string>
+    <string name="tv_view_only_no_pin">View only: set a remote PIN on the box (Settings › Security) to change channel from here.</string>
+
+    <!-- QO-100: the state line above the spectrum, shown as parts joined by " · " -->
+    <string name="qo100_connecting">Connecting to BATC…</string>
+    <string name="qo100_live">Live from BATC\'s monitor at Goonhilly</string>
+    <plurals name="qo100_signals">
+        <item quantity="one">%1$d signal</item>
+        <item quantity="other">%1$d signals</item>
+    </plurals>
+    <string name="qo100_out_of_band">something out of band at the top</string>
+    <string name="qo100_tap_to_receive">tap one to receive it</string>
+    <!-- %1$d whole seconds since the last spectrum -->
+    <string name="qo100_stale">No new spectrum for %1$d s</string>
+    <!-- A signal row; %1$s the downlink frequency, already formatted with its unit -->
+    <string name="qo100_beacon_at">Beacon %1$s</string>
+
+    <!-- OpenHamShack controllers (pairing, the app list) and the QO-100 NB and Radio kinds -->
+    <string name="shack_newer_controller">This controller is newer than this app: update OpenHamShack Remote to use it.</string>
+    <!-- %1$s the controller's name (its station callsign) -->
+    <string name="shack_pair_title">Pair this TV with %1$s</string>
+    <string name="shack_pair_asking">Asking the controller for a code…</string>
+    <string name="shack_pair_how">On the controller (Devices › Approve a TV) or in Remote on a signed-in phone, enter this code. The TV can watch and tune, never transmit.</string>
+    <string name="shack_pair_waiting">Waiting for approval…</string>
+    <string name="shack_pair_denied">The pairing was refused.</string>
+    <string name="shack_pair_expired">The code expired before it was approved.</string>
+    <string name="shack_pair_again">Get a new code</string>
+    <string name="shack_back">Back</string>
+    <string name="shack_retry">Try again</string>
+    <!-- %1$d an HTTP status -->
+    <string name="shack_problem_http">The controller answered HTTP %1$d.</string>
+    <string name="shack_problem_network">The controller did not answer.</string>
+    <string name="shack_problem_signin">This device is no longer signed in to the controller.</string>
+    <string name="shack_pair_again_signin">Pair again</string>
+    <string name="shack_apps_title">Apps on %1$s</string>
+    <string name="shack_apps_loading">Asking the controller for its apps…</string>
+    <string name="shack_apps_none">No apps this version of Remote can open are installed.</string>
+    <string name="shack_app_stopped">stopped</string>
+    <string name="shack_app_unsupported">not in this version of Remote</string>
+    <string name="shack_open">Open</string>
+    <string name="shack_signin_title">Sign in to %1$s</string>
+    <string name="shack_signin_user">User name</string>
+    <string name="shack_signin_password">Password</string>
+    <string name="shack_signin_totp">Authenticator code</string>
+    <string name="shack_signin_go">Sign in</string>
+    <string name="shack_signin_hint">Your OpenHamShack user on this controller. The password is sent once, for a token that stays on this device.</string>
+    <!-- The engine screen. %1$s the app's name, %2$s the controller's -->
+    <string name="shack_engine_title">%1$s on %2$s</string>
+    <string name="shack_simulator">Simulator</string>
+    <string name="shack_connecting">Connecting…</string>
+    <string name="shack_reconnecting">Reconnecting…</string>
+    <!-- %1$s a step size, already formatted with its unit -->
+    <string name="shack_step">Step %1$s</string>
+    <!-- %1$s a band name such as 2m -->
+    <string name="shack_band">Band %1$s</string>
+    <string name="shack_band_none">Between bands</string>
+    <!-- The TV's key hints, shown a few at a time and joined with " · " -->
+    <string name="shack_hint_tune">◀ ▶ tune</string>
+    <string name="shack_hint_picker">▲ bookmarks and modes</string>
+    <string name="shack_hint_decoder">▼ decoder</string>
+    <string name="shack_hint_step">◀◀ ▶▶ step</string>
+    <string name="shack_hint_controls">OK controls</string>
+    <string name="shack_hint_help">☰ held: every key</string>
+    <!-- NB/Radio's words in the key legend, where the shared ones would say less -->
+    <string name="shack_key_bookmark_prev">Previous bookmark</string>
+    <string name="shack_key_bookmark_next">Next bookmark</string>
+    <string name="shack_key_choose">Bookmarks and modes</string>
+    <string name="shack_key_focus_down">The decoder\'s panel</string>
+    <string name="shack_key_transmit">Enable TX: hold, then OK</string>
+    <string name="shack_keys_item">Remote keys</string>
+    <!-- NB/Radio settings, behind Menu -->
+    <string name="shack_settings_title">Settings</string>
+    <string name="shack_settings_step">Step</string>
+    <!-- Enable TX (automatic transmit in the digital modes): the red confirm, then on the air -->
+    <string name="shack_tx_item">Transmit…</string>
+    <string name="shack_tx_title">Enable TX</string>
+    <!-- The mode and the dial: "FT8 · 14.074 000 MHz" -->
+    <string name="shack_tx_where">%1$s · %2$s</string>
+    <!-- The first over of a CQ, as it goes on the air: the station\'s call and four-character locator. Protocol, not language. -->
+    <string name="shack_tx_cq_text" translatable="false">CQ %1$s %2$s</string>
+    <!-- A reply to a decode: the call answered -->
+    <string name="shack_tx_reply">Answer %1$s</string>
+    <!-- The line of text about to be sent, in quotes -->
+    <string name="shack_tx_line">Send “%1$s”</string>
+    <string name="shack_tx_line_title">A line to send in %1$s</string>
+    <string name="shack_tx_line_help">Sent once, keyed for as long as it takes. Nothing goes until you confirm on the next screen.</string>
+    <!-- On the air: ENABLE TX ON · FT8 -->
+    <string name="shack_tx_on_title">ENABLE TX ON · %1$s</string>
+    <string name="shack_tx_next">Next over: %1$s</string>
+    <string name="shack_tx_with">QSO with %1$s</string>
+    <string name="shack_tx_not_digital">Enable TX is for FT8, FT4, Q65, PSK, RTTY and CW; the radio is in %1$s. Voice needs a microphone: use a phone or the station.</string>
+    <string name="shack_tx_no_call">There is no call in that message to answer.</string>
+    <!-- The server's refusals, explained; %1$s is the server\'s own sentence -->
+    <string name="shack_tx_level_tv">This TV may not transmit (%1$s). An administrator can allow it digital-mode transmit on the controller\'s Devices page.</string>
+    <string name="shack_tx_level">This device may not transmit at this station (%1$s).</string>
+    <string name="shack_tx_refused">Enable TX refused: %1$s</string>
+    <string name="shack_tx_off_why">Enable TX is off: %1$s</string>
+    <string name="shack_tx_off">Enable TX was switched off at the station.</string>
+    <string name="shack_tx_link_lost">Lost contact with the station, so Enable TX was stopped. The station stops by itself within 5 s.</string>
+    <string name="shack_tx_no_answer">Enable TX: the station did not answer (%1$s).</string>
+    <string name="shack_tx_cq_button">Call CQ</string>
+    <string name="shack_tx_tap_hint">Tap a message to answer it</string>
+    <string name="shack_tx_send">Send</string>
+    <string name="shack_tx_line_label">A line to send</string>
+    <string name="shack_decodes_reply_hint">OK on a message: answer it with Enable TX (asks before anything is sent)</string>
+    <!-- The bookmark and mode picker's two row headings -->
+    <string name="shack_picker_bookmarks">Bookmarks</string>
+    <string name="shack_picker_modes">Modes</string>
+    <!-- Phone: the button that opens the bookmark and mode rows. %1$s the mode, e.g. FT8 -->
+    <string name="shack_picker_open">%1$s · bookmarks and modes</string>
+    <!-- Short forms beside the dial, by a coloured dot -->
+    <string name="shack_lock_short_locked">Locked</string>
+    <string name="shack_lock_short_held">Beacon held</string>
+    <string name="shack_lock_short_searching">No beacon lock</string>
+    <string name="shack_on_air_short">On air elsewhere</string>
+    <string name="shack_muted">Muted</string>
+    <!-- %1$s the mode, e.g. USB -->
+    <string name="shack_mode">Mode: %1$s</string>
+    <string name="shack_span_wide">Scope: wide</string>
+    <string name="shack_span_zoom">Scope: zoom</string>
+    <string name="shack_mute">Mute</string>
+    <string name="shack_unmute">Unmute</string>
+    <string name="shack_band_down">Band ◀</string>
+    <string name="shack_band_up">Band ▶</string>
+    <!-- Radio's band-plan strip along the waterfall: one short word per kind of segment, as Flex's (flex_plan_*). -->
+    <string name="shack_plan_cw">CW</string>
+    <string name="shack_plan_data">DATA</string>
+    <string name="shack_plan_phone">PHONE</string>
+    <string name="shack_plan_all">ALL MODES</string>
+    <string name="shack_plan_beacon">BEACON</string>
+    <string name="shack_plan_satellite">SAT</string>
+    <string name="shack_plan_repeater">RPT</string>
+    <string name="shack_plan_fm">FM</string>
+    <string name="shack_plan_image">IMAGE</string>
+    <!-- Radio on a phone or tablet, laid out as Flex: the two sheets' buttons and titles. -->
+    <string name="shack_scope_sheet">Scope</string>
+    <string name="shack_controls_sheet">Controls</string>
+    <string name="shack_bookmarks">Bookmarks</string>
+    <string name="shack_modes">Modes</string>
+    <string name="shack_nr_chip">NR</string>
+    <string name="shack_frequency">Frequency…</string>
+    <string name="shack_done">Done</string>
+    <string name="shack_log">Log</string>
+    <!-- The receive level in dBFS (%1$s, e.g. "-73.5"): uncalibrated, so never called S-units -->
+    <string name="shack_signal">%1$s dBFS</string>
+    <string name="shack_signal_none">— dBFS</string>
+    <!-- In the panel before its first output; %1$s is the mode -->
+    <string name="shack_panel_waiting">Listening for %1$s…</string>
+    <string name="shack_panel_keys">OK full screen  ·  ▲ tuning</string>
+    <string name="shack_panel_show">Show decoder</string>
+    <string name="shack_panel_hide">Hide decoder</string>
+    <string name="shack_panel_auto_on">Decoders open by themselves: on</string>
+    <string name="shack_panel_auto_off">Decoders open by themselves: off</string>
+    <!-- %1$s the app's name -->
+    <string name="shack_log_title">Logbook: %1$s</string>
+    <string name="shack_log_empty">No contacts logged yet.</string>
+    <!-- One contact: %1$s call, %2$s frequency with unit, %3$s mode, %4$s report sent, %5$s report received -->
+    <string name="shack_log_row">%1$s · %2$s · %3$s · %4$s/%5$s</string>
+    <string name="shack_freq_title">Tune to</string>
+    <string name="shack_freq_label">Frequency (MHz unless you type a unit)</string>
+    <string name="shack_freq_bad">Not a frequency: type e.g. 10489.750 or 145500 kHz.</string>
+    <string name="shack_freq_go">Tune</string>
+    <string name="shack_no_audio">No receive audio</string>
+    <string name="shack_on_air">ON AIR</string>
+    <string name="shack_on_air_elsewhere">On air from another station control</string>
+    <!-- Transmit (phones and tablets only) -->
+    <string name="shack_ptt_hold">Hold to transmit</string>
+    <string name="shack_ptt_keying">Keying…</string>
+    <string name="shack_ptt_release">Release to stop</string>
+    <string name="shack_ptt_no_lease">This app is too old to hold this device\'s transmit lease, so Remote will not transmit through it.</string>
+    <string name="shack_ptt_lease_missing">The app went on air without this device\'s lease, so it was stopped.</string>
+    <string name="shack_ptt_not_on_air">The app did not go on air.</string>
+    <string name="shack_tx_blocked">Transmit locked: %1$s</string>
+    <string name="shack_tx_tv">TVs receive only.</string>
+
+    <!-- QO-100 WB on an OpenHamShack controller (BoxSession with PlatformApp). -->
+    <string name="level_view">View</string>
+    <string name="level_control">Control</string>
+    <string name="level_transmit">Transmit</string>
+    <!-- %1$s is the person's level for the app (View). -->
+    <string name="wb_platform_view_only">View only: your level for this app on the controller is %1$s. Tuning needs Control, which the station\'s admin gives on the controller (People).</string>
+    <!-- %1$s is the person's level for the app (Control). -->
+    <string name="wb_platform_needs_transmit">Transmitting needs the Transmit level; yours for this app is %1$s.</string>
+    <string name="wb_platform_tx_locked">Needs the Transmit level</string>
+    <string name="wb_platform_tx_settings_locked">These need the Transmit level for this app on the controller.</string>
+    <string name="wb_platform_not_connected">Not connected to the controller yet.</string>
+    <string name="wb_platform_no_camera">The phone camera goes to a Classic box only: on a controller the app\'s stream input is not reachable from here.</string>
+    <string name="wb_platform_back">Apps</string>
+    <!-- %1$s user name, %2$s level (Transmit). -->
+    <string name="wb_platform_signed_in">%1$s · %2$s</string>
+    <string name="wb_platform_tv_back">Back  hide this, then apps</string>
+
+    <!-- OpenHamShack DATV (kind datv), receive only. -->
+    <!-- %1$s frequency (formatted, with unit), %2$d symbol rate in kS. -->
+    <string name="datv_tuning">%1$s · %2$d kS</string>
+    <!-- %1$s the receiver's lock word as the engine sends it (locked DVB-S2), %2$s MER in dB. -->
+    <string name="datv_locked">%1$s · MER %2$s dB</string>
+    <string name="datv_header">Signal found, not locked yet</string>
+    <string name="datv_searching">Searching: nothing locked</string>
+    <string name="datv_stopped">The receiver is stopped</string>
+    <!-- %1$s the received station's service name (often its callsign). -->
+    <string name="datv_service">Station: %1$s</string>
+    <string name="datv_simulator">Simulator: a test picture, not a station</string>
+    <string name="datv_player_connecting">Connecting to the picture…</string>
+    <string name="datv_player_reconnecting">Reconnecting to the picture…</string>
+    <string name="datv_player_keyframe">Waiting for a key frame…</string>
+    <string name="datv_player_no_picture">No picture: nothing received</string>
+    <string name="datv_receive_only">Receive only. Transmit with the DATV desktop app.</string>
+    <string name="datv_start">Start the receiver</string>
+    <string name="datv_stop">Stop the receiver</string>
+    <string name="datv_band">Band</string>
+    <string name="datv_channels">Channels</string>
+    <!-- %1$s frequency (formatted), %2$s what the channel is for (from the app). -->
+    <string name="datv_channel">%1$s · %2$s</string>
+    <string name="datv_rate_title">Symbol rate</string>
+    <!-- %1$d symbol rate in kS. -->
+    <string name="datv_rate">%1$d kS</string>
+    <string name="datv_no_band">That frequency is outside every DATV band.</string>
+    <string name="datv_tune">Tune…</string>
+    <string name="datv_tune_title">Tune DATV</string>
+    <string name="datv_tv_keys">OK  hide this  ·  ◀ ▶  channel  ·  ▲  bands, channels  ·  ☰  tune  ·  BACK  apps</string>
+    <string name="datv_choose_title">Band and channel</string>
+
+    <!-- NB and Radio: noise reduction (state key nr) and the decoders' output. -->
+    <string name="shack_nr_on">Noise reduction: on</string>
+    <string name="shack_nr_off">Noise reduction: off</string>
+    <string name="shack_nr_view_only">Noise reduction needs the Control level for this app.</string>
+    <!-- %1$s the decoder's mode (FT8). -->
+    <string name="shack_decodes_title">%1$s decodes</string>
+    <string name="shack_decodes_empty">No decodes yet: they arrive at the end of each slot.</string>
+    <!-- Column heads of the decode list, as WSJT-X labels them. -->
+    <string name="shack_decodes_utc">UTC</string>
+    <string name="shack_decodes_db">dB</string>
+    <string name="shack_decodes_dt">DT</string>
+    <string name="shack_decodes_hz">Freq</string>
+    <string name="shack_decodes_message">Message</string>
+    <string name="shack_decodes_country">Country</string>
+    <!-- Band Activity's button: empties the list on screen, nothing else. -->
+    <string name="shack_decodes_clear">Clear</string>
+    <string name="shack_decodes_clear_item">Clear decodes</string>
+    <!-- A heading in the list where the band or dial changed: %1$s band (Radio only, "20 m"), %2$s the dial in MHz, %3$s the mode, %4$s the UTC time -->
+    <string name="shack_section_band">— %1$s · %2$s %3$s · %4$s UTC —</string>
+    <!-- The same on NB, which has no band: %1$s the dial in MHz, %2$s the mode, %3$s the UTC time -->
+    <string name="shack_section">— %1$s %2$s · %3$s UTC —</string>
+    <!-- A tablet's decode list, as the desktop names it; %1$s is the mode (FT8). -->
+    <string name="shack_band_activity">Band activity · %1$s</string>
+    <!-- Where the dB would be, on a row that is our own over (Band Activity). -->
+    <string name="shack_decodes_tx">TX</string>
+
+    <!-- SSTV pictures on the NB/Radio kinds. -->
+    <string name="sstv_title">SSTV</string>
+    <string name="sstv_fmt_martinm1">Martin 1</string>
+    <string name="sstv_fmt_scottie_s1">Scottie 1</string>
+    <string name="sstv_fmt_robot36">Robot 36</string>
+    <string name="sstv_fmt_pd120">PD 120</string>
+    <!-- %1$d lines received so far, %2$d lines in the picture. -->
+    <string name="sstv_progress">Line %1$d of %2$d</string>
+    <string name="sstv_done">Complete</string>
+    <string name="sstv_none">No picture yet.</string>
+    <string name="sstv_gallery">Earlier pictures</string>
+
+    <!-- OpenHamShack Flex (FlexScreens.kt, FlexSession.kt). Kept together at
+         the end so another branch's edits elsewhere in this file merge cleanly. -->
+    <!-- The TV's one hint line under the display; %1$s is the step, e.g. "100 Hz" -->
+    <string name="flex_tv_hint">◀ ▶ tune %1$s  ·  ▲ mode, band  ·  ▼ scope  ·  OK controls  ·  ◀◀ ▶▶ step  ·  ☰ settings  ·  Back: apps</string>
+    <string name="flex_choose_title">Mode and band</string>
+    <string name="flex_key_choose">Mode and band</string>
+    <string name="flex_key_focus_down">Scope: reference level and zoom</string>
+    <string name="flex_tv_hint_adjust">▲ ▼ reference level  ·  ◀ ▶ zoom  ·  OK: scope settings  ·  Back: done</string>
+    <!-- Over the display while it is adjusted: %1$d the top of the scale in dBm, %2$s the span with its unit -->
+    <string name="flex_scope_readout">REF %1$d dBm  ·  %2$s</string>
+    <!-- The band plan strip under the spectrum, by what each part of a band is for: short, it is a 12 px strip -->
+    <string name="flex_plan_cw">CW</string>
+    <string name="flex_plan_data">DATA</string>
+    <string name="flex_plan_phone">PHONE</string>
+    <string name="flex_plan_all">ALL MODES</string>
+    <string name="flex_plan_beacon">BEACON</string>
+    <string name="flex_plan_satellite">SAT</string>
+    <string name="flex_plan_repeater">RPT</string>
+    <string name="flex_plan_fm">FM</string>
+    <string name="flex_plan_image">IMAGE</string>
+    <!-- The module's own noise reduction on the audio, beside the radio's NR -->
+    <string name="flex_nr2_on">NR2 on</string>
+    <string name="flex_nr2_off">NR2 off</string>
+    <string name="flex_nr2_chip">NR2</string>
+    <string name="flex_nr2_level">NR2 strength (0-100)</string>
+    <string name="flex_scope">Scope</string>
+    <string name="flex_scope_title">Panadapter</string>
+    <string name="flex_scope_radio">On the radio (SmartSDR follows these)</string>
+    <string name="flex_scope_span">Span (zoom)</string>
+    <string name="flex_scope_ref">Reference level</string>
+    <string name="flex_scope_range">Range</string>
+    <string name="flex_scope_speed">Waterfall speed</string>
+    <string name="flex_scope_auto_black">Waterfall auto black level</string>
+    <string name="flex_scope_black_level">Waterfall black level</string>
+    <string name="flex_scope_color_gain">Waterfall colour gain</string>
+    <!-- %1$d a level in dBm, or a depth in dB -->
+    <string name="flex_dbm">%1$d dBm</string>
+    <string name="flex_db">%1$d dB</string>
+    <string name="flex_scope_look">On this screen</string>
+    <string name="flex_look_palette">Waterfall colours</string>
+    <string name="flex_look_contrast">Waterfall contrast</string>
+    <string name="flex_look_brightness">Waterfall brightness</string>
+    <string name="flex_look_trace">Trace</string>
+    <string name="flex_look_fill">FILL</string>
+    <string name="flex_look_line">LINE</string>
+    <string name="flex_look_averaging">Trace averaging</string>
+    <string name="flex_look_reset">Back to the default look</string>
+    <string name="flex_palette_radio">Default</string>
+    <string name="flex_palette_rainbow">Rainbow</string>
+    <string name="flex_palette_grey">Grey</string>
+    <string name="flex_palette_fire">Fire</string>
+    <string name="flex_palette_ocean">Ocean</string>
+    <string name="flex_palette_green">Green</string>
+    <string name="flex_extras_hint">OK chooses  ·  ◀ ▶ along  ·  ▲ ▼ between rows  ·  Back: close</string>
+    <string name="flex_mode">Mode</string>
+    <string name="flex_band">Band</string>
+    <string name="flex_mute">Mute</string>
+    <string name="flex_unmute">Unmute</string>
+    <string name="flex_muted">Muted</string>
+    <!-- The phone's step button; %1$s is the step, e.g. "1 kHz" -->
+    <string name="flex_step">Step %1$s</string>
+    <string name="flex_no_band">Outside the bands</string>
+    <string name="flex_view_only_chip">View only</string>
+    <string name="flex_view_only">View only: the controller lets this device listen to Flex but not tune it.</string>
+    <string name="flex_no_slice">Flex has no receiver open on the radio yet.</string>
+    <string name="flex_no_radio">Flex is not connected to the radio.</string>
+    <!-- %1$s is the module's own reason, in its words -->
+    <string name="flex_no_radio_why">Flex is not connected to the radio: %1$s</string>
+    <!-- %1$d is the HTTP status -->
+    <string name="flex_refused">Flex refused that (HTTP %1$d).</string>
+    <!-- %1$s is the network error -->
+    <string name="flex_no_answer">Flex did not answer: %1$s</string>
+    <!-- Tuning stopped at the bottom / top of what the radio receives; %1$s is that edge, e.g. "30 kHz", "54 MHz" -->
+    <string name="flex_floor">The radio receives down to %1$s.</string>
+    <string name="flex_ceiling">The radio receives up to %1$s.</string>
+
+    <!-- Flex's receive controls (FlexControlsUi.kt): the radio's DSP, AGC,
+         RF gain, antenna, and the module's decoders and SSTV. -->
+    <string name="flex_receive">Receive</string>
+    <!-- The phone's button for the controls sheet -->
+    <string name="flex_controls">Controls</string>
+    <!-- Noise reduction as the radio names it: a short chip, and the switch in the extras row -->
+    <string name="flex_nr_chip">NR</string>
+    <string name="flex_nr_on">NR on</string>
+    <string name="flex_nr_off">NR off</string>
+    <string name="flex_on">On</string>
+    <string name="flex_off">Off</string>
+    <!-- A level a D-pad moves with left and right; %1$d is 0-100 -->
+    <string name="flex_level_arrows">◀ %1$d ▶</string>
+    <string name="flex_noise">Noise</string>
+    <string name="flex_noise_title">Noise reduction and blankers</string>
+    <!-- The radio's DSP functions, by the short names SmartSDR shows -->
+    <string name="flex_dsp_nr">NR</string>
+    <string name="flex_dsp_nb">NB</string>
+    <string name="flex_dsp_wnb">WNB</string>
+    <string name="flex_dsp_anf">ANF</string>
+    <string name="flex_dsp_apf">APF</string>
+    <string name="flex_dsp_nrl">NRL</string>
+    <string name="flex_dsp_nrs">NRS</string>
+    <string name="flex_dsp_rnn">RNN</string>
+    <string name="flex_dsp_nrf">NRF</string>
+    <string name="flex_dsp_anfl">ANFL</string>
+    <string name="flex_dsp_anft">ANFT</string>
+    <string name="flex_dsp_nr_what">Noise reduction</string>
+    <string name="flex_dsp_nb_what">Noise blanker</string>
+    <string name="flex_dsp_wnb_what">Wideband noise blanker</string>
+    <string name="flex_dsp_anf_what">Automatic notch</string>
+    <string name="flex_dsp_apf_what">Audio peaking filter, for CW</string>
+    <string name="flex_dsp_nrl_what">Noise reduction, leaky LMS</string>
+    <string name="flex_dsp_nrs_what">Noise reduction, spectral subtraction</string>
+    <string name="flex_dsp_rnn_what">Noise reduction by neural network (RNNoise)</string>
+    <string name="flex_dsp_nrf_what">Noise reduction filter</string>
+    <string name="flex_dsp_anfl_what">Automatic notch, leaky LMS</string>
+    <string name="flex_dsp_anft_what">Automatic notch, FFT tracking</string>
+    <string name="flex_agc">AGC</string>
+    <string name="flex_agc_off">Off</string>
+    <string name="flex_agc_slow">Slow</string>
+    <string name="flex_agc_med">Med</string>
+    <string name="flex_agc_fast">Fast</string>
+    <!-- The extras row's AGC item; %1$s the mode (Med), %2$d the threshold 0-100 -->
+    <string name="flex_agc_summary">AGC %1$s · %2$d</string>
+    <string name="flex_agc_t">AGC-T</string>
+    <string name="flex_agc_t_what">The AGC threshold: lower for weak signals in noise, higher for strong ones</string>
+    <!-- %1$d the threshold 0-100 -->
+    <string name="flex_agc_t_value">AGC-T %1$d</string>
+    <string name="flex_rf">RF gain / Preamp</string>
+    <string name="flex_rf_what">Below 0 dB attenuates (ATT); above 0 dB is preamp gain. The radio chooses its stages from the one setting.</string>
+    <!-- %1$d dB of attenuation, as a positive number -->
+    <string name="flex_rf_att">ATT %1$d dB</string>
+    <string name="flex_rf_off">0 dB (preamp off)</string>
+    <!-- %1$d dB of preamp gain -->
+    <string name="flex_rf_preamp">Preamp +%1$d dB</string>
+    <string name="flex_antenna">Receive antenna</string>
+    <!-- %1$s the radio's name for the antenna, e.g. ANT1 -->
+    <string name="flex_antenna_summary">Antenna %1$s</string>
+    <string name="flex_antenna_none">The radio has not listed its antennas.</string>
+    <string name="flex_antenna_rx_only">Receive antenna only: the transmit antenna is not changed from here.</string>
+    <string name="flex_decoder">Decoder</string>
+    <string name="flex_decoder_off">Off</string>
+    <!-- %1$s the decoder mode (FT8) or Off -->
+    <string name="flex_decoder_summary">Decoder %1$s</string>
+    <!-- %1$s the module's reason, in its words -->
+    <string name="flex_decoder_none">This copy of Flex has no decoder. %1$s</string>
+    <!-- Where the running decoder's signals are. %1$s the mode (FT8, SSTV), %2$s the frequency (7.074 MHz), %3$s the radio mode (DIGU) -->
+    <string name="flex_calling">%1$s is on %2$s %3$s</string>
+    <!-- %1$s the frequency, %2$s the radio mode -->
+    <string name="flex_calling_go">Tune to %1$s %2$s</string>
+    <string name="flex_auto_open">Decoders open by themselves</string>
+    <string name="flex_decodes_full">Decodes</string>
+    <!-- %1$s the period in seconds, e.g. 15 -->
+    <string name="flex_decodes_waiting">Listening: decodes arrive at the end of each %1$s s period.</string>
+    <string name="flex_sstv">SSTV</string>
+    <string name="flex_sstv_on">SSTV on</string>
+    <string name="flex_sstv_off">SSTV off</string>
+    <string name="flex_sstv_receive">Receive SSTV pictures</string>
+    <string name="flex_pictures">Pictures</string>
+    <string name="flex_pictures_title">SSTV pictures</string>
+    <string name="flex_pictures_none">No pictures kept yet.</string>
+    <!-- The picture arriving now: %1$s its format (Robot 36), %2$s its progress (Line 120 of 240) -->
+    <string name="flex_picture_live">Arriving: %1$s, %2$s</string>
+    <string name="flex_picture_partial">Joined part way through</string>
+    <string name="flex_side_hint">OK chooses  ·  ▲ ▼ between  ·  Back: close</string>
+    <string name="flex_side_hint_levels">OK switches  ·  ◀ ▶ level  ·  ▲ ▼ between  ·  Back: close</string>
+
+    <!-- Classic QO-100 WB box (BoxSession, BoxScreen, TvUi and the panels in
+         ui/). Kept together at the end, as Flex's are, so other branches'
+         edits elsewhere in this file merge cleanly. -->
+    <!-- The session's messages (a banner or toast) -->
+    <string name="wb_signed_out_by_box">Signed out by the box - the PIN was probably changed there. View only until the PIN is entered again.</string>
+    <string name="wb_signed_out">Signed out: this phone can no longer change anything until the PIN is entered again</string>
+    <string name="wb_source_now_stream">The box\'s picture is now the Stream source</string>
+    <!-- %1$s why, as the network library put it -->
+    <string name="wb_no_answer">OpenHamShack did not answer: %1$s</string>
+    <string name="wb_did_not_answer">OpenHamShack did not answer</string>
+    <string name="wb_qo100_not_answering">OpenHamShack is not answering</string>
+    <string name="wb_signin_failed">Could not sign in</string>
+    <string name="wb_refused">Refused</string>
+    <!-- %1$s the stream protocol the box is set to, as an identifier (RTMP) -->
+    <string name="wb_stream_not_srt">The box\'s Stream source is set to %1$s: switch it to SRT first</string>
+    <string name="wb_stream_no_port">The box did not say its stream port</string>
+    <string name="wb_stream_needs_passphrase">The box\'s stream needs its passphrase: enter the PIN, or type the passphrase</string>
+    <!-- Transmit settings changed while on air. %1$s the settings that wait,
+         as a list already formatted for the locale ("frequency and mode") -->
+    <string name="wb_tx_next_keyup">On air: %1$s will apply at the next key-up</string>
+    <string name="wb_tx_next_keyup_power">On air: %1$s will apply at the next key-up; power changed now</string>
+    <string name="wb_tx_power_on_air">Power changed on air</string>
+    <!-- %1$s the box's reason, in its words -->
+    <string name="wb_tx_not_saved">Not saved: %1$s</string>
+    <string name="wb_tx_refused">refused by the box</string>
+    <!-- Transmit settings by name, lower case, as they appear inside the sentences above -->
+    <string name="wb_tx_key_frequency">frequency</string>
+    <string name="wb_tx_key_symbol_rate">symbol rate</string>
+    <string name="wb_tx_key_mode">mode</string>
+    <string name="wb_tx_key_modulation">modulation</string>
+    <string name="wb_tx_key_fec">FEC</string>
+    <string name="wb_tx_key_power">power</string>
+    <!-- A receiver's tuning: %1$s frequency in MHz, %2$s symbol rate in kS, both already formatted -->
+    <string name="wb_tuning">%1$s MHz · %2$s kS</string>
+    <!-- The same, received through the QO-100 LNB -->
+    <string name="wb_tuning_lnb">%1$s MHz · %2$s kS · LNB</string>
+    <string name="wb_locked">Locked</string>
+    <!-- %1$s the modulation error ratio in dB, already formatted -->
+    <string name="wb_mer">MER %1$s dB</string>
+    <!-- %1$s the margin over the decoder's threshold in dB, signed (+2.5) -->
+    <string name="wb_margin">%1$s dB margin</string>
+    <!-- A number with its unit; %1$s the number, already formatted -->
+    <string name="wb_mhz">%1$s MHz</string>
+    <string name="wb_ks">%1$s kS</string>
+    <string name="wb_db">%1$s dB</string>
+    <!-- The box's picture sources (the console's names) -->
+    <string name="wb_source_testcard">Test card</string>
+    <string name="wb_source_webcam">Camera on the box</string>
+    <string name="wb_source_file">Video file</string>
+    <string name="wb_source_stream">Stream (OBS / phone)</string>
+    <!-- The TV's channel banner: %1$d the receiver's number, %2$s its tuner's name (data) -->
+    <string name="wb_channel_receiver">Receiver %1$d</string>
+    <string name="wb_channel_receiver_tuner">Receiver %1$d · %2$s</string>
+    <!-- The transmit panel (phones and tablets) -->
+    <string name="wb_stand_by">Stand by</string>
+    <!-- %1$s the time left before the box's transmit time-out, as m:ss -->
+    <string name="wb_timeout_in">time-out in %1$s</string>
+    <!-- %1$s the name of the box's picture source -->
+    <string name="wb_picture_source">Picture: %1$s</string>
+    <plurals name="wb_timeout_seconds">
+        <item quantity="one">Transmit time-out in %1$d s</item>
+        <item quantity="other">Transmit time-out in %1$d s</item>
+    </plurals>
+    <string name="wb_keep_transmitting">Keep transmitting</string>
+    <string name="wb_link_trouble">No answer from OpenHamShack. Stopping in a moment unless it answers.</string>
+    <string name="wb_cannot_transmit">Can\'t transmit</string>
+    <!-- The press-and-hold transmit button's face; keep these short, it is one button -->
+    <string name="wb_ptt_not_connected">Not connected</string>
+    <string name="wb_ptt_view_only">View only</string>
+    <string name="wb_ptt_no_lease">Update OpenHamShack to transmit from here: this version has no remote safety lease</string>
+    <string name="wb_on_air_tap_to_stop">ON AIR — tap to stop</string>
+    <string name="wb_ptt_starting">Starting… tap to stop</string>
+    <string name="wb_ptt_on_air_elsewhere">ON AIR from elsewhere — tap to stop</string>
+    <string name="wb_ptt_keep_holding">Keep holding…</string>
+    <string name="wb_ptt_force_busy">In use — hold to transmit anyway</string>
+    <string name="wb_ptt_force_unchecked">Not checked — hold to transmit anyway</string>
+    <string name="wb_ptt_hold">Hold to TRANSMIT</string>
+    <!-- The box screen (phones and tablets) -->
+    <string name="wb_tab_receive">Receive</string>
+    <string name="wb_tab_camera">Camera</string>
+    <string name="wb_full_screen">⛶ Full screen</string>
+    <string name="wb_exit_full_screen">Exit full screen</string>
+    <!-- %1$s how long the box has been on air, as m:ss -->
+    <string name="wb_on_air_clock">ON AIR %1$s</string>
+    <!-- %1$s the tuning line (wb_tuning), %2$d which receiver, when the box has several -->
+    <string name="wb_tuning_receiver">%1$s  (receiver %2$d)</string>
+    <!-- The picture player's state, under the picture -->
+    <string name="wb_player_connecting">Connecting to the picture…</string>
+    <!-- %1$s why, as the player put it -->
+    <string name="wb_player_reconnecting">Reconnecting: %1$s</string>
+    <string name="wb_player_no_picture_short">no picture</string>
+    <string name="wb_player_keyframe">Waiting for a key frame…</string>
+    <string name="wb_player_nothing">No picture: nothing received at the box</string>
+    <plurals name="wb_player_reconnects">
+        <item quantity="one">(%1$d reconnect)</item>
+        <item quantity="other">(%1$d reconnects)</item>
+    </plurals>
+    <!-- %2$s the player's state (above), %1$d how often it has reconnected -->
+    <plurals name="wb_player_line_reconnects">
+        <item quantity="one">%2$s  (%1$d reconnect)</item>
+        <item quantity="other">%2$s  (%1$d reconnects)</item>
+    </plurals>
+    <!-- The TV's box screen -->
+    <string name="wb_tv_tune">Tune…</string>
+    <string name="wb_tv_qo100">QO-100…</string>
+    <string name="wb_tv_hint_channel">◀ ▶  channel  ·  ▲ channels</string>
+    <string name="wb_tv_channels_title">Channels</string>
+    <string name="wb_key_focus_down">This overlay\'s buttons</string>
+    <string name="wb_key_controls">Show or hide this overlay</string>
+    <string name="wb_key_settings">The Tune panel</string>
+    <string name="wb_tv_back_boxes">Back  hide this, then boxes</string>
+    <string name="wb_tv_on_air">ON AIR · the box is transmitting</string>
+    <!-- %1$s how long the box has been on air, as m:ss -->
+    <string name="wb_tv_on_air_clock">ON AIR %1$s · the box is transmitting</string>
+    <!-- Transmit settings (phones and tablets) -->
+    <string name="wb_tx_settings">Transmit settings</string>
+    <string name="wb_tx_view_only">View only: enter the PIN to change these.</string>
+    <string name="wb_tx_reading">Reading the box\'s choices…</string>
+    <!-- %1$s the transmit frequency in MHz, already formatted -->
+    <string name="wb_tx_frequency">Frequency  %1$s MHz</string>
+    <!-- %1$d the symbol rate in kS -->
+    <string name="wb_tx_qo100_channels">QO-100 channels at %1$d kS (uplink, preferred first)</string>
+    <string name="wb_frequency_mhz">Frequency MHz</string>
+    <string name="wb_tx_type_frequency">Type a frequency in MHz, for example 437 or 2405.25</string>
+    <string name="wb_set">Set</string>
+    <!-- %1$s the typed frequency in MHz, %2$s the licence setting's region code (data) -->
+    <string name="wb_tx_outside_licence">%1$s MHz is outside the bands your licence setting allows (%2$s): the box will refuse to transmit there.</string>
+    <string name="wb_rates_qo100">QO-100 rates (kS)</string>
+    <string name="wb_rates_terrestrial">Terrestrial rates (kS)</string>
+    <string name="wb_other_rate">Other rate kS</string>
+    <string name="wb_type_rate">Type a symbol rate in kS, for example 333</string>
+    <!-- %1$s the power in dB below full (or a dash), %2$d and %3$d the box's limits -->
+    <string name="wb_tx_power">Power  %1$s dB  (0 is full; %2$d to %3$d)</string>
+    <string name="wb_tx_on_air_note">On air: power changes at once; the rest applies at the next key-up.</string>
+    <!-- Receive tuning (phones and tablets) -->
+    <!-- %1$d the receiver's number -->
+    <string name="wb_hear_receiver">Hear receiver %1$d (and show it here)</string>
+    <string name="wb_rx_type_frequency">Type a frequency in MHz, for example 437 or 10491.5</string>
+    <string name="wb_tune">Tune</string>
+    <!-- The phone as the box's camera -->
+    <string name="wb_cam_permission">The camera and microphone are needed to send a picture to the box.</string>
+    <string name="wb_cam_allow">Allow camera and microphone</string>
+    <string name="wb_cam_sending">● Sending to the box</string>
+    <string name="wb_cam_connecting">Connecting to the box…</string>
+    <string name="wb_cam_title">Camera to the box</string>
+    <!-- %1$s where the phone sends: the box's address and port (data) -->
+    <string name="wb_cam_how">1280×720, 30 frames a second, 2.5 Mb/s H.264 with sound, over SRT to %1$s. Order: make the camera the box\'s picture, send, wait for \"the box is receiving\", then transmit.</string>
+    <!-- %1$s the name of the box's picture source -->
+    <string name="wb_cam_box_picture">Box picture: %1$s</string>
+    <string name="wb_cam_use_stream">Use the phone camera as the box\'s picture</string>
+    <!-- %1$s the protocol the box's Stream source listens for, as an identifier (RTMP) -->
+    <string name="wb_cam_not_srt">The box\'s Stream source listens for %1$s; this app sends SRT.</string>
+    <string name="wb_cam_switch_srt">Switch the box to SRT</string>
+    <!-- %1$d a data rate in kilobits a second -->
+    <string name="wb_kbps">%1$d kb/s</string>
+    <!-- %1$s what arrives, as the box describes it ("H264 1280×720 · AAC stereo · 2500 kb/s") -->
+    <string name="wb_cam_receiving">The box is receiving: %1$s</string>
+    <string name="wb_cam_receiving_on_air">The box is receiving: %1$s · on air</string>
+    <string name="wb_cam_receiving_card">The box is receiving: %1$s · stream-lost card on air</string>
+    <!-- %1$d the port the box listens on -->
+    <string name="wb_cam_listening">The box is listening on port %1$d: nothing connected yet</string>
+    <!-- %1$s the listener's state or error, in the box's words -->
+    <string name="wb_cam_listener">The box\'s listener: %1$s</string>
+    <string name="wb_cam_passphrase">SRT passphrase (set on the box)</string>
+    <string name="wb_cam_use_back">Use back camera</string>
+    <string name="wb_cam_use_front">Use front camera</string>
+    <string name="wb_cam_stop">Stop sending</string>
+    <string name="wb_cam_not_answered">OpenHamShack has not answered yet</string>
+    <string name="wb_cam_send">Send to the box</string>
+    <!-- The QO-100 page and its spectrum -->
+    <string name="wb_graph_tx">TX</string>
+    <string name="wb_graph_beacon">Beacon</string>
+    <string name="wb_graph_over_power">[over-power]</string>
+    <!-- Over a signal on the spectrum: %1$d its symbol rate in kS, %2$s its frequency in MHz -->
+    <string name="wb_graph_rate_at">%1$d kS %2$s</string>
+    <string name="wb_waterfall_description">QO-100 waterfall, the last three minutes</string>
+    <!-- %1$s frequency in MHz, %2$d symbol rate in kS -->
+    <string name="wb_qo100_tuning">Tuning %1$s · %2$d kS…</string>
+    <!-- The spectrum's source when the box does not name it -->
+    <string name="wb_qo100_default_source">BATC QO-100 wideband spectrum monitor</string>
+    <!-- %1$s the spectrum's source (its name) -->
+    <string name="wb_qo100_credit">Spectrum: %1$s, Goonhilly · via the box</string>
+    <!-- %1$s the spectrum's source, %2$s its web address -->
+    <string name="wb_qo100_credit_url">Spectrum: %1$s, Goonhilly · %2$s · via the box</string>
+    <string name="wb_qo100_credit_tv">Spectrum: %1$s, Goonhilly, via the box</string>
+    <string name="wb_qo100_tune_receiver">Tune receiver</string>
+    <!-- %1$s the LNB's local oscillator in MHz, %2$s the tuner's frequency in MHz, %3$s the lock line -->
+    <string name="wb_qo100_through_lnb">Receiving through the LNB: LO %1$s MHz, tuner at %2$s MHz · %3$s</string>
+    <string name="wb_qo100_terrestrial">The receiver is on a terrestrial frequency (no LNB). Tap a signal to receive QO-100.</string>
+    <string name="wb_qo100_on_transponder">On the transponder now</string>
+    <string name="wb_qo100_nothing_found">Nothing found on the transponder now.</string>
+    <string name="wb_qo100_no_signals_yet">No signals until the spectrum arrives.</string>
+    <string name="wb_qo100_waiting">Waiting for the spectrum…</string>
+    <!-- %1$s the beacon's frequency in MHz, %2$d its symbol rate in kS -->
+    <string name="wb_qo100_receive_beacon">Receive the beacon, %1$s · %2$d kS</string>
+    <string name="wb_qo100_offer_title">No signal found there now</string>
+    <!-- %1$s the tapped frequency in MHz -->
+    <string name="wb_qo100_offer_text">Nothing is on the transponder at %1$s MHz at the moment. Receive it anyway?</string>
+    <!-- %1$s the tapped frequency in MHz, %2$d the symbol rate in kS -->
+    <string name="wb_qo100_offer_receive">Receive %1$s at %2$d kS</string>
+    <!-- %1$d the symbol rate a signal is tuned at, in kS -->
+    <string name="wb_qo100_rate">%1$d kS</string>
+    <!-- %1$d the rate it is tuned at, %2$d the rate measured on the spectrum, both kS -->
+    <string name="wb_qo100_rate_measured">%1$d kS (measured %2$d)</string>
+    <!-- %1$s a level in dB above the noise floor, already formatted -->
+    <string name="wb_qo100_above_floor">%1$s dB above the floor</string>
+    <string name="wb_qo100_over_power">over-power</string>
+    <string name="wb_qo100_receiving">Receiving</string>
+    <!-- %1$s the numbers of the receivers on this signal ("1, 2") -->
+    <string name="wb_qo100_receiving_on">Receiving · Rx %1$s</string>
+    <!-- The TV's QO-100 screen -->
+    <string name="wb_tv_qo100_title">QO-100 wideband</string>
+    <!-- After a signal's rate and level: it is over the power the band plan allows. Short: one line -->
+    <string name="wb_tv_qo100_over">over</string>
+    <!-- At the end of a signal's row: a receiver is on it, or OK tunes to it. Short -->
+    <string name="wb_tv_qo100_on">On</string>
+    <string name="wb_tv_qo100_ok">OK</string>
+    <string name="wb_tv_qo100_view_only_pin">View only: tuning needs the box\'s remote PIN.</string>
+    <string name="wb_tv_qo100_view_only_no_pin">View only: this box has no remote PIN, so it cannot be tuned from here.</string>
+    <string name="wb_close">Close</string>
+    <string name="wb_tv_pin_hint">The PIN set on the box (Settings › Security). This TV keeps the session, not the PIN.</string>
+    <!-- The TV's tuning panel -->
+    <string name="wb_tv_waiting_box">Waiting for the box to answer…</string>
+    <!-- %1$d the receiver's number, when the box has several -->
+    <string name="wb_tv_tune_receiver">Tune receiver %1$d</string>
+    <string name="wb_tv_tune_view_only_pin">View only: the picture needs no PIN, but tuning changes the box. Enter its remote PIN to tune from this TV.</string>
+    <string name="wb_tv_tune_view_only_no_pin">View only: this box has no remote PIN, so nothing can be changed from here. Set one on the box\'s screen (Settings › Security).</string>
+    <string name="wb_tv_section_receiver">Receiver</string>
+    <string name="wb_tv_section_band">Band</string>
+    <string name="wb_tv_section_frequency">Frequency</string>
+    <!-- %1$s the frequency arrived at with left/right, in MHz -->
+    <string name="wb_tv_nudge_pending">OK tunes to %1$s MHz · Back puts it back</string>
+    <!-- %1$s the step, with its unit ("0.1 MHz") -->
+    <string name="wb_tv_nudge_hint">◀ ▶ moves by %1$s, then OK tunes</string>
+    <string name="wb_tv_step">Step %1$s</string>
+    <string name="wb_tv_type_frequency">Type a frequency…</string>
+    <string name="wb_tv_section_rate_qo100">Symbol rate, QO-100 (kS)</string>
+    <string name="wb_tv_section_rate_terrestrial">Symbol rate, terrestrial (kS)</string>
+    <string name="wb_tv_other">Other…</string>
+    <string name="wb_tv_frequency_title">Frequency in MHz</string>
+    <string name="wb_tv_frequency_help">For example 437 or 10491.5. 10 GHz and up goes through the LNB.</string>
+    <string name="wb_tv_rate_title">Symbol rate in kS</string>
+    <string name="wb_tv_rate_help">For example 333.</string>
+    <string name="wb_ok">OK</string>
+</resources>

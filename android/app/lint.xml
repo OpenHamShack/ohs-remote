@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Lint's own string rules raised to errors (docs/I18N.md, I18N.md §3.1):
+     a literal in an XML layout or a TextView.setText with a concatenation
+     fails the build rather than warning. -->
+<lint>
+    <issue id="HardcodedText" severity="error" />
+    <issue id="SetTextI18n" severity="error" />
+</lint>

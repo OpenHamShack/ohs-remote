@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The Icom kind's English catalog (docs/I18N.md). The kind's own, apart from
+  the host app's, because the kind is a library that moves into
+  OpenHamShack Remote whole. Whole sentences with numbered placeholders;
+  callsigns, mode names (FT8, USB-D) and frequencies arrive through the
+  placeholders already formatted and are never translated. Layouts leave
+  room for text 40% longer than this.
+-->
+<resources>
+    <!-- Heard: everything the decoders heard, as a list. -->
+    <string name="heard_title">Heard</string>
+    <string name="heard_tab_decodes">Decodes</string>
+    <string name="heard_tab_stations">Stations heard</string>
+    <string name="heard_tab_aprs">APRS</string>
+    <string name="heard_tab_cw">CW</string>
+    <string name="heard_tab_dv">D-STAR</string>
+    <!-- A tab's name and how many rows it has: "Decodes (12)". -->
+    <string name="heard_tab_count">%1$s (%2$d)</string>
+    <!-- %1$s is a digital mode's name, as an identifier: FT8, FT4 or JS8. -->
+    <string name="heard_start_decoder">Start %1$s decoding</string>
+    <string name="heard_start_aprs">Start the APRS receiver</string>
+    <string name="heard_tune_aprs">Tune to %1$s in FM</string>
+    <string name="heard_nothing">Nothing yet.</string>
+    <string name="heard_hint">OK tunes to it  ·  Back returns to the radio</string>
+    <string name="heard_hint_back">◀ ▶ tabs  ·  Back returns to the radio</string>
+    <!-- %1$s is who holds the decoder, as the Icom module names it. -->
+    <string name="heard_sub_decoding">Decoding %1$s. Newest first; OK puts the dial where it was heard, in USB-D.</string>
+    <string name="heard_sub_no_decoder">No decoder running. Start one below, or from StationFlow\'s page.</string>
+    <string name="heard_sub_stations">One row per station decoded in the last half hour, newest first.</string>
+    <string name="heard_sub_aprs">APRS stations heard. OK tunes to the channel in FM.</string>
+    <!-- The CW tab: the box reads Morse in CW and CW-R at the radio's pitch -->
+    <string name="heard_sub_cw">Morse read by the box while the radio is in CW or CW-R. Newest at the end.</string>
+    <string name="heard_sub_cw_off">The radio is not in CW: put it in CW or CW-R to read Morse.</string>
+    <string name="heard_sub_dv">D-STAR calls the radio has received, newest first.</string>
+    <!-- %1$s is a distance, already formatted for the locale. -->
+    <string name="heard_distance_km">%1$s km</string>
+
+    <!-- SSTV: the pictures the module kept. -->
+    <string name="sstv_receiving">Receiving a picture</string>
+    <!-- %1$d is how much of the picture has arrived, in percent. -->
+    <string name="sstv_receiving_progress">Receiving a picture · %1$d%%</string>
+    <string name="sstv_none">No pictures yet.</string>
+    <plurals name="sstv_count">
+        <item quantity="one">%d picture, newest first. OK shows it full screen.</item>
+        <item quantity="other">%d pictures, newest first. OK shows one full screen.</item>
+    </plurals>
+
+    <!-- Lines the session says in a banner (Said.kt). -->
+    <!-- %1$s the callsign of the decode or spot -->
+    <string name="session_no_frequency_for">No frequency to tune to for %1$s</string>
+    <string name="session_no_frequency">No frequency to tune to for that</string>
+    <!-- %1$s callsign, frequency and mode as data, already joined ("G4ABC 144.174 MHz USB-D") -->
+    <string name="session_tuned_to">Tuned to %1$s</string>
+    <!-- %1$s a digital mode's name, as an identifier: FT8 -->
+    <string name="session_decoding">Decoding %1$s</string>
+    <string name="session_sstv_started">SSTV receiver started</string>
+    <string name="session_aprs_started">APRS receiver started</string>
+    <string name="session_view_only">View only: this TV may listen but not tune</string>
+    <string name="session_no_radio">The radio is not connected to StationFlow</string>
+    <!-- %1$s the module's reason, in its words -->
+    <string name="session_not_allowed">Not allowed from here: %1$s</string>
+    <string name="session_refused">Refused</string>
+    <!-- %1$s why, as the network library put it -->
+    <string name="session_no_answer">OpenHamShack Icom did not answer: %1$s</string>
+
+    <!-- The link to the module, and the radio on air elsewhere -->
+    <!-- %1$s why, as the network library put it -->
+    <string name="link_not_answering">Not answering: %1$s</string>
+    <string name="link_connecting">Connecting…</string>
+    <string name="radio_on_air">ON AIR · the radio is transmitting</string>
+
+    <!-- The band scope -->
+    <string name="scope_out_of_range">out of range</string>
+    <string name="scope_waiting">Waiting for the band scope…</string>
+
+    <!-- The radio's face (IC-9700, IC-7610, IC-705) -->
+    <string name="face_frequency">Frequency</string>
+    <string name="face_frequency_touch">Frequency: drag to tune, tap to change the step, hold to type one</string>
+    <string name="face_scope_touch">Band scope: tap to tune there, hold for its settings</string>
+    <string name="face_scope">Band scope</string>
+    <string name="face_spot_mode">Mode</string>
+    <string name="face_spot_filter">Filter</string>
+    <string name="face_spot_front_end">Preamp and attenuator</string>
+    <string name="face_spot_vfo">VFO A or B</string>
+    <!-- Over the scope, in capitals as the radio's own NO DATA is -->
+    <string name="face_no_radio">NO RADIO</string>
+    <!-- %1$s the module's reason, in its words -->
+    <string name="face_no_radio_why">NO RADIO · %1$s</string>
+    <!-- Key hints over the foot of the face, joined with "  ·  ". %1$s the tuning step with its unit -->
+    <string name="face_hint_dial">◀ ▶ tune %1$s  ·  OK quick controls  ·  hold OK: type a frequency  ·  ▲ mode  ·  ▼ scope  ·  ☰ settings  ·  Back: leave</string>
+    <!-- The quick controls row (OK on the frequency): the remote's standard map, REMOTE-KEYS.md -->
+    <string name="face_quick_step">Step %1$s</string>
+    <string name="face_quick_mute">Mute</string>
+    <string name="face_quick_unmute">Unmute</string>
+    <string name="face_quick_frequency">Frequency…</string>
+    <string name="face_quick_settings">Settings…</string>
+    <string name="face_quick_keys">Remote keys</string>
+    <string name="face_quick_done">Done</string>
+    <!-- The Icom face's words in the key legend -->
+    <string name="face_key_choose">The MODE screen</string>
+    <string name="face_key_focus_down">The scope, then the keys</string>
+    <string name="face_hint_page">OK: more keys  ·  ◀ ▶ along  ·  ▲ scope  ·  Back: leave</string>
+    <!-- %1$s the focused key's label as the radio prints it, lower case (mode, fil) -->
+    <string name="face_hint_key">OK: %1$s  ·  ◀ ▶ along  ·  ▲ scope  ·  Back: leave</string>
+    <string name="face_hint_mode">OK: choose the mode  ·  ◀ ▶ along  ·  ▼ frequency</string>
+    <string name="face_hint_filter">OK: choose the filter  ·  ◀ ▶ along  ·  ▼ frequency</string>
+    <string name="face_hint_vfo">OK: swap VFO A and B  ·  ◀ ▶ along  ·  ▼ frequency</string>
+    <!-- The radio's own receive settings, with what the radio says now (OFF, P.AMP, 10dB). -->
+    <string name="face_hint_preamp">OK: P.AMP and ATT, now %1$s  ·  ◀ ▶ along  ·  ▼ frequency</string>
+    <!-- The same, when EXT is not offered: %1$s the setting now, %2$s preamp_ext_menu_off or _unread. -->
+    <string name="face_hint_preamp_note">OK: P.AMP and ATT, now %1$s (%2$s)  ·  ◀ ▶ along  ·  ▼ frequency</string>
+    <string name="face_hint_scope">OK: adjust the scope  ·  ▲ frequency  ·  ▼ keys</string>
+    <string name="face_hint_scope_adjusting">▲ ▼ reference level  ·  ◀ ▶ zoom  ·  OK: scope settings  ·  Back: done</string>
+    <string name="face_hint_scope_look">OK: scope colours and averaging  ·  ▲ frequency  ·  ▼ keys</string>
+    <!-- The face's overlays: the radio's MODE and filter screens, its front end, the SET key's sheet -->
+    <string name="face_mode_title">MODE</string>
+    <string name="face_filter_title">FILTER</string>
+    <string name="face_front_end_title">P.AMP / ATT</string>
+    <string name="face_overlay_hint">OK chooses  ·  Back closes</string>
+    <string name="face_panel_back">◀ ▶ change  ·  OK next  ·  Back closes</string>
+    <string name="face_settings_title">Settings</string>
+    <string name="face_settings_receive">Receive</string>
+    <string name="face_settings_front_end">Preamp and attenuator</string>
+    <string name="face_settings_nr2">Noise reduction (NR2)</string>
+    <string name="face_settings_nr2_note">On the box, for what you hear; decoders still get the raw audio</string>
+    <string name="face_settings_nr2_level">NR2 strength (0-100)</string>
+    <string name="face_settings_cw_pitch">CW pitch (set on the radio)</string>
+    <!-- %1$d a frequency in hertz -->
+    <string name="face_hz">%1$d Hz</string>
+    <string name="face_settings_mute">Mute this screen</string>
+    <string name="face_settings_step">Tuning step</string>
+    <string name="face_settings_display">Display</string>
+    <string name="face_settings_scope">Band scope and waterfall</string>
+    <string name="face_on">ON</string>
+    <string name="face_off">OFF</string>
+    <string name="face_scope_title">Band scope</string>
+    <string name="face_scope_radio">On the radio (everyone sees these)</string>
+    <string name="face_scope_span">Span (zoom)</string>
+    <string name="face_scope_span_note">Zooming puts the scope in centre mode</string>
+    <string name="face_scope_ref">Reference level</string>
+    <string name="face_scope_speed">Sweep speed</string>
+    <string name="face_scope_mode">Centre or fixed</string>
+    <string name="face_scope_edge">Fixed edge</string>
+    <string name="face_scope_vbw">Video bandwidth</string>
+    <string name="face_scope_radio_avg">Radio averaging</string>
+    <string name="face_scope_look">On this screen</string>
+    <string name="face_look_palette">Waterfall colours</string>
+    <string name="face_look_contrast">Waterfall contrast</string>
+    <string name="face_look_brightness">Waterfall brightness</string>
+    <string name="face_look_trace">Trace</string>
+    <string name="face_look_fill">FILL</string>
+    <string name="face_look_line">LINE</string>
+    <string name="face_look_averaging">Trace averaging</string>
+    <string name="face_look_reset">Back to the radio\'s look</string>
+    <string name="palette_radio">Radio</string>
+    <string name="palette_rainbow">Rainbow</string>
+    <string name="palette_grey">Grey</string>
+    <string name="palette_fire">Fire</string>
+    <string name="palette_ocean">Ocean</string>
+    <string name="palette_green">Green</string>
+    <!-- D-STAR, under the face in DV mode: the radio's RX call sign display -->
+    <string name="dv_label">DV</string>
+    <string name="dv_listening">Listening for D-STAR…</string>
+    <!-- %1$s the repeater's callsign and module, as the radio reports RPT1 -->
+    <string name="dv_via">via %1$s</string>
+    <string name="dv_seconds_ago">%1$d s ago</string>
+    <string name="dv_minutes_ago">%1$d min ago</string>
+    <string name="dv_hours_ago">%1$d h ago</string>
+    <string name="dv_heard_none">Nobody heard yet</string>
+    <!-- Why the P.AMP key does not offer an IC-9700's external preamp on this band: the radio's own
+         SET > Connectors > External P.AMP entry is off, or has not been read yet. Short: a TV hint line. -->
+    <string name="preamp_ext_menu_off">EXT P.AMP off in radio menu</string>
+    <string name="preamp_ext_menu_unread">EXT P.AMP: radio menu not read yet</string>
+    <string name="hint_view_only">View only - sign in to tune</string>
+    <!-- Under the radio's face in CW or CW-R, before the module's CW decoder has read a letter -->
+    <string name="cw_listening">Listening for CW…</string>
+
+    <!-- The plain TV screen, for a radio without a face of its own -->
+    <!-- %1$s the SSTV mode, as an identifier (Robot 36) -->
+    <string name="tv_sstv_arrived">New SSTV picture (%1$s) - SSTV… to see it</string>
+    <!-- %1$s the tuning step with its unit -->
+    <string name="tv_hint_dial">◀ ▶ tune %1$s  ·  OK change step  ·  ▼ mode, band, screens  ·  ⏯ mute  ·  Back: leave</string>
+    <string name="tv_hint_chips">OK changes it  ·  ◀ ▶ along  ·  ▲ the dial  ·  ▼ what was heard  ·  CH+/CH− band</string>
+    <string name="tv_hint_strip">OK tunes to it  ·  ◀ ▶ along  ·  ▲ back up  ·  Decodes… for the full list</string>
+    <!-- %1$s the Icom module's version -->
+    <string name="tv_module_version">OpenHamShack Icom %1$s</string>
+    <string name="tv_radio_switching">Changing radio…</string>
+    <string name="tv_radio_not_connected">Radio not connected</string>
+    <!-- %1$s the module's reason -->
+    <string name="tv_radio_not_connected_why">Radio not connected: %1$s</string>
+    <!-- %1$s the module's word for its link to the radio (connecting, lost) -->
+    <string name="tv_radio_state">Radio %1$s</string>
+    <!-- %1$s the module's word for its link, %2$s its reason -->
+    <string name="tv_radio_state_why">Radio %1$s: %2$s</string>
+    <string name="tv_radio_connected">Radio connected</string>
+    <!-- The clock: %1$d hours, %2$d minutes, %3$d seconds, in UTC -->
+    <string name="tv_clock_utc">%1$02d:%2$02d:%3$02d UTC</string>
+    <string name="tv_step">STEP</string>
+    <!-- %1$s the audio's error, in the player's words -->
+    <string name="audio_error">No audio: %1$s</string>
+    <string name="audio_muted">Muted</string>
+    <!-- %1$d the audio's sample rate in kHz -->
+    <string name="audio_playing">♪ %1$d kHz</string>
+    <string name="audio_buffering">♪ buffering</string>
+    <string name="audio_connecting">♪ connecting</string>
+    <!-- The chips under the dial: a name, then the value beside it -->
+    <string name="chip_mode">Mode</string>
+    <string name="chip_filter">Filter</string>
+    <string name="chip_band">Band</string>
+    <string name="chip_vfo">VFO</string>
+    <string name="chip_preamp">Preamp</string>
+    <string name="chip_att">Attenuator</string>
+    <string name="chip_audio">Audio</string>
+    <string name="chip_audio_on">On</string>
+    <string name="chip_tune">Tune…</string>
+    <string name="chip_decodes">Decodes…</string>
+    <string name="chip_sstv">SSTV…</string>
+    <string name="strip_spots">Stations heard - OK tunes to one</string>
+    <string name="strip_decodes">Latest decodes - OK tunes to one</string>
+    <string name="strip_empty">Nothing decoded yet. Start a decoder from Decodes &amp; spots…</string>
+
+    <!-- The Tune panel -->
+    <string name="tune_title">Tune</string>
+    <string name="tune_view_only">View only: this TV may listen but not tune. Sign in with StationFlow\'s password to tune.</string>
+    <string name="tune_sign_in">Sign in…</string>
+    <string name="tune_frequency">Frequency</string>
+    <string name="tune_type_frequency">Type a frequency…</string>
+    <string name="tune_step">Step for ◀ ▶ on the dial</string>
+    <string name="tune_vfo_split">VFO and split</string>
+    <string name="tune_split_on">Split on</string>
+    <string name="tune_split_off">Split off</string>
+    <string name="tune_back_closes">Back closes. Menu on the remote opens this from anywhere.</string>
+    <string name="tune_close">Close</string>
+    <string name="tune_frequency_help">In MHz, for example 145.5 or 432.2 or 1296.2. kHz works too (145500).</string>
+    <string name="tune_type_frequency_error">Type a frequency in MHz, for example 145.5</string>
+
+    <!-- SSTV, continued -->
+    <string name="sstv_auto_on">New pictures full screen: on</string>
+    <string name="sstv_auto_off">New pictures full screen: off</string>
+    <string name="sstv_start">Start the SSTV receiver</string>
+    <string name="sstv_live_description">picture coming in</string>
+    <string name="sstv_coming_in">Coming in…</string>
+    <string name="sstv_no_picture">No picture</string>
+    <string name="sstv_loading">Loading…</string>
+    <!-- Under a picture full screen: %1$s its caption, %2$d which picture, %3$d how many -->
+    <string name="sstv_viewer_caption">%1$s   ·   %2$d of %3$d   ·   ◀ ▶ more   ·   Back closes</string>
+    <!-- When a picture arrived, in UTC: %1$d hour, %2$d minute, %3$d day, %4$d month -->
+    <string name="sstv_time">%1$02d:%2$02d UTC %3$02d/%4$02d</string>
+    <string name="sstv_incomplete">incomplete</string>
+</resources>

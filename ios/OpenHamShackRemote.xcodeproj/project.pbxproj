@@ -1,0 +1,448 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		7FA61484FC45C0DA4549A8B3 /* OpenHamShackCamera in Frameworks */ = {isa = PBXBuildFile; productRef = 4CAC2B626261BD9C9D3B3649 /* OpenHamShackCamera */; };
+		A2954DA4B1FE38AD84CDB225 /* OpenHamShackPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = BD62615F9F9B9BB22F698DA2 /* OpenHamShackPlayer */; };
+		AD279A2EF19BBBB93CDA897D /* OpenHamShackKit in Frameworks */ = {isa = PBXBuildFile; productRef = 9C4728FD0A943B411A7FF379 /* OpenHamShackKit */; };
+		EA66D002D9EEE52C39D3267A /* OpenHamShackKit in Frameworks */ = {isa = PBXBuildFile; productRef = BA22006D716FF6E575203B4D /* OpenHamShackKit */; };
+		EE1616841915BB09932D9A54 /* OpenHamShackPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = E681E9697798385E7FB046AF /* OpenHamShackPlayer */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		75EA0E1E0C9DC939F7CFD66E /* OpenHamShackRemoteTV.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenHamShackRemoteTV.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AB778218D4D8E6A3390CC350 /* iPad-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "iPad-Info.plist"; sourceTree = "<group>"; };
+		F9D41BF2D1A473CF1F0FF9AC /* TV-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "TV-Info.plist"; sourceTree = "<group>"; };
+		FCBAFA9595B99F1453A842A8 /* OpenHamShackRemote.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenHamShackRemote.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		1D19F64C38DC46D47736834A /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		6DB5DC2A2F3E20C53BB50F75 /* TV */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TV;
+			sourceTree = "<group>";
+		};
+		AD28A248541A23F31CA9ADE1 /* App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = App;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D5740A61CD88851D4C88350B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AD279A2EF19BBBB93CDA897D /* OpenHamShackKit in Frameworks */,
+				A2954DA4B1FE38AD84CDB225 /* OpenHamShackPlayer in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F15F62FCE643CA956DDE68BF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EA66D002D9EEE52C39D3267A /* OpenHamShackKit in Frameworks */,
+				EE1616841915BB09932D9A54 /* OpenHamShackPlayer in Frameworks */,
+				7FA61484FC45C0DA4549A8B3 /* OpenHamShackCamera in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		664F835B1ED89846DAB355B5 /* main */ = {
+			isa = PBXGroup;
+			children = (
+				AD28A248541A23F31CA9ADE1 /* App */,
+				1D19F64C38DC46D47736834A /* Shared */,
+				6DB5DC2A2F3E20C53BB50F75 /* TV */,
+				E76017BAC293DAA190BCB5D9 /* Config */,
+				BE43C1D0D811957F17D2EEBB /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		BE43C1D0D811957F17D2EEBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FCBAFA9595B99F1453A842A8 /* OpenHamShackRemote.app */,
+				75EA0E1E0C9DC939F7CFD66E /* OpenHamShackRemoteTV.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E76017BAC293DAA190BCB5D9 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				F9D41BF2D1A473CF1F0FF9AC /* TV-Info.plist */,
+				AB778218D4D8E6A3390CC350 /* iPad-Info.plist */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		9FBA399372A6BC7C5D680F17 /* OpenHamShackRemote */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 408F1FD9163DAB5E6B911954 /* Build configuration list for PBXNativeTarget "OpenHamShackRemote" */;
+			buildPhases = (
+				2F0A59176EA7BFB0A2BBDBAD /* Sources */,
+				F15F62FCE643CA956DDE68BF /* Frameworks */,
+				B5988824AA34BEF404065C59 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				AD28A248541A23F31CA9ADE1 /* App */,
+				1D19F64C38DC46D47736834A /* Shared */,
+			);
+			name = OpenHamShackRemote;
+			packageProductDependencies = (
+				BA22006D716FF6E575203B4D /* OpenHamShackKit */,
+				E681E9697798385E7FB046AF /* OpenHamShackPlayer */,
+				4CAC2B626261BD9C9D3B3649 /* OpenHamShackCamera */,
+			);
+			productName = OpenHamShackRemote;
+			productReference = FCBAFA9595B99F1453A842A8 /* OpenHamShackRemote.app */;
+			productType = "com.apple.product-type.application";
+		};
+		F1E60D8D44BE47BC9A6C5742 /* OpenHamShackRemoteTV */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E1E27D7CBEBD55F4508A9013 /* Build configuration list for PBXNativeTarget "OpenHamShackRemoteTV" */;
+			buildPhases = (
+				0CFF718522C163657BC96234 /* Sources */,
+				D5740A61CD88851D4C88350B /* Frameworks */,
+				66984C67CFECA91112953A76 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				6DB5DC2A2F3E20C53BB50F75 /* TV */,
+				1D19F64C38DC46D47736834A /* Shared */,
+			);
+			name = OpenHamShackRemoteTV;
+			packageProductDependencies = (
+				9C4728FD0A943B411A7FF379 /* OpenHamShackKit */,
+				BD62615F9F9B9BB22F698DA2 /* OpenHamShackPlayer */,
+			);
+			productName = OpenHamShackRemoteTV;
+			productReference = 75EA0E1E0C9DC939F7CFD66E /* OpenHamShackRemoteTV.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		244210E48437B6556980A702 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					9FBA399372A6BC7C5D680F17 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					F1E60D8D44BE47BC9A6C5742 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+				};
+			};
+			buildConfigurationList = FF3073BB03FC1B260FCC11B7 /* Build configuration list for PBXProject "OpenHamShackRemote" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 664F835B1ED89846DAB355B5;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				25CED18419545A6E11587C96 /* XCLocalSwiftPackageReference "OpenHamShackKit" */,
+				DD3574594421411332B8548B /* XCLocalSwiftPackageReference "OpenHamShackMedia" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = BE43C1D0D811957F17D2EEBB /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				9FBA399372A6BC7C5D680F17 /* OpenHamShackRemote */,
+				F1E60D8D44BE47BC9A6C5742 /* OpenHamShackRemoteTV */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		66984C67CFECA91112953A76 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B5988824AA34BEF404065C59 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0CFF718522C163657BC96234 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2F0A59176EA7BFB0A2BBDBAD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1C6A1992BD7447F5771E74F3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "1";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/TV-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = OpenHamShack;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = "0.1.0";
+				PRODUCT_BUNDLE_IDENTIFIER = com.openhamshack.remote;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				SUPPORTED_PLATFORMS = "appletvos appletvsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = "5.0";
+				TARGETED_DEVICE_FAMILY = "3";
+				TVOS_DEPLOYMENT_TARGET = "17.0";
+			};
+			name = Debug;
+		};
+		33405338E0723E8A7BB9520A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				"EXCLUDED_ARCHS[sdk=appletvsimulator*]" = x86_64;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = "5.0";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		345BD71F142EAA7FD0191593 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "1";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/TV-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = OpenHamShack;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = "0.1.0";
+				PRODUCT_BUNDLE_IDENTIFIER = com.openhamshack.remote;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				SUPPORTED_PLATFORMS = "appletvos appletvsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = "5.0";
+				TARGETED_DEVICE_FAMILY = "3";
+				TVOS_DEPLOYMENT_TARGET = "17.0";
+			};
+			name = Release;
+		};
+		44E3539CC01ABF6DC0901BAA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "1";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/iPad-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "OpenHamShack Remote";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarHidden = NO;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = "17.0";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = "0.1.0";
+				PRODUCT_BUNDLE_IDENTIFIER = com.openhamshack.remote;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = "5.0";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		5374202B64886C4B1A4CCD19 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "1";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/iPad-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "OpenHamShack Remote";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarHidden = NO;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = "17.0";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = "0.1.0";
+				PRODUCT_BUNDLE_IDENTIFIER = com.openhamshack.remote;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = "5.0";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		9A242D13478919EAD3BDDECB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				"EXCLUDED_ARCHS[sdk=appletvsimulator*]" = x86_64;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_OPTIMIZATION_LEVEL = "0";
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = "5.0";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		408F1FD9163DAB5E6B911954 /* Build configuration list for PBXNativeTarget "OpenHamShackRemote" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5374202B64886C4B1A4CCD19 /* Debug */,
+				44E3539CC01ABF6DC0901BAA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E1E27D7CBEBD55F4508A9013 /* Build configuration list for PBXNativeTarget "OpenHamShackRemoteTV" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1C6A1992BD7447F5771E74F3 /* Debug */,
+				345BD71F142EAA7FD0191593 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FF3073BB03FC1B260FCC11B7 /* Build configuration list for PBXProject "OpenHamShackRemote" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9A242D13478919EAD3BDDECB /* Debug */,
+				33405338E0723E8A7BB9520A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		25CED18419545A6E11587C96 /* XCLocalSwiftPackageReference "OpenHamShackKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = OpenHamShackKit;
+		};
+		DD3574594421411332B8548B /* XCLocalSwiftPackageReference "OpenHamShackMedia" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = OpenHamShackMedia;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		4CAC2B626261BD9C9D3B3649 /* OpenHamShackCamera */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OpenHamShackCamera;
+		};
+		9C4728FD0A943B411A7FF379 /* OpenHamShackKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OpenHamShackKit;
+		};
+		BA22006D716FF6E575203B4D /* OpenHamShackKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OpenHamShackKit;
+		};
+		BD62615F9F9B9BB22F698DA2 /* OpenHamShackPlayer */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OpenHamShackPlayer;
+		};
+		E681E9697798385E7FB046AF /* OpenHamShackPlayer */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OpenHamShackPlayer;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 244210E48437B6556980A702 /* Project object */;
+}

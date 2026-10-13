@@ -1,0 +1,456 @@
+{
+    "onAir": false,
+    "netBps": 429832,
+    "config": {
+        "callsign": "M0TST",
+        "radio": "pluto",
+        "host": "192.0.2.1",
+        "mqttPort": 1883,
+        "sendMqtt": false,
+        "tsPort": 8282,
+        "mode": "dvbs2",
+        "constellation": "qpsk",
+        "fec": "2/3",
+        "frame": "long",
+        "pilots": true,
+        "symbolRateKs": 333,
+        "frequencyMHz": 437.0,
+        "gainDb": -10,
+        "codec": "hevc",
+        "audio": "aac",
+        "audioKbps": 32,
+        "source": "testcard",
+        "testCard": "pattern",
+        "testcardAudio": "tone",
+        "videoDevice": "/dev/video0",
+        "videoDeviceName": "",
+        "audioDevice": "auto",
+        "audioDeviceName": "",
+        "videoFile": "",
+        "videoLoop": true,
+        "streamProtocol": "srt",
+        "streamPort": 19710,
+        "streamLatencyMs": 200,
+        "rxAudioDevice": "auto",
+        "rxLowLatency": true,
+        "callsignOverlay": true,
+        "overlay": [
+            {
+                "id": "call",
+                "type": "text",
+                "text": "{callsign}",
+                "x": 0.98125,
+                "y": 0.0333,
+                "size": 0.0833,
+                "align": "right",
+                "color": "white",
+                "box": true
+            }
+        ],
+        "locator": "IO85jw",
+        "rolloff": "0.20",
+        "keyframeSeconds": 2,
+        "denoise": 12,
+        "rxRecord": false,
+        "txPreview": true,
+        "txTimeoutMin": 10,
+        "pttOutput": "off",
+        "pttRelay": "",
+        "pttRelayName": "",
+        "pttRelayChannel": 1,
+        "pttRelayBaud": 9600,
+        "pttPaDelayMs": 100,
+        "pttTailMs": 200,
+        "netStreamOn": false,
+        "netStreamHost": "",
+        "netStreamPort": 5004,
+        "padBrightness": 60,
+        "screenLayout": "auto",
+        "oneScreen": "split",
+        "consoleDensity": "auto",
+        "recordTo": "internal",
+        "updateUrl": "https://example.invalid/latest.json",
+        "updateChannel": "stable",
+        "autoUpdate": true,
+        "autoReport": false,
+        "checkIn": false,
+        "licenceRegion": "scotland",
+        "nov146": true,
+        "captureFormat": "",
+        "captureWidth": 0,
+        "captureHeight": 0,
+        "width": 768,
+        "height": 432,
+        "fps": 15,
+        "autoSize": true,
+        "headroomPct": 4,
+        "sink": "udp",
+        "rxEnabled": true,
+        "rxTuner": "minitiouner",
+        "rxFrequencyMHz": 437.0,
+        "rxSymbolRateKs": 333,
+        "rxOffsetMHz": 0,
+        "qo100LnbMHz": 9750,
+        "chatName": "",
+        "qo100PlutoSpectrum": false,
+        "qo100PlutoGainDb": 40,
+        "hamtvOffsetMHz": 0,
+        "rxLnbSupply": "off",
+        "picoHost": "198.51.100.50",
+        "youtubeEnabled": false,
+        "youtubeSource": "rx",
+        "youtubeMode": "copy",
+        "youtubeUrl": "rtmps://a.rtmps.youtube.com/live2",
+        "setupDone": true,
+        "remotePinSet": true,
+        "streamPassphraseSet": true
+    },
+    "rx": {
+        "locked": true,
+        "usbTuner": "MiniTiouner",
+        "label": "Locked DVB-S2",
+        "recording": null,
+        "mer": 10.9,
+        "name": "GB3FB",
+        "provider": "fakebox",
+        "video": {
+            "width": 1280,
+            "height": 720,
+            "codec": "h264",
+            "fps": 25
+        },
+        "modcod": "QPSK 2/3",
+        "needDb": 3.1,
+        "marginDb": 7.8,
+        "band": "good",
+        "advice": null
+    },
+    "tx": {
+        "mux": 412638,
+        "video": 340174,
+        "audio": 32000,
+        "width": 768,
+        "height": 432,
+        "fps": 15
+    },
+    "txError": "",
+    "linkHint": null,
+    "txMonitor": null,
+    "txNote": null,
+    "encoder": null,
+    "qo100Pluto": null,
+    "txTimeout": null,
+    "onAirSeconds": null,
+    "txCheck": null,
+    "version": "0.9.16",
+    "txBlocked": "",
+    "pttOutput": {
+        "mode": "off",
+        "stuck": "",
+        "testing": false,
+        "paDelayMs": 100,
+        "tailMs": 200,
+        "on": false
+    },
+    "battery": null,
+    "callsignNeeded": false,
+    "setupNeeded": false,
+    "clock": {
+        "state": "unknown",
+        "detail": "",
+        "message": "",
+        "ntp": null,
+        "skew": null,
+        "checked": null
+    },
+    "selfTest": {
+        "state": "idle",
+        "started": null,
+        "finished": null,
+        "worst": null,
+        "checks": []
+    },
+    "storage": [
+        {
+            "name": "internal",
+            "label": "Internal",
+            "free": 3633430528,
+            "total": 32522510336
+        }
+    ],
+    "media": {
+        "path": null,
+        "name": null,
+        "location": "",
+        "folder": "",
+        "chosen": false,
+        "loop": true,
+        "problem": "No video to play: upload one, or plug in a USB drive and choose one"
+    },
+    "testcard": {
+        "card": "pattern",
+        "name": "Moving pattern",
+        "audio": "tone",
+        "problem": "",
+        "cards": [
+            {
+                "id": "pattern",
+                "name": "Moving pattern",
+                "short": "MOVING",
+                "builtin": true
+            },
+            {
+                "id": "bars",
+                "name": "Colour bars",
+                "short": "BARS",
+                "builtin": true
+            },
+            {
+                "id": "greyscale",
+                "name": "Grey scale",
+                "short": "GREY",
+                "builtin": true
+            },
+            {
+                "id": "circle",
+                "name": "Circle and grid",
+                "short": "CIRCLE",
+                "builtin": true
+            },
+            {
+                "id": "callsign",
+                "name": "Callsign card",
+                "short": "CALL",
+                "builtin": true
+            }
+        ]
+    },
+    "camera": null,
+    "previewing": false,
+    "previewNote": "",
+    "youtube": {
+        "enabled": false,
+        "state": "off",
+        "message": "",
+        "since": 1791488202.563916,
+        "source": "rx"
+    },
+    "aiming": false,
+    "network": {
+        "interfaces": [
+            {
+                "name": "eno1",
+                "type": "wired",
+                "up": true,
+                "ipv4": [
+                    {
+                        "address": "198.51.100.208",
+                        "prefix": 24,
+                        "dynamic": false
+                    }
+                ]
+            },
+            {
+                "name": "tailscale0",
+                "type": "tailscale",
+                "up": true,
+                "ipv4": [
+                    {
+                        "address": "shack",
+                        "prefix": 32,
+                        "dynamic": false
+                    }
+                ]
+            }
+        ],
+        "tailnet": {
+            "name": "shack.tail547521.ts.net",
+            "ip": "shack"
+        },
+        "uptime": 1219189,
+        "changedAgo": null,
+        "port": 8080,
+        "bannerSeconds": 300,
+        "pending": null
+    },
+    "stream": {
+        "protocol": "srt",
+        "port": 19710,
+        "latencyMs": 200,
+        "secretSet": true,
+        "state": "off",
+        "message": "",
+        "note": "",
+        "since": 1791488202.563886,
+        "video": null,
+        "audio": null,
+        "kbps": null,
+        "onAir": null,
+        "urls": [
+            {
+                "via": "eno1",
+                "server": "srt://198.51.100.208:19710"
+            },
+            {
+                "via": "Tailscale",
+                "server": "srt://shack:19710"
+            }
+        ],
+        "problem": ""
+    },
+    "receivers": [
+        {
+            "locked": true,
+            "usbTuner": "MiniTiouner",
+            "label": "Locked DVB-S2",
+            "recording": null,
+            "id": 1,
+            "kind": "usb",
+            "tuner": "USB tuner",
+            "enabled": true,
+            "frequencyMHz": 437.0,
+            "symbolRateKs": 333,
+            "offsetMHz": 0,
+            "lnbSupply": "off",
+            "heard": true,
+            "enlarged": false,
+            "mer": 10.9,
+            "name": "GB3FB",
+            "provider": "fakebox",
+            "video": {
+                "width": 1280,
+                "height": 720,
+                "codec": "h264",
+                "fps": 25
+            },
+            "modcod": "QPSK 2/3",
+            "needDb": 3.1,
+            "marginDb": 7.8,
+            "band": "good",
+            "advice": null
+        }
+    ],
+    "rxView": {
+        "selected": 1,
+        "enlarged": false,
+        "tiles": [
+            1
+        ]
+    },
+    "display": {
+        "pending": null
+    },
+    "screens": {
+        "single": null,
+        "mode": null,
+        "chosen": "split",
+        "poke": 0
+    },
+    "diagSent": null,
+    "live": false,
+    "osRestart": false,
+    "autoUpdate": {
+        "phase": "idle"
+    },
+    "updateOffered": null,
+    "fecChoices": {
+        "dvbs": [
+            "1/2",
+            "2/3",
+            "3/4",
+            "5/6",
+            "7/8"
+        ],
+        "dvbs2": {
+            "qpsk": [
+                "1/4",
+                "1/3",
+                "2/5",
+                "1/2",
+                "3/5",
+                "2/3",
+                "3/4",
+                "4/5",
+                "5/6",
+                "8/9",
+                "9/10"
+            ],
+            "8psk": [
+                "3/5",
+                "2/3",
+                "3/4",
+                "5/6",
+                "8/9",
+                "9/10"
+            ],
+            "16apsk": [
+                "2/3",
+                "3/4",
+                "4/5",
+                "5/6",
+                "8/9",
+                "9/10"
+            ],
+            "32apsk": [
+                "3/4",
+                "4/5",
+                "5/6",
+                "8/9",
+                "9/10"
+            ]
+        }
+    },
+    "modcodNeedDb": {
+        "dvbs": {
+            "1/2": 1.7,
+            "2/3": 3.3,
+            "3/4": 4.2,
+            "5/6": 5.1,
+            "7/8": 5.8
+        },
+        "dvbs2": {
+            "qpsk": {
+                "1/4": -2.35,
+                "1/3": -1.24,
+                "2/5": -0.3,
+                "1/2": 1.0,
+                "3/5": 2.23,
+                "2/3": 3.1,
+                "3/4": 4.03,
+                "4/5": 4.68,
+                "5/6": 5.18,
+                "8/9": 6.2,
+                "9/10": 6.42
+            },
+            "8psk": {
+                "3/5": 5.5,
+                "2/3": 6.62,
+                "3/4": 7.91,
+                "5/6": 9.35,
+                "8/9": 10.69,
+                "9/10": 10.98
+            },
+            "16apsk": {
+                "2/3": 8.97,
+                "3/4": 10.21,
+                "4/5": 11.03,
+                "5/6": 11.61,
+                "8/9": 12.89,
+                "9/10": 13.13
+            },
+            "32apsk": {
+                "3/4": 12.73,
+                "4/5": 13.64,
+                "5/6": 14.28,
+                "8/9": 15.69,
+                "9/10": 16.05
+            }
+        }
+    },
+    "auth": {
+        "local": false,
+        "authorised": false,
+        "pinSet": true
+    },
+    "logPending": 0
+}

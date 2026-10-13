@@ -1,0 +1,51 @@
+# Pinned as of October 2026. StreamPack 3.2 needs compileSdk 37, which
+# needs AGP 9.1 or later; StreamPack is compiled with Kotlin 2.4, so the
+# Kotlin Gradle plugin must be 2.4 too (an older compiler cannot read its
+# metadata).
+[versions]
+agp = "9.4.1"
+kotlin = "2.4.21"
+composeBom = "2026.09.00"
+activityCompose = "1.13.0"
+coreKtx = "1.19.1"
+lifecycle = "2.11.0"
+datastore = "1.2.1"
+coroutines = "1.11.0"
+# libVLC 3.x is the stable line; 4.0 is still an "eap" preview.
+libvlc = "3.7.7"
+streampack = "3.2.1"
+junit = "4.13.2"
+orgJson = "20250517"
+# OpenHamShack controllers: the store apps' events are a websocket, which
+# Android has no client for; the same pin as stationflow-tv's :core-candidates.
+okhttp = "4.12.0"
+
+[libraries]
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
+androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
+compose-ui = { module = "androidx.compose.ui:ui" }
+compose-foundation = { module = "androidx.compose.foundation:foundation" }
+compose-material3 = { module = "androidx.compose.material3:material3" }
+compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+libvlc = { module = "org.videolan.android:libvlc-all", version.ref = "libvlc" }
+streampack-core = { module = "io.github.thibaultbee.streampack:streampack-core", version.ref = "streampack" }
+streampack-srt = { module = "io.github.thibaultbee.streampack:streampack-srt", version.ref = "streampack" }
+streampack-ui = { module = "io.github.thibaultbee.streampack:streampack-ui", version.ref = "streampack" }
+junit = { module = "junit:junit", version.ref = "junit" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+org-json = { module = "org.json:json", version.ref = "orgJson" }
+# The Icom kind's client tests (:kind-stationflow, :core-candidates).
+okhttp-mockwebserver = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "okhttp" }
+okhttp-tls = { module = "com.squareup.okhttp3:okhttp-tls", version.ref = "okhttp" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

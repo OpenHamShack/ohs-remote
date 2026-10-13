@@ -1,0 +1,474 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%@ MHz" : {
+
+    },
+    "%@ MHz · %@ kS" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ MHz · %2$@ kS"
+          }
+        }
+      }
+    },
+    "%@ MHz: not QO-100" : {
+
+    },
+    "%@ kS" : {
+
+    },
+    "%@ kS · %@%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ kS · %2$@%3$@"
+          }
+        }
+      }
+    },
+    "%@'s OpenHamShack" : {
+
+    },
+    "%@. Trying again…" : {
+
+    },
+    "%lld ms" : {
+
+    },
+    "0 dB is the radio's full output." : {
+
+    },
+    "198.51.100.40, openhamshack.local or 100.x.y.z" : {
+
+    },
+    "A smaller buffer keeps the picture closer to the box's own (200-300 ms suits a good Wi-Fi link); a larger one rides out a poor link. Software decoding copes better with some badly damaged pictures but uses more battery." : {
+
+    },
+    "Add a box" : {
+
+    },
+    "Add and watch" : {
+
+    },
+    "Add anyway" : {
+
+    },
+    "Address, e.g. 198.51.100.40" : {
+
+    },
+    "Back to the picture" : {
+
+    },
+    "Beacon" : {
+
+    },
+    "Box" : {
+
+    },
+    "Box screen" : {
+
+    },
+    "Boxes" : {
+
+    },
+    "Can't transmit" : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Connect" : {
+
+    },
+    "Connecting to %@…" : {
+
+    },
+    "Connecting…" : {
+
+    },
+    "Control" : {
+
+    },
+    "Control %@" : {
+
+    },
+    "Could not reach an OpenHamShack at %@: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Could not reach an OpenHamShack at %1$@: %2$@"
+          }
+        }
+      }
+    },
+    "Dismiss" : {
+
+    },
+    "Done" : {
+
+    },
+    "Enter PIN" : {
+
+    },
+    "Forget" : {
+
+    },
+    "Full screen" : {
+
+    },
+    "Hardware decoding" : {
+
+    },
+    "Hide the controls" : {
+
+    },
+    "Keep transmitting" : {
+
+    },
+    "LNB %@" : {
+
+    },
+    "Leave full screen" : {
+
+    },
+    "Left / right: %@ a press, then select" : {
+
+    },
+    "Licences" : {
+
+    },
+    "Looking for OpenHamShack boxes on this network…" : {
+
+    },
+    "Looking… A box on this Wi-Fi shows here by its callsign (OpenHamShack 0.9.17 and later). Over a tailnet, add it by address." : {
+
+    },
+    "MHz" : {
+
+    },
+    "MHz · %@ kS · LNB %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "MHz · %1$@ kS · LNB %2$@"
+          }
+        }
+      }
+    },
+    "MHz, e.g. 437.25" : {
+
+    },
+    "Menu: back to the picture" : {
+
+    },
+    "Mute" : {
+
+    },
+    "Name (optional)" : {
+
+    },
+    "No boxes yet. Add one by its address: it is on the box's own screen under Settings › Network." : {
+
+    },
+    "No camera here (the simulator has none): the test pattern stands in." : {
+
+    },
+    "No signal found at %@ MHz now." : {
+
+    },
+    "No signals found on the transponder now." : {
+
+    },
+    "No signals found." : {
+
+    },
+    "None yet: choose one found on the network, or type an address below." : {
+
+    },
+    "OK" : {
+
+    },
+    "ON AIR" : {
+
+    },
+    "On %@ MHz, not QO-100 (no LNB). Tap a signal or a channel to receive QO-100." : {
+
+    },
+    "On this network" : {
+
+    },
+    "OpenHamShack" : {
+
+    },
+    "OpenHamShack %@" : {
+
+    },
+    "OpenHamShack Remote" : {
+
+    },
+    "OpenHamShack Remote is free software under the GNU GPL, version 3. It uses VLCKit (LGPL-2.1, VideoLAN), HaishinKit (BSD-3-Clause) and libsrt (MPL-2.0, Haivision)." : {
+
+    },
+    "PIN" : {
+
+    },
+    "PIN not accepted: %@" : {
+
+    },
+    "Panel" : {
+
+    },
+    "Picture buffer" : {
+
+    },
+    "Power changes the transmission at once." : {
+
+    },
+    "Press and hold for one second to transmit" : {
+
+    },
+    "QO-100" : {
+
+    },
+    "QO-100 uplink" : {
+
+    },
+    "QO-100 wideband" : {
+
+    },
+    "QO-100 wideband spectrum" : {
+
+    },
+    "QO-100: what is on the transponder" : {
+
+    },
+    "QO-100: what is on the transponder now" : {
+
+    },
+    "Receive %@ at %@ kS" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Receive %1$@ at %2$@ kS"
+          }
+        }
+      }
+    },
+    "Received picture" : {
+
+    },
+    "Receiver" : {
+
+    },
+    "Receiver %lld" : {
+
+    },
+    "Receiver %lld is not on this box." : {
+
+    },
+    "Receiver %lld · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Receiver %1$lld · %2$@"
+          }
+        }
+      }
+    },
+    "Receiver %lld%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Receiver %1$lld%2$@"
+          }
+        }
+      }
+    },
+    "Receiving" : {
+
+    },
+    "Remote PIN" : {
+
+    },
+    "Remote PIN (optional)" : {
+
+    },
+    "Remote PIN (optional: only for tuning)" : {
+
+    },
+    "Remote id" : {
+
+    },
+    "SENDING · %lld kbit/s" : {
+
+    },
+    "Select: tune to %@ MHz%@  ·  Menu: leave it" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Select: tune to %1$@ MHz%2$@  ·  Menu: leave it"
+          }
+        }
+      }
+    },
+    "Send sound from the microphone" : {
+
+    },
+    "Send to the box as its picture" : {
+
+    },
+    "Sending to %@" : {
+
+    },
+    "Sent as Larix would: SRT to the box's Stream source, H.264 1280×720 30 fps about 2.5 Mbit/s with AAC sound. The box re-encodes it for the air. Transmit from the Transmit panel once the box says it is receiving." : {
+
+    },
+    "Set" : {
+
+    },
+    "Settings" : {
+
+    },
+    "Show receiver %lld on the box's own screen" : {
+
+    },
+    "Show the controls" : {
+
+    },
+    "Sign in" : {
+
+    },
+    "Sign in above to tune: watching needs no PIN, tuning does." : {
+
+    },
+    "Sign out on %@" : {
+
+    },
+    "Signing in…" : {
+
+    },
+    "Source" : {
+
+    },
+    "Starting…" : {
+
+    },
+    "Stop" : {
+
+    },
+    "Stop sending" : {
+
+    },
+    "The PIN set on the box's touchscreen, Settings › Security. This Apple TV stays signed in to the box until the PIN is changed there." : {
+
+    },
+    "The address is on the box's own screen, Settings › Network." : {
+
+    },
+    "The box is transmitting" : {
+
+    },
+    "The box's address is on its own screen, Settings › Network. Port 8080 unless you add another, e.g. 198.51.100.40:8081." : {
+
+    },
+    "The box's picture is %@, not %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The box's picture is %1$@, not %2$@."
+          }
+        }
+      }
+    },
+    "The remote PIN set on the box's touchscreen (Settings › Security). This iPad stays signed in to %@ until you sign out or the PIN is cleared on the box." : {
+
+    },
+    "The remote PIN set on the box's touchscreen (Settings › Security). This iPhone stays signed in to %@ until you sign out or the PIN is cleared on the box." : {
+
+    },
+    "The remote id is how a box knows %@ holds its transmitter (shown on the box's console while keyed from here)." : {
+
+    },
+    "This app" : {
+
+    },
+    "This box does not offer transmit settings to apps (it needs OpenHamShack 0.9.17 or later): change them on the box." : {
+
+    },
+    "Time-out in %@" : {
+
+    },
+    "Transmit only where your licence allows. The box checks its licence settings at every key-up; this app adds a 5-second dead-man: if %@ stops answering, the box stops transmitting." : {
+
+    },
+    "Tune" : {
+
+    },
+    "Tunes the receiver to it" : {
+
+    },
+    "Type a frequency in MHz" : {
+
+    },
+    "Unmute" : {
+
+    },
+    "Up / down: %@  ·  Right: Tune, QO-100  ·  Menu: hide this" : {
+
+    },
+    "Version" : {
+
+    },
+    "View only" : {
+
+    },
+    "View only · Enter PIN" : {
+
+    },
+    "View only: enter the box's remote PIN to %@." : {
+
+    },
+    "View only: no PIN set on the box" : {
+
+    },
+    "View only: set a remote PIN on the box's touchscreen (Settings › Security) to %@ from here." : {
+
+    },
+    "Waiting for the box…" : {
+
+    },
+    "Waiting for the spectrum…" : {
+
+    },
+    "Without the PIN you can watch and see the box's state, but not tune or transmit. The PIN is set on the box's touchscreen, Settings › Security." : {
+
+    },
+    "Your boxes" : {
+
+    },
+    "below full" : {
+
+    },
+    "full power" : {
+
+    },
+    "over-power" : {
+
+    },
+    "port %lld" : {
+
+    }
+  },
+  "version" : "1.0"
+}

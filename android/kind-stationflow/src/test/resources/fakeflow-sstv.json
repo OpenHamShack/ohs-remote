@@ -1,0 +1,60 @@
+{
+    "radio": "r2813",
+    "radio_name": "IC-9700",
+    "counters": {
+        "pictures": 3
+    },
+    "decoder": {
+        "state": "listening"
+    },
+    "pictures": [
+        {
+            "id": "20261009-020416_Robot36-3",
+            "file": "20261009-020416_Robot36-3.png",
+            "at": 1791511420.044668,
+            "finished_at": 1791511456.044668,
+            "mode": "Robot36",
+            "width": 320,
+            "height": 256,
+            "lines": 240,
+            "expected_lines": 240,
+            "complete": true,
+            "radio": "r2813",
+            "freq_hz": 145500000
+        },
+        {
+            "id": "20261009-030416_Robot36-2",
+            "file": "20261009-030416_Robot36-2.png",
+            "at": 1791515020.0413706,
+            "finished_at": 1791515056.0413706,
+            "mode": "Robot36",
+            "width": 320,
+            "height": 256,
+            "lines": 240,
+            "expected_lines": 240,
+            "complete": true,
+            "radio": "r2813",
+            "freq_hz": 145500000
+        },
+        {
+            "id": "20261009-040416_Robot36-1",
+            "file": "20261009-040416_Robot36-1.png",
+            "at": 1791518620.0226681,
+            "finished_at": 1791518656.0226681,
+            "mode": "Robot36",
+            "width": 320,
+            "height": 256,
+            "lines": 240,
+            "expected_lines": 240,
+            "complete": true,
+            "radio": "r2813",
+            "freq_hz": 145500000
+        }
+    ],
+    "usage": {},
+    "modes": [],
+    "radio_state": {
+        "ok": true
+    },
+    "at": 1791522269.728929
+}

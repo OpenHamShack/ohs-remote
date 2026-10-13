@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A transmitting mast: two arcs either side of a tower. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#FFFFFF" android:pathData="M54,44 L60,80 L48,80 Z" />
+    <path android:fillColor="#00000000" android:strokeColor="#FFD54F" android:strokeWidth="4"
+        android:strokeLineCap="round" android:pathData="M44,38 A14,14 0 0,0 44,58" />
+    <path android:fillColor="#00000000" android:strokeColor="#FFD54F" android:strokeWidth="4"
+        android:strokeLineCap="round" android:pathData="M64,38 A14,14 0 0,1 64,58" />
+    <path android:fillColor="#00000000" android:strokeColor="#FF7043" android:strokeWidth="4"
+        android:strokeLineCap="round" android:pathData="M36,30 A24,24 0 0,0 36,66" />
+    <path android:fillColor="#00000000" android:strokeColor="#FF7043" android:strokeWidth="4"
+        android:strokeLineCap="round" android:pathData="M72,30 A24,24 0 0,1 72,66" />
+</vector>

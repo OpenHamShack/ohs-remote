@@ -1,0 +1,2492 @@
+{
+ "state": {
+  "active_slice": 0,
+  "allow_transmit": false,
+  "api_version": "1.4.0.0",
+  "attempts": 0,
+  "atu": {
+   "enabled": false,
+   "memories_enabled": false,
+   "status": "",
+   "using_memory": false
+  },
+  "audio_available": true,
+  "clients": {},
+  "connected": true,
+  "error": null,
+  "handle": "0x1234ABCD",
+  "host": "127.0.0.1",
+  "interlock": {
+   "amplifier": "",
+   "reason": "",
+   "source": "",
+   "state": "READY",
+   "timeout": 0,
+   "tx_allowed": true,
+   "tx_client_handle": 0
+  },
+  "onAir": false,
+  "pad_event": null,
+  "pan_high_hz": 14299999.999999998,
+  "pan_id": "0x40000000",
+  "pan_ids": [
+   "0x40000000"
+  ],
+  "pan_low_hz": 14100000.0,
+  "panadapters": {
+   "0x40000000": {
+    "ant_list": [],
+    "average": 50,
+    "band": "",
+    "band_zoom": false,
+    "bandwidth": 0.2,
+    "center": 14.2,
+    "client_handle": 305441741,
+    "fps": 10,
+    "high_hz": 14299999.999999998,
+    "loop_a": false,
+    "loop_b": false,
+    "low_hz": 14100000.0,
+    "max_bw": 0.0,
+    "max_dbm": -40.0,
+    "min_bw": 0.0,
+    "min_dbm": -130.0,
+    "rf_gain": 0,
+    "rx_ant": "",
+    "segment_zoom": false,
+    "stream_id": 1073741824,
+    "waterfall_id": 1107296256,
+    "weighted_average": false,
+    "wnb": false,
+    "wnb_level": 90,
+    "x_pixels": 1024,
+    "y_pixels": 700
+   }
+  },
+  "platform": {
+   "broker": {
+    "claims": {
+     "flex-1": {
+      "held": true,
+      "mode": "rx",
+      "onAir": false
+     }
+    },
+    "error": ""
+   }
+  },
+  "radio": {
+   "api_version": "1.4.0.0",
+   "atu_present": false,
+   "binaural": false,
+   "callsign": "FAKE",
+   "freq_error_ppb": 0,
+   "full_duplex": false,
+   "headphone_gain": 0,
+   "headphone_mute": false,
+   "lineout_gain": 50,
+   "lineout_mute": false,
+   "max_panadapters": 0,
+   "max_slices": 0,
+   "model": "FLEX-6400",
+   "mute_local_audio_when_remote": true,
+   "nickname": "Fake",
+   "options": "",
+   "oscillator": "",
+   "oscillator_locked": false,
+   "panadapters_available": 2,
+   "region": "",
+   "serial": "0000-0000-0000-0000",
+   "slices_available": 4,
+   "software_version": "",
+   "tnf_enabled": true
+  },
+  "retry_in": 0.0,
+  "settings": {
+   "advertised_stream_port": 0,
+   "band_plan": true,
+   "follow_receiver": true,
+   "frame_rate": 30,
+   "peak_hold": false,
+   "radio_host": "127.0.0.1",
+   "spectrum_fill": true,
+   "waterfall_contrast": 50,
+   "waterfall_gradient": "aether"
+  },
+  "slices": {
+   "0": {
+    "active": true,
+    "agc_mode": "med",
+    "agc_off_level": 10,
+    "agc_threshold": 65,
+    "anf": false,
+    "anf_level": 50,
+    "ant_list": [],
+    "apf": false,
+    "apf_level": 0,
+    "audio_level": 50,
+    "audio_mute": false,
+    "audio_pan": 50,
+    "client_handle": 305441741,
+    "dax": 0,
+    "digl_offset": 2210,
+    "digu_offset": 1500,
+    "filter_hi": 2900,
+    "filter_lo": 100,
+    "fm_deviation": 5000,
+    "fm_repeater_offset_freq": 0.0,
+    "fm_tone_mode": "OFF",
+    "fm_tone_value": 67.0,
+    "frequency": 14.201,
+    "in_use": true,
+    "index": 0,
+    "letter": "A",
+    "level_dbm": -79.4921875,
+    "locked": false,
+    "mode": "USB",
+    "mode_list": [],
+    "nb": false,
+    "nb_level": 50,
+    "nr": false,
+    "nr_level": 50,
+    "pan": 1073741824,
+    "repeater_offset_dir": "SIMPLEX",
+    "rf_gain": 0,
+    "rit_freq": 0,
+    "rit_on": false,
+    "rtty_mark": 2125,
+    "rtty_shift": 170,
+    "rx_ant": "",
+    "squelch": false,
+    "squelch_level": 20,
+    "step": 100,
+    "step_list": [],
+    "tx": true,
+    "tx_ant": "",
+    "tx_ant_list": [],
+    "tx_offset_freq": 0.0,
+    "wnb": false,
+    "wnb_level": 90,
+    "xit_freq": 0,
+    "xit_on": false
+   }
+  },
+  "station": "OpenHamShack Flex",
+  "station_profile": {
+   "callsign": "GM4BRI",
+   "country": "",
+   "dataVersion": "2026.10.2",
+   "derived": {
+    "bandplanDataVersion": "2026.10.2",
+    "canTransmit": true,
+    "className": "Full",
+    "country": "GB",
+    "entity": "Scotland",
+    "plan": "rsgb-2026",
+    "regimeId": "ofcom-2024",
+    "regimeShort": "UK (Ofcom)",
+    "region": 1,
+    "why": ""
+   },
+   "editable": false,
+   "error": "",
+   "licence": {
+    "class": "full",
+    "regime": "auto"
+   },
+   "locator": "IO75RL",
+   "novs": [],
+   "source": "controller"
+  },
+  "tnfs": {},
+  "transmit": {
+   "am_carrier_level": 100,
+   "compander": false,
+   "compander_level": 0,
+   "cw_break_in": true,
+   "cw_break_in_delay": 5,
+   "cw_iambic": true,
+   "cw_pitch": 600,
+   "cw_sidetone": true,
+   "cw_speed": 30,
+   "filter_hi": 3100,
+   "filter_lo": 100,
+   "frequency": 14.2,
+   "inhibit": false,
+   "max_power_level": 100,
+   "mic_bias": false,
+   "mic_boost": false,
+   "mic_level": 0,
+   "mic_selection": "MIC",
+   "monitor": false,
+   "monitor_gain": 80,
+   "rf_power": 10,
+   "show_tx_in_waterfall": false,
+   "speech_processor": false,
+   "speech_processor_level": 0,
+   "tune_power": 10,
+   "tuning": false,
+   "vox": false,
+   "vox_delay": 0,
+   "vox_level": 0
+  },
+  "tx": {
+   "kind": null,
+   "remote": null
+  },
+  "txError": null,
+  "txTimeout": {
+   "minutes": 10.0,
+   "secondsLeft": null
+  },
+  "waterfall_id": "0x42000000",
+  "waterfalls": {
+   "0x42000000": {
+    "auto_black": true,
+    "black_level": 0,
+    "client_handle": 305441741,
+    "color_gain": 30,
+    "gradient_index": 1,
+    "line_duration": 100,
+    "panadapter_id": 1073741824,
+    "stream_id": 1107296256
+   }
+  }
+ },
+ "tables": {
+  "bands": [
+   {
+    "allowed": [
+     [
+      1810000.0,
+      1830000.0
+     ],
+     [
+      1830000.0,
+      1850000.0
+     ],
+     [
+      1850000.0,
+      2000000.0
+     ]
+    ],
+    "amateur": true,
+    "cw": 1820000,
+    "default": 1890000.0,
+    "high": 2000000.0,
+    "label": "160 m",
+    "low": 1810000.0,
+    "mode": "LSB",
+    "name": "160",
+    "tx": true
+   },
+   {
+    "allowed": [
+     [
+      3500000.0,
+      3800000.0
+     ]
+    ],
+    "amateur": true,
+    "cw": 3510000,
+    "default": 3650000.0,
+    "high": 3800000.0,
+    "label": "80 m",
+    "low": 3500000.0,
+    "mode": "LSB",
+    "name": "80",
+    "tx": true
+   },
+   {
+    "allowed": [
+     [
+      5258500.0,
+      5264000.0
+     ],
+     [
+      5276000.0,
+      5284000.0
+     ],
+     [
+      5288500.0,
+      5292000.0
+     ],
+     [
+      5298000.0,
+      5307000.0
+     ],
+     [
+      5313000.0,
+      5323000.0
+     ],
+     [
+      5333000.0,
+      5338000.0
+     ],
+     [
+      5354000.0,
+      5358000.0
+     ],
+     [
+      5362000.0,
+      5374500.0
+     ],
+     [
+      5378000.0,
+      5382000.0
+     ],
+     [
+      5395000.0,
+      5401500.0
+     ],
+     [
+      5403500.0,
+      5406500.0
+     ]
+    ],
+    "amateur": true,
+    "cw": null,
+    "default": 5335500.0,
+    "high": 5406500.0,
+    "label": "60 m",
+    "low": 5258500.0,
+    "mode": "USB",
+    "name": "60",
+    "tx": true
+   },
+   {
+    "allowed": [
+     [
+      7000000.0,
+      7100000.0
+     ],
+     [
+      7100000.0,
+      7200000.0
+     ]
+    ],
+    "amateur": true,
+    "cw": 7010000,
+    "default": 7100000.0,
+    "high": 7200000.0,
+    "label": "40 m",
+    "low": 7000000.0,
+    "mode": "LSB",
+    "name": "40",
+    "tx": true
+   },
+   {
+    "allowed": [
+     [
+      10100000.0,
+      10150000.0
+     ]
+    ],
+    "amateur": true,
+    "cw": 10110000,
+    "default": 10110000,
+    "high": 10150000.0,
+    "label": "30 m",
+    "low": 10100000.0,
+    "mode": "CW",
+    "name": "30",
+    "tx": true
+   },
+   {
+    "allowed": [
+     [
+      14000000.0,
+      14250000.0
+     ],
+     [
+      14250000.0,
+      14350000.0
+     ]
+    ],
+    "amateur": true,
+    "cw": 14010000,
+    "default": 14175000.0,
+    "high": 14350000.0,
+    "label": "20 m",
+    "low": 14000000.0,
+    "mode": "USB",
+    "name": "20",
+    "tx": true
+   },
+   {
+    "allowed": [
+     [
+      18068000.0,
+      18168000.0
+     ]
+    ],
+    "amateur": true,
+    "cw": 18078000,
+    "default": 18140000.0,
+    "high": 18168000.0,
+    "label": "17 m",
+    "low": 18068000.0,
+    "mode": "USB",
+    "name": "17",
+    "tx": true
+   },
+   {
+    "allowed": [
+     [
+      21000000.0,
+      21450000.0
+     ]
+    ],
+    "amateur": true,
+    "cw": 21010000,
+    "default": 21200000.0,
+    "high": 21450000.0,
+    "label": "15 m",
+    "low": 21000000.0,
+    "mode": "USB",
+    "name": "15",
+    "tx": true
+   },
+   {
+    "allowed": [
+     [
+      24890000.0,
+      24990000.0
+     ]
+    ],
+    "amateur": true,
+    "cw": 24900000,
+    "default": 24960000.0,
+    "high": 24990000.0,
+    "label": "12 m",
+    "low": 24890000.0,
+    "mode": "USB",
+    "name": "12",
+    "tx": true
+   },
+   {
+    "allowed": [
+     [
+      28000000.0,
+      29700000.0
+     ]
+    ],
+    "amateur": true,
+    "cw": 28010000,
+    "default": 28275000.0,
+    "high": 29700000.0,
+    "label": "10 m",
+    "low": 28000000.0,
+    "mode": "USB",
+    "name": "10",
+    "tx": true
+   },
+   {
+    "allowed": [
+     [
+      50000000.0,
+      51000000.0
+     ],
+     [
+      51000000.0,
+      52000000.0
+     ]
+    ],
+    "amateur": true,
+    "cw": 50040000,
+    "default": 50115000.0,
+    "high": 52000000.0,
+    "label": "6 m",
+    "low": 50000000.0,
+    "mode": "USB",
+    "name": "6",
+    "tx": true
+   },
+   {
+    "allowed": [],
+    "amateur": false,
+    "cw": null,
+    "default": 10000000,
+    "high": 25000000,
+    "label": "WWV",
+    "low": 2500000,
+    "mode": "AM",
+    "name": "WWV",
+    "tx": false
+   },
+   {
+    "allowed": [],
+    "amateur": false,
+    "cw": null,
+    "default": 9500000,
+    "high": 54000000,
+    "label": "General",
+    "low": 30000,
+    "mode": "AM",
+    "name": "GEN",
+    "tx": false
+   }
+  ],
+  "dataVersion": "2026.10.2",
+  "licence": {
+   "bandplanDataVersion": "2026.10.2",
+   "canTransmit": true,
+   "className": "Full",
+   "country": "GB",
+   "entity": "Scotland",
+   "plan": "rsgb-2026",
+   "regimeId": "ofcom-2024",
+   "regimeShort": "UK (Ofcom)",
+   "region": 1,
+   "why": ""
+  },
+  "modes": [
+   {
+    "default_hi": 2900,
+    "default_lo": 100,
+    "default_step": 100,
+    "default_width": 2700,
+    "label": "USB",
+    "name": "USB",
+    "side": 1,
+    "steps": [
+     1,
+     10,
+     50,
+     100,
+     500,
+     1000,
+     2000,
+     3000
+    ],
+    "widths": [
+     1800,
+     2100,
+     2400,
+     2700,
+     2900,
+     3300,
+     4000,
+     6000
+    ]
+   },
+   {
+    "default_hi": -100,
+    "default_lo": -2900,
+    "default_step": 100,
+    "default_width": 2700,
+    "label": "LSB",
+    "name": "LSB",
+    "side": -1,
+    "steps": [
+     1,
+     10,
+     50,
+     100,
+     500,
+     1000,
+     2000,
+     3000
+    ],
+    "widths": [
+     1800,
+     2100,
+     2400,
+     2700,
+     2900,
+     3300,
+     4000,
+     6000
+    ]
+   },
+   {
+    "default_hi": 250,
+    "default_lo": -250,
+    "default_step": 10,
+    "default_width": 500,
+    "label": "CW",
+    "name": "CW",
+    "side": 0,
+    "steps": [
+     1,
+     5,
+     10,
+     50,
+     100,
+     200,
+     400
+    ],
+    "widths": [
+     50,
+     100,
+     250,
+     400,
+     500,
+     600,
+     800,
+     1000
+    ]
+   },
+   {
+    "default_hi": 4000,
+    "default_lo": -4000,
+    "default_step": 500,
+    "default_width": 12000,
+    "label": "AM",
+    "name": "AM",
+    "side": 0,
+    "steps": [
+     250,
+     500,
+     2500,
+     3000,
+     5000,
+     9000,
+     10000
+    ],
+    "widths": [
+     5600,
+     6000,
+     8000,
+     10000,
+     12000,
+     14000,
+     16000,
+     20000
+    ]
+   },
+   {
+    "default_hi": 4000,
+    "default_lo": -4000,
+    "default_step": 500,
+    "default_width": 12000,
+    "label": "SAM",
+    "name": "SAM",
+    "side": 0,
+    "steps": [
+     250,
+     500,
+     2500,
+     3000,
+     5000,
+     9000,
+     10000
+    ],
+    "widths": [
+     5600,
+     6000,
+     8000,
+     10000,
+     12000,
+     14000,
+     16000,
+     20000
+    ]
+   },
+   {
+    "default_hi": 3000,
+    "default_lo": 150,
+    "default_step": 10,
+    "default_width": 3000,
+    "label": "DIGU",
+    "name": "DIGU",
+    "side": 1,
+    "steps": [
+     1,
+     5,
+     10,
+     20,
+     100,
+     250,
+     500,
+     1000
+    ],
+    "widths": [
+     100,
+     300,
+     600,
+     1000,
+     1500,
+     2000,
+     3000,
+     6000
+    ]
+   },
+   {
+    "default_hi": -150,
+    "default_lo": -3000,
+    "default_step": 10,
+    "default_width": 3000,
+    "label": "DIGL",
+    "name": "DIGL",
+    "side": -1,
+    "steps": [
+     1,
+     5,
+     10,
+     20,
+     100,
+     250,
+     500,
+     1000
+    ],
+    "widths": [
+     100,
+     300,
+     600,
+     1000,
+     1500,
+     2000,
+     3000,
+     6000
+    ]
+   },
+   {
+    "default_hi": 3000,
+    "default_lo": 150,
+    "default_step": 10,
+    "default_width": 300,
+    "label": "RTTY",
+    "name": "RTTY",
+    "side": 1,
+    "steps": [
+     1,
+     5,
+     10,
+     20,
+     100,
+     250,
+     500,
+     1000
+    ],
+    "widths": [
+     250,
+     300,
+     350,
+     400,
+     500,
+     1000,
+     1500,
+     3000
+    ]
+   },
+   {
+    "default_hi": 8000,
+    "default_lo": -8000,
+    "default_step": 2500,
+    "default_width": 16000,
+    "label": "FM",
+    "name": "FM",
+    "side": 0,
+    "steps": [
+     50,
+     250,
+     500,
+     2500,
+     3000,
+     5000,
+     10000,
+     12500
+    ],
+    "widths": []
+   },
+   {
+    "default_hi": 8000,
+    "default_lo": -8000,
+    "default_step": 2500,
+    "default_width": 16000,
+    "label": "NFM",
+    "name": "NFM",
+    "side": 0,
+    "steps": [
+     50,
+     250,
+     500,
+     2500,
+     3000,
+     5000,
+     10000,
+     12500
+    ],
+    "widths": []
+   },
+   {
+    "default_hi": 8000,
+    "default_lo": -8000,
+    "default_step": 2500,
+    "default_width": 12000,
+    "label": "DFM",
+    "name": "DFM",
+    "side": 0,
+    "steps": [
+     50,
+     250,
+     500,
+     2500,
+     3000,
+     5000,
+     10000,
+     12500
+    ],
+    "widths": [
+     6000,
+     8000,
+     10000,
+     12000,
+     14000,
+     16000,
+     18000,
+     20000
+    ]
+   }
+  ],
+  "plan": {
+   "id": "rsgb-2026",
+   "partial": false,
+   "status": "researched",
+   "title": "RSGB band plan 2026"
+  },
+  "region": 1,
+  "segments": [
+   {
+    "bandwidth": 200,
+    "color": "#3060ff",
+    "high": 1838000,
+    "kind": "cw",
+    "low": 1810000,
+    "note": "CW"
+   },
+   {
+    "bandwidth": 500,
+    "color": "#c03030",
+    "high": 1840000,
+    "kind": "data",
+    "low": 1838000,
+    "note": "narrow digital"
+   },
+   {
+    "bandwidth": 2700,
+    "color": "#ff8000",
+    "high": 2000000,
+    "kind": "all",
+    "low": 1840000,
+    "note": "all modes"
+   },
+   {
+    "bandwidth": 200,
+    "color": "#3060ff",
+    "high": 3570000,
+    "kind": "cw",
+    "low": 3500000,
+    "note": "CW"
+   },
+   {
+    "bandwidth": 200,
+    "color": "#c03030",
+    "high": 3580000,
+    "kind": "data",
+    "low": 3570000,
+    "note": "narrow digital (200 Hz)"
+   },
+   {
+    "bandwidth": 500,
+    "color": "#c03030",
+    "high": 3600000,
+    "kind": "data",
+    "low": 3580000,
+    "note": "narrow digital"
+   },
+   {
+    "bandwidth": 2700,
+    "color": "#ff8000",
+    "high": 3800000,
+    "kind": "all",
+    "low": 3600000,
+    "note": "all modes"
+   },
+   {
+    "bandwidth": 6000,
+    "color": "#ff8000",
+    "high": 5264000,
+    "kind": "all",
+    "low": 5258500,
+    "note": "60 m segment"
+   },
+   {
+    "bandwidth": 6000,
+    "color": "#ff8000",
+    "high": 5284000,
+    "kind": "all",
+    "low": 5276000,
+    "note": "60 m segment"
+   },
+   {
+    "bandwidth": 6000,
+    "color": "#ff8000",
+    "high": 5292000,
+    "kind": "all",
+    "low": 5288500,
+    "note": "60 m segment"
+   },
+   {
+    "bandwidth": 6000,
+    "color": "#ff8000",
+    "high": 5307000,
+    "kind": "all",
+    "low": 5298000,
+    "note": "60 m segment"
+   },
+   {
+    "bandwidth": 6000,
+    "color": "#ff8000",
+    "high": 5323000,
+    "kind": "all",
+    "low": 5313000,
+    "note": "60 m segment"
+   },
+   {
+    "bandwidth": 6000,
+    "color": "#ff8000",
+    "high": 5338000,
+    "kind": "all",
+    "low": 5333000,
+    "note": "60 m segment"
+   },
+   {
+    "bandwidth": 6000,
+    "color": "#ff8000",
+    "high": 5358000,
+    "kind": "all",
+    "low": 5354000,
+    "note": "60 m segment"
+   },
+   {
+    "bandwidth": 6000,
+    "color": "#ff8000",
+    "high": 5374500,
+    "kind": "all",
+    "low": 5362000,
+    "note": "60 m segment"
+   },
+   {
+    "bandwidth": 6000,
+    "color": "#ff8000",
+    "high": 5382000,
+    "kind": "all",
+    "low": 5378000,
+    "note": "60 m segment"
+   },
+   {
+    "bandwidth": 6000,
+    "color": "#ff8000",
+    "high": 5401500,
+    "kind": "all",
+    "low": 5395000,
+    "note": "60 m segment"
+   },
+   {
+    "bandwidth": 6000,
+    "color": "#ff8000",
+    "high": 5406500,
+    "kind": "all",
+    "low": 5403500,
+    "note": "60 m segment"
+   },
+   {
+    "bandwidth": 200,
+    "color": "#3060ff",
+    "high": 7040000,
+    "kind": "cw",
+    "low": 7000000,
+    "note": "CW"
+   },
+   {
+    "bandwidth": 500,
+    "color": "#c03030",
+    "high": 7050000,
+    "kind": "data",
+    "low": 7040000,
+    "note": "narrow digital"
+   },
+   {
+    "bandwidth": 2700,
+    "color": "#ff8000",
+    "high": 7200000,
+    "kind": "all",
+    "low": 7050000,
+    "note": "all modes"
+   },
+   {
+    "bandwidth": 200,
+    "color": "#3060ff",
+    "high": 10130000,
+    "kind": "cw",
+    "low": 10100000,
+    "note": "CW"
+   },
+   {
+    "bandwidth": 500,
+    "color": "#c03030",
+    "high": 10150000,
+    "kind": "data",
+    "low": 10130000,
+    "note": "narrow digital"
+   },
+   {
+    "bandwidth": 200,
+    "color": "#3060ff",
+    "high": 14070000,
+    "kind": "cw",
+    "low": 14000000,
+    "note": "CW"
+   },
+   {
+    "bandwidth": 500,
+    "color": "#c03030",
+    "high": 14099000,
+    "kind": "data",
+    "low": 14070000,
+    "note": "narrow digital"
+   },
+   {
+    "bandwidth": 0,
+    "color": "#00d0d0",
+    "high": 14101000,
+    "kind": "beacon",
+    "low": 14099000,
+    "note": "IBP beacons"
+   },
+   {
+    "bandwidth": 2700,
+    "color": "#ff8000",
+    "high": 14112000,
+    "kind": "all",
+    "low": 14101000,
+    "note": "all modes"
+   },
+   {
+    "bandwidth": 2700,
+    "color": "#ff8000",
+    "high": 14125000,
+    "kind": "phone",
+    "low": 14112000,
+    "note": "all modes, no digital"
+   },
+   {
+    "bandwidth": 2700,
+    "color": "#ff8000",
+    "high": 14350000,
+    "kind": "all",
+    "low": 14125000,
+    "note": "all modes"
+   },
+   {
+    "bandwidth": 200,
+    "color": "#3060ff",
+    "high": 18095000,
+    "kind": "cw",
+    "low": 18068000,
+    "note": "CW"
+   },
+   {
+    "bandwidth": 500,
+    "color": "#c03030",
+    "high": 18109000,
+    "kind": "data",
+    "low": 18095000,
+    "note": "narrow digital"
+   },
+   {
+    "bandwidth": 0,
+    "color": "#00d0d0",
+    "high": 18111000,
+    "kind": "beacon",
+    "low": 18109000,
+    "note": "IBP beacons"
+   },
+   {
+    "bandwidth": 2700,
+    "color": "#ff8000",
+    "high": 18168000,
+    "kind": "all",
+    "low": 18111000,
+    "note": "all modes"
+   },
+   {
+    "bandwidth": 200,
+    "color": "#3060ff",
+    "high": 21070000,
+    "kind": "cw",
+    "low": 21000000,
+    "note": "CW"
+   },
+   {
+    "bandwidth": 500,
+    "color": "#c03030",
+    "high": 21110000,
+    "kind": "data",
+    "low": 21070000,
+    "note": "narrow digital"
+   },
+   {
+    "bandwidth": 2700,
+    "color": "#ff8000",
+    "high": 21120000,
+    "kind": "phone",
+    "low": 21110000,
+    "note": "all modes, no SSB"
+   },
+   {
+    "bandwidth": 500,
+    "color": "#c03030",
+    "high": 21149000,
+    "kind": "data",
+    "low": 21120000,
+    "note": "narrow digital"
+   },
+   {
+    "bandwidth": 0,
+    "color": "#00d0d0",
+    "high": 21151000,
+    "kind": "beacon",
+    "low": 21149000,
+    "note": "IBP beacons"
+   },
+   {
+    "bandwidth": 2700,
+    "color": "#ff8000",
+    "high": 21450000,
+    "kind": "all",
+    "low": 21151000,
+    "note": "all modes"
+   },
+   {
+    "bandwidth": 200,
+    "color": "#3060ff",
+    "high": 24915000,
+    "kind": "cw",
+    "low": 24890000,
+    "note": "CW"
+   },
+   {
+    "bandwidth": 500,
+    "color": "#c03030",
+    "high": 24929000,
+    "kind": "data",
+    "low": 24915000,
+    "note": "narrow digital"
+   },
+   {
+    "bandwidth": 0,
+    "color": "#00d0d0",
+    "high": 24931000,
+    "kind": "beacon",
+    "low": 24929000,
+    "note": "IBP beacons"
+   },
+   {
+    "bandwidth": 2700,
+    "color": "#ff8000",
+    "high": 24990000,
+    "kind": "all",
+    "low": 24931000,
+    "note": "all modes"
+   },
+   {
+    "bandwidth": 200,
+    "color": "#3060ff",
+    "high": 28070000,
+    "kind": "cw",
+    "low": 28000000,
+    "note": "CW"
+   },
+   {
+    "bandwidth": 500,
+    "color": "#c03030",
+    "high": 28190000,
+    "kind": "data",
+    "low": 28070000,
+    "note": "narrow digital"
+   },
+   {
+    "bandwidth": 0,
+    "color": "#00d0d0",
+    "high": 28225000,
+    "kind": "beacon",
+    "low": 28190000,
+    "note": "IBP beacons"
+   },
+   {
+    "bandwidth": 2700,
+    "color": "#ff8000",
+    "high": 29100000,
+    "kind": "all",
+    "low": 28225000,
+    "note": "all modes"
+   },
+   {
+    "bandwidth": 12500,
+    "color": "#ff8000",
+    "high": 29200000,
+    "kind": "all",
+    "low": 29100000,
+    "note": "FM simplex"
+   },
+   {
+    "bandwidth": 0,
+    "color": "#ff8000",
+    "high": 29300000,
+    "kind": "all",
+    "low": 29200000,
+    "note": "all modes"
+   },
+   {
+    "bandwidth": 0,
+    "color": "#9030c0",
+    "high": 29510000,
+    "kind": "satellite",
+    "low": 29300000,
+    "note": "satellites"
+   },
+   {
+    "bandwidth": 0,
+    "color": "#ff8000",
+    "high": 29515000,
+    "kind": "all",
+    "low": 29510000,
+    "note": "all modes"
+   },
+   {
+    "bandwidth": 12500,
+    "color": "#30b030",
+    "high": 29595000,
+    "kind": "fm",
+    "low": 29515000,
+    "note": "repeater inputs"
+   },
+   {
+    "bandwidth": 12500,
+    "color": "#30b030",
+    "high": 29605000,
+    "kind": "fm",
+    "low": 29595000,
+    "note": "FM calling"
+   },
+   {
+    "bandwidth": 0,
+    "color": "#ff8000",
+    "high": 29615000,
+    "kind": "all",
+    "low": 29605000,
+    "note": "all modes"
+   },
+   {
+    "bandwidth": 0,
+    "color": "#ffd000",
+    "high": 29700000,
+    "kind": "repeater",
+    "low": 29615000,
+    "note": "repeater outputs"
+   },
+   {
+    "bandwidth": 0,
+    "color": "#00d0d0",
+    "high": 50030000,
+    "kind": "beacon",
+    "low": 50000000,
+    "note": "Synchronised Beacon Project"
+   },
+   {
+    "bandwidth": 500,
+    "color": "#3060ff",
+    "high": 50100000,
+    "kind": "cw",
+    "low": 50030000,
+    "note": "telegraphy"
+   },
+   {
+    "bandwidth": 2700,
+    "color": "#ff8000",
+    "high": 50130000,
+    "kind": "phone",
+    "low": 50100000,
+    "note": "intercontinental"
+   },
+   {
+    "bandwidth": 2700,
+    "color": "#ff8000",
+    "high": 50200000,
+    "kind": "phone",
+    "low": 50130000,
+    "note": "international"
+   },
+   {
+    "bandwidth": 2700,
+    "color": "#ff8000",
+    "high": 50300000,
+    "kind": "phone",
+    "low": 50200000,
+    "note": "general usage"
+   },
+   {
+    "bandwidth": 2700,
+    "color": "#c03030",
+    "high": 50400000,
+    "kind": "data",
+    "low": 50300000,
+    "note": "MGM and narrowband telegraphy"
+   },
+   {
+    "bandwidth": 0,
+    "color": "#00d0d0",
+    "high": 50500000,
+    "kind": "beacon",
+    "low": 50400000,
+    "note": "beacons"
+   },
+   {
+    "bandwidth": 50000,
+    "color": "#ff8000",
+    "high": 50700000,
+    "kind": "all",
+    "low": 50500000,
+    "note": "all modes, digital communications"
+   },
+   {
+    "bandwidth": 0,
+    "color": "#ffd000",
+    "high": 50900000,
+    "kind": "repeater",
+    "low": 50700000,
+    "note": "repeater outputs"
+   },
+   {
+    "bandwidth": 200000,
+    "color": "#ff8000",
+    "high": 51200000,
+    "kind": "all",
+    "low": 50900000,
+    "note": "wideband digital experiments"
+   },
+   {
+    "bandwidth": 12000,
+    "color": "#30b030",
+    "high": 51400000,
+    "kind": "fm",
+    "low": 51200000,
+    "note": "repeater inputs"
+   },
+   {
+    "bandwidth": 500000,
+    "color": "#ff8000",
+    "high": 51810000,
+    "kind": "all",
+    "low": 51400000,
+    "note": "FM/DV simplex, all modes"
+   },
+   {
+    "bandwidth": 0,
+    "color": "#ffd000",
+    "high": 51990000,
+    "kind": "repeater",
+    "low": 51810000,
+    "note": "repeater outputs"
+   },
+   {
+    "bandwidth": 500000,
+    "color": "#ff8000",
+    "high": 52000000,
+    "kind": "all",
+    "low": 51990000,
+    "note": "all modes"
+   }
+  ],
+  "service_spots": [
+   {
+    "hz": 60000,
+    "label": "MSF",
+    "note": "UK time signal, Anthorn"
+   },
+   {
+    "hz": 77500,
+    "label": "DCF77",
+    "note": "German time signal, Mainflingen"
+   },
+   {
+    "hz": 198000,
+    "label": "R4 LW",
+    "note": "BBC Radio 4 long wave"
+   },
+   {
+    "hz": 490000,
+    "label": "NAVTEX",
+    "note": "National NAVTEX"
+   },
+   {
+    "hz": 518000,
+    "label": "NAVTEX",
+    "note": "International NAVTEX"
+   },
+   {
+    "hz": 2182000,
+    "label": "DISTRESS",
+    "note": "Maritime voice distress and calling"
+   },
+   {
+    "hz": 2187500,
+    "label": "DSC",
+    "note": "Maritime digital selective calling"
+   },
+   {
+    "hz": 3330000,
+    "label": "CHU",
+    "note": "Canadian time signal"
+   },
+   {
+    "hz": 4207500,
+    "label": "DSC",
+    "note": "Maritime digital selective calling"
+   },
+   {
+    "hz": 5000000,
+    "label": "WWV",
+    "note": "Standard frequency and time"
+   },
+   {
+    "hz": 6312000,
+    "label": "DSC",
+    "note": "Maritime digital selective calling"
+   },
+   {
+    "hz": 7850000,
+    "label": "CHU",
+    "note": "Canadian time signal"
+   },
+   {
+    "hz": 8414500,
+    "label": "DSC",
+    "note": "Maritime digital selective calling"
+   },
+   {
+    "hz": 8992000,
+    "label": "HFGCS",
+    "note": "US air force global command"
+   },
+   {
+    "hz": 10000000,
+    "label": "WWV",
+    "note": "Standard frequency and time"
+   },
+   {
+    "hz": 11175000,
+    "label": "HFGCS",
+    "note": "US air force global command"
+   },
+   {
+    "hz": 12577000,
+    "label": "DSC",
+    "note": "Maritime digital selective calling"
+   },
+   {
+    "hz": 14670000,
+    "label": "CHU",
+    "note": "Canadian time signal"
+   },
+   {
+    "hz": 15000000,
+    "label": "WWV",
+    "note": "Standard frequency and time"
+   },
+   {
+    "hz": 16804500,
+    "label": "DSC",
+    "note": "Maritime digital selective calling"
+   },
+   {
+    "hz": 20000000,
+    "label": "WWV",
+    "note": "Standard frequency and time"
+   }
+  ],
+  "services": [
+   {
+    "color": "#1f8f7a",
+    "high": 70000,
+    "label": "MARITIME",
+    "low": 14000,
+    "note": "Maritime and fixed, very low frequency"
+   },
+   {
+    "color": "#6a5a8a",
+    "high": 90000,
+    "label": "NAV",
+    "low": 70000,
+    "note": "Radionavigation"
+   },
+   {
+    "color": "#1f8f7a",
+    "high": 148000,
+    "label": "MARITIME",
+    "low": 130000,
+    "note": "Maritime mobile"
+   },
+   {
+    "color": "#b06a20",
+    "high": 283500,
+    "label": "LW BCAST",
+    "low": 148500,
+    "note": "Long wave broadcasting, Region 1"
+   },
+   {
+    "color": "#6a5a8a",
+    "high": 315000,
+    "label": "NDB/DGPS",
+    "low": 283500,
+    "note": "Aeronautical radionavigation beacons and differential GPS"
+   },
+   {
+    "color": "#6a5a8a",
+    "high": 405000,
+    "label": "NDB",
+    "low": 315000,
+    "note": "Non-directional beacons"
+   },
+   {
+    "color": "#1f8f7a",
+    "high": 495000,
+    "label": "MARITIME",
+    "low": 415000,
+    "note": "Maritime mobile"
+   },
+   {
+    "color": "#1f8f7a",
+    "high": 526500,
+    "label": "MARITIME",
+    "low": 505000,
+    "note": "Maritime mobile"
+   },
+   {
+    "color": "#b06a20",
+    "high": 1606500,
+    "label": "MW BCAST",
+    "low": 526500,
+    "note": "Medium wave broadcasting, Region 1"
+   },
+   {
+    "color": "#4a5560",
+    "high": 1800000,
+    "label": "FIXED",
+    "low": 1606500,
+    "note": "Fixed and maritime mobile"
+   },
+   {
+    "color": "#1f8f7a",
+    "high": 2025000,
+    "label": "MARITIME",
+    "low": 2000000,
+    "note": "Maritime mobile"
+   },
+   {
+    "color": "#1f8f7a",
+    "high": 2160000,
+    "label": "MARITIME",
+    "low": 2045000,
+    "note": "Maritime mobile"
+   },
+   {
+    "color": "#1f8f7a",
+    "high": 2194000,
+    "label": "DISTRESS",
+    "low": 2170000,
+    "note": "Maritime distress and calling; 2182 kHz is the voice distress frequency"
+   },
+   {
+    "color": "#4a5560",
+    "high": 2300000,
+    "label": "FIXED",
+    "low": 2194000,
+    "note": "Fixed and mobile"
+   },
+   {
+    "color": "#b06a20",
+    "high": 2495000,
+    "label": "120 m BC",
+    "low": 2300000,
+    "note": "Tropical broadcasting"
+   },
+   {
+    "color": "#8f8f5a",
+    "high": 2505000,
+    "label": "TIME",
+    "low": 2495000,
+    "note": "Standard frequency and time signal"
+   },
+   {
+    "color": "#4a5560",
+    "high": 2850000,
+    "label": "FIXED",
+    "low": 2505000,
+    "note": "Fixed and mobile"
+   },
+   {
+    "color": "#2f7fb0",
+    "high": 3155000,
+    "label": "AERO",
+    "low": 2850000,
+    "note": "Aeronautical mobile (route)"
+   },
+   {
+    "color": "#4a5560",
+    "high": 3200000,
+    "label": "FIXED",
+    "low": 3155000,
+    "note": "Fixed and mobile"
+   },
+   {
+    "color": "#b06a20",
+    "high": 3400000,
+    "label": "90 m BC",
+    "low": 3200000,
+    "note": "Tropical broadcasting"
+   },
+   {
+    "color": "#2f7fb0",
+    "high": 3500000,
+    "label": "AERO",
+    "low": 3400000,
+    "note": "Aeronautical mobile (route)"
+   },
+   {
+    "color": "#4a5560",
+    "high": 3950000,
+    "label": "FIXED",
+    "low": 3800000,
+    "note": "Fixed and land mobile"
+   },
+   {
+    "color": "#b06a20",
+    "high": 4000000,
+    "label": "75 m BC",
+    "low": 3950000,
+    "note": "Broadcasting, Region 1"
+   },
+   {
+    "color": "#4a5560",
+    "high": 4063000,
+    "label": "FIXED",
+    "low": 4000000,
+    "note": "Fixed"
+   },
+   {
+    "color": "#1f8f7a",
+    "high": 4438000,
+    "label": "MARITIME",
+    "low": 4063000,
+    "note": "Maritime mobile"
+   },
+   {
+    "color": "#4a5560",
+    "high": 4650000,
+    "label": "FIXED",
+    "low": 4438000,
+    "note": "Fixed and mobile"
+   },
+   {
+    "color": "#2f7fb0",
+    "high": 4750000,
+    "label": "AERO",
+    "low": 4650000,
+    "note": "Aeronautical mobile"
+   },
+   {
+    "color": "#b06a20",
+    "high": 4995000,
+    "label": "60 m BC",
+    "low": 4750000,
+    "note": "Tropical broadcasting"
+   },
+   {
+    "color": "#8f8f5a",
+    "high": 5005000,
+    "label": "TIME",
+    "low": 4995000,
+    "note": "Standard frequency and time signal, 5 MHz"
+   },
+   {
+    "color": "#b06a20",
+    "high": 5060000,
+    "label": "60 m BC",
+    "low": 5005000,
+    "note": "Broadcasting"
+   },
+   {
+    "color": "#4a5560",
+    "high": 5258500,
+    "label": "FIXED",
+    "low": 5060000,
+    "note": "Fixed"
+   },
+   {
+    "color": "#4a5560",
+    "high": 5450000,
+    "label": "FIXED",
+    "low": 5406500,
+    "note": "Fixed"
+   },
+   {
+    "color": "#2f7fb0",
+    "high": 5730000,
+    "label": "AERO",
+    "low": 5450000,
+    "note": "Aeronautical mobile"
+   },
+   {
+    "color": "#4a5560",
+    "high": 5900000,
+    "label": "FIXED",
+    "low": 5730000,
+    "note": "Fixed"
+   },
+   {
+    "color": "#b06a20",
+    "high": 6200000,
+    "label": "49 m BC",
+    "low": 5900000,
+    "note": "Broadcasting"
+   },
+   {
+    "color": "#1f8f7a",
+    "high": 6525000,
+    "label": "MARITIME",
+    "low": 6200000,
+    "note": "Maritime mobile"
+   },
+   {
+    "color": "#2f7fb0",
+    "high": 6765000,
+    "label": "AERO",
+    "low": 6525000,
+    "note": "Aeronautical mobile (route)"
+   },
+   {
+    "color": "#7a7030",
+    "high": 6795000,
+    "label": "ISM",
+    "low": 6765000,
+    "note": "Industrial, scientific and medical"
+   },
+   {
+    "color": "#4a5560",
+    "high": 7000000,
+    "label": "FIXED",
+    "low": 6795000,
+    "note": "Fixed"
+   },
+   {
+    "color": "#b06a20",
+    "high": 7450000,
+    "label": "41 m BC",
+    "low": 7200000,
+    "note": "Broadcasting, Region 1"
+   },
+   {
+    "color": "#4a5560",
+    "high": 8100000,
+    "label": "FIXED",
+    "low": 7450000,
+    "note": "Fixed"
+   },
+   {
+    "color": "#1f8f7a",
+    "high": 8815000,
+    "label": "MARITIME",
+    "low": 8100000,
+    "note": "Maritime mobile"
+   },
+   {
+    "color": "#2f7fb0",
+    "high": 9040000,
+    "label": "AERO",
+    "low": 8815000,
+    "note": "Aeronautical mobile (route)"
+   },
+   {
+    "color": "#4a5560",
+    "high": 9400000,
+    "label": "FIXED",
+    "low": 9040000,
+    "note": "Fixed"
+   },
+   {
+    "color": "#b06a20",
+    "high": 9900000,
+    "label": "31 m BC",
+    "low": 9400000,
+    "note": "Broadcasting"
+   },
+   {
+    "color": "#4a5560",
+    "high": 9995000,
+    "label": "FIXED",
+    "low": 9900000,
+    "note": "Fixed"
+   },
+   {
+    "color": "#8f8f5a",
+    "high": 10005000,
+    "label": "TIME",
+    "low": 9995000,
+    "note": "Standard frequency and time signal, 10 MHz"
+   },
+   {
+    "color": "#2f7fb0",
+    "high": 10100000,
+    "label": "AERO",
+    "low": 10005000,
+    "note": "Aeronautical mobile (route)"
+   },
+   {
+    "color": "#4a5560",
+    "high": 11175000,
+    "label": "FIXED",
+    "low": 10150000,
+    "note": "Fixed"
+   },
+   {
+    "color": "#2f7fb0",
+    "high": 11400000,
+    "label": "AERO",
+    "low": 11175000,
+    "note": "Aeronautical mobile (off route)"
+   },
+   {
+    "color": "#4a5560",
+    "high": 11600000,
+    "label": "FIXED",
+    "low": 11400000,
+    "note": "Fixed"
+   },
+   {
+    "color": "#b06a20",
+    "high": 12100000,
+    "label": "25 m BC",
+    "low": 11600000,
+    "note": "Broadcasting"
+   },
+   {
+    "color": "#4a5560",
+    "high": 12230000,
+    "label": "FIXED",
+    "low": 12100000,
+    "note": "Fixed"
+   },
+   {
+    "color": "#1f8f7a",
+    "high": 13200000,
+    "label": "MARITIME",
+    "low": 12230000,
+    "note": "Maritime mobile"
+   },
+   {
+    "color": "#2f7fb0",
+    "high": 13360000,
+    "label": "AERO",
+    "low": 13200000,
+    "note": "Aeronautical mobile (off route)"
+   },
+   {
+    "color": "#4a5560",
+    "high": 13553000,
+    "label": "FIXED",
+    "low": 13360000,
+    "note": "Fixed and radio astronomy"
+   },
+   {
+    "color": "#7a7030",
+    "high": 13567000,
+    "label": "ISM",
+    "low": 13553000,
+    "note": "Industrial, scientific and medical"
+   },
+   {
+    "color": "#4a5560",
+    "high": 13570000,
+    "label": "FIXED",
+    "low": 13567000,
+    "note": "Fixed and radio astronomy"
+   },
+   {
+    "color": "#b06a20",
+    "high": 13870000,
+    "label": "22 m BC",
+    "low": 13570000,
+    "note": "Broadcasting"
+   },
+   {
+    "color": "#4a5560",
+    "high": 14000000,
+    "label": "FIXED",
+    "low": 13870000,
+    "note": "Fixed"
+   },
+   {
+    "color": "#4a5560",
+    "high": 14990000,
+    "label": "FIXED",
+    "low": 14350000,
+    "note": "Fixed"
+   },
+   {
+    "color": "#8f8f5a",
+    "high": 15010000,
+    "label": "TIME",
+    "low": 14990000,
+    "note": "Standard frequency and time signal, 15 MHz"
+   },
+   {
+    "color": "#2f7fb0",
+    "high": 15100000,
+    "label": "AERO",
+    "low": 15010000,
+    "note": "Aeronautical mobile (off route)"
+   },
+   {
+    "color": "#b06a20",
+    "high": 15830000,
+    "label": "19 m BC",
+    "low": 15100000,
+    "note": "Broadcasting"
+   },
+   {
+    "color": "#4a5560",
+    "high": 16360000,
+    "label": "FIXED",
+    "low": 15830000,
+    "note": "Fixed"
+   },
+   {
+    "color": "#1f8f7a",
+    "high": 17410000,
+    "label": "MARITIME",
+    "low": 16360000,
+    "note": "Maritime mobile"
+   },
+   {
+    "color": "#4a5560",
+    "high": 17480000,
+    "label": "FIXED",
+    "low": 17410000,
+    "note": "Fixed"
+   },
+   {
+    "color": "#b06a20",
+    "high": 17900000,
+    "label": "16 m BC",
+    "low": 17480000,
+    "note": "Broadcasting"
+   },
+   {
+    "color": "#2f7fb0",
+    "high": 17970000,
+    "label": "AERO",
+    "low": 17900000,
+    "note": "Aeronautical mobile (route)"
+   },
+   {
+    "color": "#2f7fb0",
+    "high": 18030000,
+    "label": "AERO",
+    "low": 17970000,
+    "note": "Aeronautical mobile (off route)"
+   },
+   {
+    "color": "#4a5560",
+    "high": 18780000,
+    "label": "FIXED",
+    "low": 18168000,
+    "note": "Fixed"
+   },
+   {
+    "color": "#1f8f7a",
+    "high": 18900000,
+    "label": "MARITIME",
+    "low": 18780000,
+    "note": "Maritime mobile"
+   },
+   {
+    "color": "#b06a20",
+    "high": 19020000,
+    "label": "15 m BC",
+    "low": 18900000,
+    "note": "Broadcasting"
+   },
+   {
+    "color": "#4a5560",
+    "high": 19680000,
+    "label": "FIXED",
+    "low": 19020000,
+    "note": "Fixed"
+   },
+   {
+    "color": "#1f8f7a",
+    "high": 19800000,
+    "label": "MARITIME",
+    "low": 19680000,
+    "note": "Maritime mobile"
+   },
+   {
+    "color": "#4a5560",
+    "high": 19990000,
+    "label": "FIXED",
+    "low": 19800000,
+    "note": "Fixed"
+   },
+   {
+    "color": "#8f8f5a",
+    "high": 20010000,
+    "label": "TIME",
+    "low": 19990000,
+    "note": "Standard frequency and time signal, 20 MHz"
+   },
+   {
+    "color": "#4a5560",
+    "high": 21000000,
+    "label": "FIXED",
+    "low": 20010000,
+    "note": "Fixed and mobile"
+   },
+   {
+    "color": "#b06a20",
+    "high": 21850000,
+    "label": "13 m BC",
+    "low": 21450000,
+    "note": "Broadcasting"
+   },
+   {
+    "color": "#4a5560",
+    "high": 21870000,
+    "label": "FIXED",
+    "low": 21850000,
+    "note": "Fixed"
+   },
+   {
+    "color": "#2f7fb0",
+    "high": 22000000,
+    "label": "AERO",
+    "low": 21870000,
+    "note": "Aeronautical mobile (route)"
+   },
+   {
+    "color": "#1f8f7a",
+    "high": 22855000,
+    "label": "MARITIME",
+    "low": 22000000,
+    "note": "Maritime mobile"
+   },
+   {
+    "color": "#4a5560",
+    "high": 23200000,
+    "label": "FIXED",
+    "low": 22855000,
+    "note": "Fixed"
+   },
+   {
+    "color": "#2f7fb0",
+    "high": 23350000,
+    "label": "AERO",
+    "low": 23200000,
+    "note": "Aeronautical mobile (off route)"
+   },
+   {
+    "color": "#4a5560",
+    "high": 24890000,
+    "label": "FIXED",
+    "low": 23350000,
+    "note": "Fixed and land mobile"
+   },
+   {
+    "color": "#8f8f5a",
+    "high": 25010000,
+    "label": "TIME",
+    "low": 24990000,
+    "note": "Standard frequency and time signal, 25 MHz"
+   },
+   {
+    "color": "#4a5560",
+    "high": 25070000,
+    "label": "FIXED",
+    "low": 25010000,
+    "note": "Fixed and mobile"
+   },
+   {
+    "color": "#1f8f7a",
+    "high": 25210000,
+    "label": "MARITIME",
+    "low": 25070000,
+    "note": "Maritime mobile"
+   },
+   {
+    "color": "#4a5560",
+    "high": 25550000,
+    "label": "FIXED",
+    "low": 25210000,
+    "note": "Fixed and mobile"
+   },
+   {
+    "color": "#8f8f5a",
+    "high": 25670000,
+    "label": "ASTRO",
+    "low": 25550000,
+    "note": "Radio astronomy"
+   },
+   {
+    "color": "#b06a20",
+    "high": 26100000,
+    "label": "11 m BC",
+    "low": 25670000,
+    "note": "Broadcasting"
+   },
+   {
+    "color": "#4a5560",
+    "high": 26965000,
+    "label": "FIXED",
+    "low": 26100000,
+    "note": "Fixed and mobile"
+   },
+   {
+    "color": "#7a7030",
+    "high": 27405000,
+    "label": "CB",
+    "low": 26965000,
+    "note": "Citizens' band, 40 channels"
+   },
+   {
+    "color": "#4a5560",
+    "high": 27600000,
+    "label": "FIXED",
+    "low": 27405000,
+    "note": "Fixed and mobile"
+   },
+   {
+    "color": "#7a7030",
+    "high": 28000000,
+    "label": "CB UK",
+    "low": 27600000,
+    "note": "UK citizens' band and short range"
+   },
+   {
+    "color": "#4a5560",
+    "high": 30005000,
+    "label": "FIXED",
+    "low": 29700000,
+    "note": "Fixed and mobile"
+   },
+   {
+    "color": "#6a5a8a",
+    "high": 30010000,
+    "label": "SPACE",
+    "low": 30005000,
+    "note": "Space operation"
+   },
+   {
+    "color": "#4a5560",
+    "high": 37500000,
+    "label": "LAND MOB",
+    "low": 30010000,
+    "note": "Fixed and land mobile; military tactical in many countries"
+   },
+   {
+    "color": "#8f8f5a",
+    "high": 38250000,
+    "label": "ASTRO",
+    "low": 37500000,
+    "note": "Radio astronomy"
+   },
+   {
+    "color": "#4a5560",
+    "high": 40660000,
+    "label": "LAND MOB",
+    "low": 38250000,
+    "note": "Fixed and land mobile"
+   },
+   {
+    "color": "#7a7030",
+    "high": 40700000,
+    "label": "ISM",
+    "low": 40660000,
+    "note": "Industrial, scientific and medical"
+   },
+   {
+    "color": "#4a5560",
+    "high": 47000000,
+    "label": "LAND MOB",
+    "low": 40700000,
+    "note": "Fixed and land mobile"
+   },
+   {
+    "color": "#b06a20",
+    "high": 50000000,
+    "label": "BAND I",
+    "low": 47000000,
+    "note": "Broadcasting, Region 1 Band I"
+   },
+   {
+    "color": "#b06a20",
+    "high": 54000000,
+    "label": "BAND I",
+    "low": 52000000,
+    "note": "Broadcasting and land mobile; amateur above 52 MHz is not UK"
+   }
+  ],
+  "services_region": 1,
+  "source": {
+   "checked": "2026-10-04",
+   "date": "2026-01-25",
+   "key": "R1",
+   "sha256": "ea57433369857cc69be4dccc0fbb085ddcf1e8c16b5e2364bd96c2e1af773c83",
+   "title": "RSGB 2026 Band Plan (260125_rsgb_band_plan_2026.pdf)",
+   "url": "https://rsgb.services/public/bandplans/docs/260125_rsgb_band_plan_2026.pdf",
+   "version": "Updated January 2026 (file 260125); each band has its own effective-from date"
+  },
+  "spans": [
+   5000,
+   10000,
+   20000,
+   50000,
+   100000,
+   200000,
+   400000,
+   800000,
+   1500000,
+   3000000,
+   7000000
+  ],
+  "spots": [
+   {
+    "hz": 1836000,
+    "label": "QRP CW",
+    "note": ""
+   },
+   {
+    "hz": 3555000,
+    "label": "QRS",
+    "note": ""
+   },
+   {
+    "hz": 3560000,
+    "label": "QRP CW",
+    "note": ""
+   },
+   {
+    "hz": 3663000,
+    "label": "UK emergency",
+    "note": ""
+   },
+   {
+    "hz": 3690000,
+    "label": "SSB QRP",
+    "note": ""
+   },
+   {
+    "hz": 3735000,
+    "label": "SSTV",
+    "note": ""
+   },
+   {
+    "hz": 5262000,
+    "label": "CW QRP",
+    "note": ""
+   },
+   {
+    "hz": 5278500,
+    "label": "UK emergency",
+    "note": ""
+   },
+   {
+    "hz": 5317000,
+    "label": "AM",
+    "note": ""
+   },
+   {
+    "hz": 7030000,
+    "label": "QRP CW",
+    "note": ""
+   },
+   {
+    "hz": 7090000,
+    "label": "SSB QRP",
+    "note": ""
+   },
+   {
+    "hz": 7110000,
+    "label": "R1 emergency",
+    "note": ""
+   },
+   {
+    "hz": 7165000,
+    "label": "SSTV",
+    "note": ""
+   },
+   {
+    "hz": 10116000,
+    "label": "QRP CW",
+    "note": ""
+   },
+   {
+    "hz": 14055000,
+    "label": "QRS",
+    "note": ""
+   },
+   {
+    "hz": 14060000,
+    "label": "QRP CW",
+    "note": ""
+   },
+   {
+    "hz": 14230000,
+    "label": "SSTV",
+    "note": ""
+   },
+   {
+    "hz": 14285000,
+    "label": "SSB QRP",
+    "note": ""
+   },
+   {
+    "hz": 14300000,
+    "label": "emergency",
+    "note": ""
+   },
+   {
+    "hz": 18086000,
+    "label": "QRP CW",
+    "note": ""
+   },
+   {
+    "hz": 21060000,
+    "label": "QRP CW",
+    "note": ""
+   },
+   {
+    "hz": 21340000,
+    "label": "SSTV",
+    "note": ""
+   },
+   {
+    "hz": 28060000,
+    "label": "QRP CW",
+    "note": ""
+   },
+   {
+    "hz": 28680000,
+    "label": "SSTV",
+    "note": ""
+   },
+   {
+    "hz": 29600000,
+    "label": "FM calling",
+    "note": ""
+   },
+   {
+    "hz": 1840000,
+    "label": "FT8",
+    "note": ""
+   },
+   {
+    "hz": 3573000,
+    "label": "FT8",
+    "note": ""
+   },
+   {
+    "hz": 3575000,
+    "label": "FT4",
+    "note": ""
+   },
+   {
+    "hz": 7074000,
+    "label": "FT8",
+    "note": ""
+   },
+   {
+    "hz": 7047500,
+    "label": "FT4",
+    "note": ""
+   },
+   {
+    "hz": 10136000,
+    "label": "FT8",
+    "note": ""
+   },
+   {
+    "hz": 10140000,
+    "label": "FT4",
+    "note": ""
+   },
+   {
+    "hz": 14074000,
+    "label": "FT8",
+    "note": ""
+   },
+   {
+    "hz": 14080000,
+    "label": "FT4",
+    "note": ""
+   },
+   {
+    "hz": 14095600,
+    "label": "WSPR",
+    "note": ""
+   },
+   {
+    "hz": 18100000,
+    "label": "FT8",
+    "note": ""
+   },
+   {
+    "hz": 18104000,
+    "label": "FT4",
+    "note": ""
+   },
+   {
+    "hz": 21074000,
+    "label": "FT8",
+    "note": ""
+   },
+   {
+    "hz": 21140000,
+    "label": "FT4",
+    "note": ""
+   },
+   {
+    "hz": 24915000,
+    "label": "FT8",
+    "note": ""
+   },
+   {
+    "hz": 24919000,
+    "label": "FT4",
+    "note": ""
+   },
+   {
+    "hz": 28074000,
+    "label": "FT8",
+    "note": ""
+   },
+   {
+    "hz": 28180000,
+    "label": "FT4",
+    "note": ""
+   },
+   {
+    "hz": 50313000,
+    "label": "FT8",
+    "note": ""
+   },
+   {
+    "hz": 50318000,
+    "label": "FT4",
+    "note": ""
+   }
+  ]
+ }
+}

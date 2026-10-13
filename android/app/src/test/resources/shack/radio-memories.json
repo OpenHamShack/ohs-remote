@@ -1,0 +1,418 @@
+{
+    "memories": [
+        {
+            "name": "QRP CW 1.836",
+            "rf": 1836000.0,
+            "mode": "cw",
+            "builtin": true
+        },
+        {
+            "name": "QRS 3.555",
+            "rf": 3555000.0,
+            "mode": "cw",
+            "builtin": true
+        },
+        {
+            "name": "QRP CW 3.56",
+            "rf": 3560000.0,
+            "mode": "cw",
+            "builtin": true
+        },
+        {
+            "name": "digital voice 3.63",
+            "rf": 3630000.0,
+            "mode": "freedv",
+            "builtin": true
+        },
+        {
+            "name": "SSB QRP 3.69",
+            "rf": 3690000.0,
+            "mode": "lsb",
+            "builtin": true
+        },
+        {
+            "name": "image 3.735",
+            "rf": 3735000.0,
+            "mode": "sstv",
+            "builtin": true
+        },
+        {
+            "name": "R1 emergency 3.76",
+            "rf": 3760000.0,
+            "mode": "lsb",
+            "builtin": true
+        },
+        {
+            "name": "QRP CW 7.03",
+            "rf": 7030000.0,
+            "mode": "cw",
+            "builtin": true
+        },
+        {
+            "name": "digital voice 7.07",
+            "rf": 7070000.0,
+            "mode": "freedv",
+            "builtin": true
+        },
+        {
+            "name": "SSB QRP 7.09",
+            "rf": 7090000.0,
+            "mode": "lsb",
+            "builtin": true
+        },
+        {
+            "name": "R1 emergency 7.11",
+            "rf": 7110000.0,
+            "mode": "lsb",
+            "builtin": true
+        },
+        {
+            "name": "image 7.165",
+            "rf": 7165000.0,
+            "mode": "sstv",
+            "builtin": true
+        },
+        {
+            "name": "QRP CW 10.116",
+            "rf": 10116000.0,
+            "mode": "cw",
+            "builtin": true
+        },
+        {
+            "name": "QRS 14.055",
+            "rf": 14055000.0,
+            "mode": "cw",
+            "builtin": true
+        },
+        {
+            "name": "QRP CW 14.06",
+            "rf": 14060000.0,
+            "mode": "cw",
+            "builtin": true
+        },
+        {
+            "name": "digital voice 14.13",
+            "rf": 14130000.0,
+            "mode": "freedv",
+            "builtin": true
+        },
+        {
+            "name": "DXpeditions 14.195",
+            "rf": 14195000.0,
+            "mode": "usb",
+            "builtin": true
+        },
+        {
+            "name": "image 14.23",
+            "rf": 14230000.0,
+            "mode": "sstv",
+            "builtin": true
+        },
+        {
+            "name": "SSB QRP 14.285",
+            "rf": 14285000.0,
+            "mode": "usb",
+            "builtin": true
+        },
+        {
+            "name": "global emergency 14.3",
+            "rf": 14300000.0,
+            "mode": "usb",
+            "builtin": true
+        },
+        {
+            "name": "QRP CW 18.086",
+            "rf": 18086000.0,
+            "mode": "cw",
+            "builtin": true
+        },
+        {
+            "name": "SSB QRP 18.13",
+            "rf": 18130000.0,
+            "mode": "usb",
+            "builtin": true
+        },
+        {
+            "name": "digital voice 18.15",
+            "rf": 18150000.0,
+            "mode": "freedv",
+            "builtin": true
+        },
+        {
+            "name": "emergency 18.16",
+            "rf": 18160000.0,
+            "mode": "usb",
+            "builtin": true
+        },
+        {
+            "name": "QRS 21.055",
+            "rf": 21055000.0,
+            "mode": "cw",
+            "builtin": true
+        },
+        {
+            "name": "QRP CW 21.06",
+            "rf": 21060000.0,
+            "mode": "cw",
+            "builtin": true
+        },
+        {
+            "name": "digital voice 21.18",
+            "rf": 21180000.0,
+            "mode": "freedv",
+            "builtin": true
+        },
+        {
+            "name": "SSB QRP 21.285",
+            "rf": 21285000.0,
+            "mode": "usb",
+            "builtin": true
+        },
+        {
+            "name": "image 21.34",
+            "rf": 21340000.0,
+            "mode": "sstv",
+            "builtin": true
+        },
+        {
+            "name": "global emergency 21.36",
+            "rf": 21360000.0,
+            "mode": "usb",
+            "builtin": true
+        },
+        {
+            "name": "QRP CW 24.906",
+            "rf": 24906000.0,
+            "mode": "cw",
+            "builtin": true
+        },
+        {
+            "name": "SSB QRP 24.95",
+            "rf": 24950000.0,
+            "mode": "usb",
+            "builtin": true
+        },
+        {
+            "name": "digital voice 24.96",
+            "rf": 24960000.0,
+            "mode": "freedv",
+            "builtin": true
+        },
+        {
+            "name": "QRS 28.055",
+            "rf": 28055000.0,
+            "mode": "cw",
+            "builtin": true
+        },
+        {
+            "name": "QRP CW 28.06",
+            "rf": 28060000.0,
+            "mode": "cw",
+            "builtin": true
+        },
+        {
+            "name": "digital voice 28.33",
+            "rf": 28330000.0,
+            "mode": "freedv",
+            "builtin": true
+        },
+        {
+            "name": "SSB QRP 28.36",
+            "rf": 28360000.0,
+            "mode": "usb",
+            "builtin": true
+        },
+        {
+            "name": "image 28.68",
+            "rf": 28680000.0,
+            "mode": "sstv",
+            "builtin": true
+        },
+        {
+            "name": "FM calling 29.6",
+            "rf": 29600000.0,
+            "mode": "fm",
+            "builtin": true
+        },
+        {
+            "name": "CW centre 144.05",
+            "rf": 144050000.0,
+            "mode": "cw",
+            "builtin": true
+        },
+        {
+            "name": "SSB centre 144.3",
+            "rf": 144300000.0,
+            "mode": "usb",
+            "builtin": true
+        },
+        {
+            "name": "image 144.5",
+            "rf": 144500000.0,
+            "mode": "sstv",
+            "builtin": true
+        },
+        {
+            "name": "APRS 144.8",
+            "rf": 144800000.0,
+            "mode": "fm",
+            "builtin": true
+        },
+        {
+            "name": "DV calling 145.375",
+            "rf": 145375000.0,
+            "mode": "fm",
+            "builtin": true
+        },
+        {
+            "name": "FM calling 145.5",
+            "rf": 145500000.0,
+            "mode": "fm",
+            "builtin": true
+        },
+        {
+            "name": "CW centre 432.05",
+            "rf": 432050000.0,
+            "mode": "cw",
+            "builtin": true
+        },
+        {
+            "name": "SSB centre 432.2",
+            "rf": 432200000.0,
+            "mode": "usb",
+            "builtin": true
+        },
+        {
+            "name": "APRS 432.5",
+            "rf": 432500000.0,
+            "mode": "fm",
+            "builtin": true
+        },
+        {
+            "name": "DV calling 433.45",
+            "rf": 433450000.0,
+            "mode": "fm",
+            "builtin": true
+        },
+        {
+            "name": "FM calling 433.5",
+            "rf": 433500000.0,
+            "mode": "fm",
+            "builtin": true
+        },
+        {
+            "name": "narrowband centre 1296.2",
+            "rf": 1296200000.0,
+            "mode": "usb",
+            "builtin": true
+        },
+        {
+            "name": "FM centre 1297.5",
+            "rf": 1297500000.0,
+            "mode": "fm",
+            "builtin": true
+        },
+        {
+            "name": "DV calling 1297.725",
+            "rf": 1297725000.0,
+            "mode": "fm",
+            "builtin": true
+        },
+        {
+            "name": "SSB centre 2320.2",
+            "rf": 2320200000.0,
+            "mode": "usb",
+            "builtin": true
+        },
+        {
+            "name": "narrowband centre 5760.2",
+            "rf": 5760200000.0,
+            "mode": "usb",
+            "builtin": true
+        },
+        {
+            "name": "FT8 160m",
+            "rf": 1840000.0,
+            "mode": "ft8",
+            "builtin": true
+        },
+        {
+            "name": "FT8 80m",
+            "rf": 3573000.0,
+            "mode": "ft8",
+            "builtin": true
+        },
+        {
+            "name": "FT8 60m",
+            "rf": 5357000.0,
+            "mode": "ft8",
+            "builtin": true
+        },
+        {
+            "name": "FT8 40m",
+            "rf": 7074000.0,
+            "mode": "ft8",
+            "builtin": true
+        },
+        {
+            "name": "FT8 30m",
+            "rf": 10136000.0,
+            "mode": "ft8",
+            "builtin": true
+        },
+        {
+            "name": "FT8 20m",
+            "rf": 14074000.0,
+            "mode": "ft8",
+            "builtin": true
+        },
+        {
+            "name": "FT8 17m",
+            "rf": 18100000.0,
+            "mode": "ft8",
+            "builtin": true
+        },
+        {
+            "name": "FT8 15m",
+            "rf": 21074000.0,
+            "mode": "ft8",
+            "builtin": true
+        },
+        {
+            "name": "FT8 12m",
+            "rf": 24915000.0,
+            "mode": "ft8",
+            "builtin": true
+        },
+        {
+            "name": "FT8 10m",
+            "rf": 28074000.0,
+            "mode": "ft8",
+            "builtin": true
+        },
+        {
+            "name": "FT8 4m",
+            "rf": 70154000.0,
+            "mode": "ft8",
+            "builtin": true
+        },
+        {
+            "name": "FT8 2m",
+            "rf": 144174000.0,
+            "mode": "ft8",
+            "builtin": true
+        },
+        {
+            "name": "FT8 70cm",
+            "rf": 432174000.0,
+            "mode": "ft8",
+            "builtin": true
+        },
+        {
+            "name": "FT8 23cm",
+            "rf": 1296174000.0,
+            "mode": "ft8",
+            "builtin": true
+        }
+    ]
+}

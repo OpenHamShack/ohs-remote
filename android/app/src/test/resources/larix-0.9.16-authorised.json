@@ -1,0 +1,17 @@
+{
+    "protocol": "srt",
+    "links": [
+        {
+            "via": "eno1",
+            "server": "srt://198.51.100.208:19710",
+            "larix": "larix://set/v1?conn[][url]=srt%3A%2F%2F198.51.100.208%3A19710&conn[][name]=OpenHamShack&conn[][overwrite]=on&conn[][mode]=va&conn[][srtmode]=c&conn[][srtlatency]=200&conn[][srtpass]=fakebox-passphrase&enc[vid][res]=1280x720&enc[vid][fps]=30&enc[vid][bitrate]=2500&enc[vid][format]=avc"
+        },
+        {
+            "via": "Tailscale",
+            "server": "srt://shack:19710",
+            "larix": "larix://set/v1?conn[][url]=srt%3A%2F%2Fshack%3A19710&conn[][name]=OpenHamShack&conn[][overwrite]=on&conn[][mode]=va&conn[][srtmode]=c&conn[][srtlatency]=200&conn[][srtpass]=fakebox-passphrase&enc[vid][res]=1280x720&enc[vid][fps]=30&enc[vid][bitrate]=2500&enc[vid][format]=avc"
+        }
+    ],
+    "secretIncluded": true,
+    "secretSet": true
+}

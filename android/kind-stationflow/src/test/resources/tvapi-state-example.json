@@ -1,0 +1,125 @@
+{
+  "title": "IC-9700",
+  "version": "1.23.0",
+  "tx_enabled": false,
+  "server_time": 1791520590.33,
+  "selected": "r2813",
+  "switching": null,
+  "digi_modes": [
+    "FT8",
+    "FT4",
+    "JT65",
+    "Q65",
+    "JT9",
+    "WSPR",
+    "JS8",
+    "JS8-FAST",
+    "JS8-TURBO",
+    "JS8-SLOW"
+  ],
+  "radios": {
+    "r2813": {
+      "id": "r2813",
+      "name": "IC-9700",
+      "connected": true,
+      "link_state": "connected",
+      "error": null,
+      "wanted": true,
+      "freq": 144174000,
+      "mode": "USB",
+      "data_mode": true,
+      "mode_label": "USB-D",
+      "filter": "FIL1",
+      "vfo": "VFOA",
+      "split": false,
+      "ptt": false,
+      "smeter": 64,
+      "smeter_db": -25.2,
+      "preamp": 1,
+      "preamp_ext": false,
+      "preamp_mode": 1,
+      "att": 0,
+      "preamp_modes": ["OFF", "P.AMP", "EXT", "P.AMP+EXT"],
+      "preamp_modes_refused": {},
+      "ext_preamp_menu": {"144": true, "430": false, "1200": null},
+      "ext_preamp_here": true,
+      "power": null,
+      "swr": null,
+      "audio": true,
+      "audio_rate": 12000,
+      "scope": true,
+      "scope_points": 475,
+      "modes": [
+        "LSB",
+        "USB",
+        "AM",
+        "CW",
+        "RTTY",
+        "FM",
+        "CWR",
+        "RTTYR",
+        "DV",
+        "DD"
+      ],
+      "data_modes": [
+        "LSB",
+        "USB",
+        "AM",
+        "FM"
+      ],
+      "bands": [
+        {
+          "name": "2m",
+          "hz": 144300000
+        },
+        {
+          "name": "70cm",
+          "hz": 432200000
+        },
+        {
+          "name": "23cm",
+          "hz": 1296200000
+        }
+      ],
+      "model": {
+        "key": "ic-9700",
+        "name": "IC-9700",
+        "bands": [
+          {
+            "from": 144000000,
+            "to": 146000000,
+            "watts": 100
+          }
+        ],
+        "preamps": ["P.AMP"],
+        "preamp_modes": ["OFF", "P.AMP", "EXT", "P.AMP+EXT"],
+        "attenuators": [10]
+      },
+      "audio_stats": {
+        "enabled": true,
+        "rate": 12000,
+        "running": true,
+        "packets": 51234,
+        "dropped": 0,
+        "listeners": 2,
+        "browser_clients": 1
+      },
+      "digi": {
+        "mode": "FT8",
+        "armed": false,
+        "transmitting": false,
+        "holder": "FT8"
+      },
+      "cw_pitch": null,
+      "cw": {
+        "active": false,
+        "available": true,
+        "why": null,
+        "pitch": 600,
+        "pitch_source": "default",
+        "wpm": null,
+        "text": ""
+      }
+    }
+  }
+}

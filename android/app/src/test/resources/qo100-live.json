@@ -1,0 +1,1149 @@
+{
+    "spectrum": [
+        -3.0,
+        -3.0,
+        -2.8,
+        -2.5,
+        -2.2,
+        -1.8,
+        -1.3,
+        -0.5,
+        0.5,
+        1.5,
+        2.6,
+        3.5,
+        4.6,
+        5.4,
+        6.1,
+        6.6,
+        6.9,
+        7.6,
+        7.7,
+        8.2,
+        8.2,
+        8.4,
+        8.4,
+        8.5,
+        8.4,
+        8.6,
+        8.8,
+        8.6,
+        8.6,
+        8.7,
+        8.8,
+        8.8,
+        8.8,
+        8.8,
+        9.0,
+        9.0,
+        8.7,
+        8.7,
+        8.8,
+        8.7,
+        8.7,
+        8.9,
+        8.8,
+        8.7,
+        8.8,
+        8.8,
+        8.8,
+        8.8,
+        8.7,
+        8.6,
+        8.8,
+        8.9,
+        8.8,
+        8.7,
+        8.8,
+        8.8,
+        8.6,
+        8.7,
+        8.7,
+        8.7,
+        8.8,
+        8.8,
+        8.7,
+        8.8,
+        8.7,
+        8.7,
+        8.8,
+        8.8,
+        8.8,
+        8.8,
+        8.8,
+        8.8,
+        8.7,
+        8.6,
+        8.7,
+        8.7,
+        8.7,
+        8.5,
+        8.8,
+        8.8,
+        8.7,
+        8.6,
+        8.7,
+        8.4,
+        8.4,
+        8.4,
+        7.9,
+        7.7,
+        7.3,
+        6.5,
+        5.9,
+        5.2,
+        4.2,
+        3.3,
+        2.0,
+        1.0,
+        0.1,
+        -0.2,
+        -0.4,
+        -0.4,
+        -0.4,
+        -0.4,
+        -0.4,
+        -0.3,
+        -0.4,
+        -0.4,
+        -0.4,
+        -0.5,
+        -0.5,
+        -0.6,
+        -0.4,
+        -0.4,
+        -0.4,
+        -0.4,
+        -0.6,
+        -0.5,
+        -0.3,
+        -0.5,
+        -0.3,
+        -0.3,
+        -0.4,
+        -0.5,
+        -0.4,
+        -0.4,
+        -0.5,
+        -0.4,
+        -0.5,
+        -0.4,
+        -0.3,
+        -0.4,
+        -0.4,
+        -0.4,
+        -0.4,
+        -0.3,
+        -0.5,
+        -0.5,
+        -0.5,
+        -0.3,
+        -0.3,
+        -0.4,
+        -0.5,
+        -0.4,
+        -0.4,
+        -0.4,
+        -0.3,
+        -0.5,
+        -0.3,
+        -0.3,
+        -0.4,
+        -0.5,
+        -0.3,
+        -0.2,
+        -0.4,
+        -0.4,
+        -0.3,
+        -0.4,
+        -0.4,
+        -0.4,
+        -0.4,
+        -0.3,
+        -0.2,
+        -0.4,
+        -0.3,
+        -0.2,
+        -0.3,
+        -0.3,
+        -0.3,
+        -0.2,
+        -0.2,
+        -0.3,
+        -0.2,
+        -0.3,
+        -0.3,
+        -0.3,
+        -0.1,
+        -0.2,
+        -0.3,
+        -0.2,
+        -0.3,
+        -0.2,
+        -0.2,
+        -0.2,
+        -0.2,
+        -0.4,
+        -0.2,
+        -0.3,
+        -0.3,
+        -0.3,
+        -0.2,
+        -0.2,
+        -0.3,
+        -0.3,
+        -0.2,
+        -0.2,
+        -0.2,
+        -0.3,
+        -0.2,
+        -0.4,
+        -0.3,
+        -0.3,
+        -0.2,
+        -0.3,
+        -0.4,
+        -0.2,
+        -0.3,
+        -0.2,
+        -0.1,
+        -0.3,
+        -0.3,
+        -0.2,
+        -0.3,
+        -0.3,
+        -0.2,
+        -0.2,
+        -0.2,
+        -0.2,
+        -0.3,
+        -0.3,
+        -0.3,
+        -0.4,
+        -0.2,
+        -0.2,
+        -0.1,
+        -0.2,
+        -0.2,
+        -0.2,
+        -0.1,
+        -0.2,
+        -0.1,
+        -0.1,
+        -0.2,
+        -0.2,
+        -0.2,
+        -0.1,
+        -0.3,
+        -0.1,
+        -0.1,
+        -0.1,
+        -0.1,
+        -0.0,
+        0.1,
+        0.0,
+        0.1,
+        0.0,
+        0.1,
+        -0.0,
+        0.0,
+        -0.1,
+        0.0,
+        0.0,
+        -0.2,
+        -0.1,
+        -0.1,
+        -0.1,
+        -0.1,
+        -0.0,
+        -0.1,
+        -0.1,
+        -0.1,
+        -0.1,
+        -0.1,
+        -0.1,
+        -0.2,
+        -0.1,
+        0.0,
+        -0.0,
+        -0.2,
+        -0.2,
+        -0.0,
+        0.1,
+        -0.1,
+        -0.0,
+        -0.1,
+        -0.1,
+        -0.2,
+        0.0,
+        -0.0,
+        0.0,
+        -0.1,
+        -0.2,
+        -0.1,
+        -0.0,
+        -0.0,
+        -0.2,
+        -0.2,
+        -0.1,
+        -0.1,
+        -0.2,
+        -0.0,
+        -0.1,
+        -0.2,
+        -0.1,
+        0.1,
+        -0.2,
+        -0.2,
+        -0.1,
+        -0.1,
+        -0.0,
+        -0.1,
+        0.1,
+        -0.1,
+        -0.1,
+        -0.2,
+        -0.1,
+        -0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.0,
+        0.0,
+        0.2,
+        0.0,
+        -0.1,
+        -0.0,
+        0.0,
+        0.1,
+        -0.0,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.2,
+        -0.1,
+        0.0,
+        -0.1,
+        0.1,
+        0.0,
+        -0.0,
+        0.1,
+        -0.1,
+        0.1,
+        -0.0,
+        0.1,
+        0.0,
+        0.1,
+        0.3,
+        0.0,
+        -0.0,
+        -0.1,
+        -0.0,
+        0.0,
+        0.1,
+        0.0,
+        -0.0,
+        0.1,
+        -0.0,
+        -0.0,
+        0.0,
+        0.1,
+        0.1,
+        0.1,
+        0.2,
+        -0.1,
+        -0.0,
+        0.0,
+        0.1,
+        0.2,
+        0.0,
+        0.1,
+        0.2,
+        0.1,
+        0.2,
+        0.1,
+        0.1,
+        0.2,
+        0.1,
+        0.2,
+        0.1,
+        0.2,
+        0.1,
+        0.0,
+        0.2,
+        0.2,
+        0.2,
+        0.0,
+        0.1,
+        0.3,
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.3,
+        0.3,
+        0.2,
+        0.1,
+        0.2,
+        0.1,
+        0.3,
+        0.2,
+        0.1,
+        0.1,
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.1,
+        0.0,
+        0.2,
+        0.2,
+        0.2,
+        0.1,
+        0.2,
+        0.3,
+        0.3,
+        0.2,
+        0.5,
+        0.4,
+        0.3,
+        0.1,
+        0.3,
+        0.3,
+        0.2,
+        0.3,
+        0.5,
+        0.4,
+        0.5,
+        0.4,
+        0.3,
+        0.4,
+        0.4,
+        0.3,
+        0.3,
+        0.3,
+        0.3,
+        0.2,
+        0.3,
+        0.5,
+        0.3,
+        0.4,
+        0.5,
+        0.4,
+        0.4,
+        0.5,
+        0.4,
+        0.4,
+        0.4,
+        0.2,
+        0.3,
+        0.2,
+        0.4,
+        0.3,
+        0.3,
+        0.6,
+        0.5,
+        0.5,
+        0.6,
+        0.6,
+        0.7,
+        0.7,
+        0.6,
+        0.7,
+        0.6,
+        0.3,
+        0.1,
+        -0.7,
+        -1.5,
+        -2.6,
+        -3.0,
+        -3.0
+    ],
+    "startMHz": 10490.5,
+    "stopMHz": 10499.5,
+    "uplinkOffsetMHz": 8089.5,
+    "channels": {
+        "1500": [
+            {
+                "downlinkMHz": 10493.25,
+                "uplinkMHz": 2403.75,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10494.75,
+                "uplinkMHz": 2405.25,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10496.25,
+                "uplinkMHz": 2406.75,
+                "preferred": true
+            }
+        ],
+        "1000": [
+            {
+                "downlinkMHz": 10493.25,
+                "uplinkMHz": 2403.75,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10494.75,
+                "uplinkMHz": 2405.25,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10496.25,
+                "uplinkMHz": 2406.75,
+                "preferred": true
+            }
+        ],
+        "500": [
+            {
+                "downlinkMHz": 10492.75,
+                "uplinkMHz": 2403.25,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10493.25,
+                "uplinkMHz": 2403.75,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10493.75,
+                "uplinkMHz": 2404.25,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10494.25,
+                "uplinkMHz": 2404.75,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10494.75,
+                "uplinkMHz": 2405.25,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10495.25,
+                "uplinkMHz": 2405.75,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10495.75,
+                "uplinkMHz": 2406.25,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10496.25,
+                "uplinkMHz": 2406.75,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10496.75,
+                "uplinkMHz": 2407.25,
+                "preferred": true
+            }
+        ],
+        "333": [
+            {
+                "downlinkMHz": 10492.75,
+                "uplinkMHz": 2403.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10493.25,
+                "uplinkMHz": 2403.75,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10493.75,
+                "uplinkMHz": 2404.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10494.25,
+                "uplinkMHz": 2404.75,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10494.75,
+                "uplinkMHz": 2405.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10495.25,
+                "uplinkMHz": 2405.75,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10495.75,
+                "uplinkMHz": 2406.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10496.25,
+                "uplinkMHz": 2406.75,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10496.75,
+                "uplinkMHz": 2407.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10497.25,
+                "uplinkMHz": 2407.75,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10497.75,
+                "uplinkMHz": 2408.25,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10498.25,
+                "uplinkMHz": 2408.75,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10498.75,
+                "uplinkMHz": 2409.25,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10499.25,
+                "uplinkMHz": 2409.75,
+                "preferred": true
+            }
+        ],
+        "250": [
+            {
+                "downlinkMHz": 10492.75,
+                "uplinkMHz": 2403.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10493.25,
+                "uplinkMHz": 2403.75,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10493.75,
+                "uplinkMHz": 2404.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10494.25,
+                "uplinkMHz": 2404.75,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10494.75,
+                "uplinkMHz": 2405.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10495.25,
+                "uplinkMHz": 2405.75,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10495.75,
+                "uplinkMHz": 2406.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10496.25,
+                "uplinkMHz": 2406.75,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10496.75,
+                "uplinkMHz": 2407.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10497.25,
+                "uplinkMHz": 2407.75,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10497.75,
+                "uplinkMHz": 2408.25,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10498.25,
+                "uplinkMHz": 2408.75,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10498.75,
+                "uplinkMHz": 2409.25,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10499.25,
+                "uplinkMHz": 2409.75,
+                "preferred": true
+            }
+        ],
+        "125": [
+            {
+                "downlinkMHz": 10492.75,
+                "uplinkMHz": 2403.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10493.0,
+                "uplinkMHz": 2403.5,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10493.25,
+                "uplinkMHz": 2403.75,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10493.5,
+                "uplinkMHz": 2404.0,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10493.75,
+                "uplinkMHz": 2404.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10494.0,
+                "uplinkMHz": 2404.5,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10494.25,
+                "uplinkMHz": 2404.75,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10494.5,
+                "uplinkMHz": 2405.0,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10494.75,
+                "uplinkMHz": 2405.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10495.0,
+                "uplinkMHz": 2405.5,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10495.25,
+                "uplinkMHz": 2405.75,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10495.5,
+                "uplinkMHz": 2406.0,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10495.75,
+                "uplinkMHz": 2406.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10496.0,
+                "uplinkMHz": 2406.5,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10496.25,
+                "uplinkMHz": 2406.75,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10496.5,
+                "uplinkMHz": 2407.0,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10496.75,
+                "uplinkMHz": 2407.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10497.0,
+                "uplinkMHz": 2407.5,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10497.25,
+                "uplinkMHz": 2407.75,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10497.5,
+                "uplinkMHz": 2408.0,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10497.75,
+                "uplinkMHz": 2408.25,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10498.0,
+                "uplinkMHz": 2408.5,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10498.25,
+                "uplinkMHz": 2408.75,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10498.5,
+                "uplinkMHz": 2409.0,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10498.75,
+                "uplinkMHz": 2409.25,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10499.0,
+                "uplinkMHz": 2409.5,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10499.25,
+                "uplinkMHz": 2409.75,
+                "preferred": true
+            }
+        ],
+        "66": [
+            {
+                "downlinkMHz": 10492.75,
+                "uplinkMHz": 2403.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10493.0,
+                "uplinkMHz": 2403.5,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10493.25,
+                "uplinkMHz": 2403.75,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10493.5,
+                "uplinkMHz": 2404.0,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10493.75,
+                "uplinkMHz": 2404.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10494.0,
+                "uplinkMHz": 2404.5,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10494.25,
+                "uplinkMHz": 2404.75,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10494.5,
+                "uplinkMHz": 2405.0,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10494.75,
+                "uplinkMHz": 2405.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10495.0,
+                "uplinkMHz": 2405.5,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10495.25,
+                "uplinkMHz": 2405.75,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10495.5,
+                "uplinkMHz": 2406.0,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10495.75,
+                "uplinkMHz": 2406.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10496.0,
+                "uplinkMHz": 2406.5,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10496.25,
+                "uplinkMHz": 2406.75,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10496.5,
+                "uplinkMHz": 2407.0,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10496.75,
+                "uplinkMHz": 2407.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10497.0,
+                "uplinkMHz": 2407.5,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10497.25,
+                "uplinkMHz": 2407.75,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10497.5,
+                "uplinkMHz": 2408.0,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10497.75,
+                "uplinkMHz": 2408.25,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10498.0,
+                "uplinkMHz": 2408.5,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10498.25,
+                "uplinkMHz": 2408.75,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10498.5,
+                "uplinkMHz": 2409.0,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10498.75,
+                "uplinkMHz": 2409.25,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10499.0,
+                "uplinkMHz": 2409.5,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10499.25,
+                "uplinkMHz": 2409.75,
+                "preferred": true
+            }
+        ],
+        "33": [
+            {
+                "downlinkMHz": 10492.75,
+                "uplinkMHz": 2403.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10493.0,
+                "uplinkMHz": 2403.5,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10493.25,
+                "uplinkMHz": 2403.75,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10493.5,
+                "uplinkMHz": 2404.0,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10493.75,
+                "uplinkMHz": 2404.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10494.0,
+                "uplinkMHz": 2404.5,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10494.25,
+                "uplinkMHz": 2404.75,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10494.5,
+                "uplinkMHz": 2405.0,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10494.75,
+                "uplinkMHz": 2405.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10495.0,
+                "uplinkMHz": 2405.5,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10495.25,
+                "uplinkMHz": 2405.75,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10495.5,
+                "uplinkMHz": 2406.0,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10495.75,
+                "uplinkMHz": 2406.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10496.0,
+                "uplinkMHz": 2406.5,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10496.25,
+                "uplinkMHz": 2406.75,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10496.5,
+                "uplinkMHz": 2407.0,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10496.75,
+                "uplinkMHz": 2407.25,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10497.0,
+                "uplinkMHz": 2407.5,
+                "preferred": false
+            },
+            {
+                "downlinkMHz": 10497.25,
+                "uplinkMHz": 2407.75,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10497.5,
+                "uplinkMHz": 2408.0,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10497.75,
+                "uplinkMHz": 2408.25,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10498.0,
+                "uplinkMHz": 2408.5,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10498.25,
+                "uplinkMHz": 2408.75,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10498.5,
+                "uplinkMHz": 2409.0,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10498.75,
+                "uplinkMHz": 2409.25,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10499.0,
+                "uplinkMHz": 2409.5,
+                "preferred": true
+            },
+            {
+                "downlinkMHz": 10499.25,
+                "uplinkMHz": 2409.75,
+                "preferred": true
+            }
+        ]
+    },
+    "signals": [
+        {
+            "freqMHz": 10491.5,
+            "beacon": true,
+            "overPower": false,
+            "symbolRateKs": 1500,
+            "tuneSymbolRateKs": 1500,
+            "lowMHz": 10490.793,
+            "highMHz": 10492.247,
+            "levelDb": 8.7
+        }
+    ],
+    "outOfBand": false,
+    "age": 0.3,
+    "live": true,
+    "error": "",
+    "source": "BATC QO-100 wideband spectrum monitor",
+    "sourceUrl": "https://eshail.batc.org.uk/wb/",
+    "waterfall": {
+        "seq": 195,
+        "full": true,
+        "rowSeconds": 1.0,
+        "maxRows": 180,
+        "dbLow": -3.0,
+        "dbStep": 0.125,
+        "newest": 1791515540.8108346,
+        "rows": [
+            "AAEEBgYKDRUeJi82PkRKT1NWV1tcXF1cXl9fXl9fXmBfYGBgYWBgYWBgYGBhYGFgYF9fYF5fX2BgX2BgX19fX2BfYF9fYF9fYGBfX15fXl9eX15dXVxZVlNOSUI7MyogGRYVFhUWFhYXFhYWFRYWFhYVFhUVFhUVFhUVFhUXFhYWFhUWFRYVFRYWFhYWFhYWFxYWFhYWFhUWFxYWFhYXFxYWFhcYFhcXFxUWFhcYFxcYFxcYGBcXFxYYFxcXFxcWGBcWFxcXFxYXFxcYFxcYFxcXGBgYGBcXFhgXFxcYGBcXFxcYFxcXGBcYGBgXGBgYGRoZGRkYGRkYGBkZFxgZGRkZGBkZGBgYGRkYGRcXGhkYGhkZGBgXFxkXGBgYGBcYGRgYFxgYGBgZGBgYGRgZGRgYGRkYGBkZGRoZGRkaGhoZGhkZGBkZGRkZGRgaGhkZGBkZGRgZGRkaGRkZGRkaGBkaGRoaGRkaGRoaGRsbGhkbGxobGhobGhoaGhobGhoaGhsaGhobGhsaHBsbGxsbGxsaGhoaHBsaHBsbGxscHBwcHBsbHBwcGxwbGxwcGxscHR4cHBwcHBscHBwdHR0dHh4eIB8gHhwaFQ0DAAA=",
+            "AAAEBQgLDhUdJS41PEVJTlJWWFlbW1xcXF5fXl5gX19fYGBfX19hX2BfX19fX19fYF9fX19eX15eXl9eX19fXl5fX19dX19eX19fX19eXl1eXl1dXVxYVFJOSEE7NCsiGhYWFRUVFhYWFhUVFRUXFRUUFRUVFRUVFRUVFRUVFRcWFhUVFBUWFRYVFRUVFRUWFhYXFhcXFhYWFRYWFhYXFhYWFhYXFxYXFhcXFhYXFxYXFxYXFxYWFhYXFhYXFxcWFxcXFxYXFxcWFhYXFxcXFxcXGBcXFxcXFxYWFhcWFxYXFxYXFxgYFxcYGBcYGBgZGRkZGRkZGBcYGBgYGBgYGBkZGRgYGBgYFxgYGBcYGBcYGBgYGBgXFxcYGBcZFxcXFxgYFxgYFxgYGBkXGBgYGBkZGhkZGBoZGBkYGRkZGBkaGRgZGRgZGRkZGBgZGRgaGRkZGBkaGRgYGhgZGRkZGhkZGBoaGRkbGRgZGRoaGRkaGhkaGxsZGhoaGRobGhoZGRkbGRkbGhoaGRoZGhoaGxoaGxoaGhoaGhoaGhsaHBwbGxscGxsbGxsbHBwbGxscHBwbGxscHBocGx0dHR0dHR0eHh8fHRsZFA0EAAA=",
+            "AAEDBgcKDxUeJS42PkRLUFJWWVtbXF1cXl9eX19fX19gYGBfX19gX2BfX2BfYGBfX19eYV9fYF9fX15fX19fX19gX19eX19fX19eX15eX15eXV5eXVxYVlROSEM7MysjGhYWFRYWFhcWFhYWFRYUFRUWFhUUFRUVFhUVFhUXFhYWFhUWFhYXFhUVFRUWFhYVFhYWFhcXFhYWGBYWFhYXFxcXFhYXFxYWFxcXFhcXFhYXFxcXFxcXFxcXFhYXFhcXFxYXFxgXFxcWFxcWFhcXFxcXFxgWFxcXFxcXFxgYGBgXFxcYFxcXGBcXFxgXGBgZGRkZGRgYGBgZGRgYGBgYGRkZGRgYGBkZGBgYGBgXGBgYGBkZGBgXGBgZFxgYGBkYGBgYFxcXGBgZGBgYGBgYGBkaGhgZGBoZGBgaGRkaGBkZGRkZGRoYGRkZGRkZGRoZGRkZGRkaGRgZGRkZGRoYGBkZGhkaGhkZGRoaGhkaGxoaGhoaGhkbGhobGhsbGhobGhobGxsbGhoaGhsaGhoaGxoZGxobGxsaGhobHBscGxwaHBwcGxsbHBwbGxwcGxscHR0bGxwcGxscHBwdHR0dHh8fHx8eHhwZFA4FAAA=",
+            "AAEEBgcKDhUdJS42P0NKTlJWWVpbXFxdXV5eXl9eXmBfYV9fYGBfYF9gX2BfXl9fX19fX15eX19eXl9eXl9fXl9fX19eX19eXl9fX15fX15eXl5dXVtZVVJOSEI7MyohGxYWFRUWFhcWFRUVFRUWFRUVFRYWFRUVFRUUFRYVFRUWFRYXFxUWFhYWFxYWFhYWFRUVFhYWFhYWFxUWFhYVFhcXFhcXFxYXFhUWFxYWFxYXFhcWFhcXFhcXFxYXGBcYGBcXFxcXFxcXFxcXFxcXFxcXGBgXGRcXFxgXFxYXGBYXFhcYFxcWFxcXFxcYFxcYGBgaGBkYFxkXGBgYFxgYGBkYGBgZGBkZGBgYGRgYGBgXGRgYGBgYFxgYGBcYGRgZGBcZGBkYFxgYGBcYGBgYGBgYGBgZGRkYGBgZGRkZGRgaGRkZGRkaGRkaGBkZGBkaGRgZGhgZGRgZGRkYGRkZGBgZGRkZGRoZGRkaGRoZGxsaGhoaGhkZGhoaGRoaGxsaGRoaGhoaGRoaGhsaGhobGhoaGxwcGxsbGhsbHBsbGxwbHBsbHBsbGxobGxsbHBwcHBwcHBwcGxsbGx4dHR0eHh0eHx4eHR0ZFA0EAAA=",
+            "AAEDBQcJDhUeJC41PUNITVJUWFlaW1xcXF1dXV5eXl9fX2BgX15fX15eX15eXl9eX15eXl5dXl5eXl5dXl9dXl5fX11eXl5eXV1eXl5eXl5cXV1cXVpXVVJOSEE8MyohGhYVFRYWFRUVFRQVFRYVFRUVFRUWFRUVFRUUFhUVFhYWFhQVFBUWFRYWFRUWFhYWFhUWFxYVFhYVFhYWFRUVFhUWFhYWFhYXFhYWFhUWFhYXFxcWFhYXFhYXFhcWFxYXGBcXFhYWFhcXFxcXFhcXFhcXFxcXFhcXFhgWFhUWFxcWFxcXFxYYFxYYFxgYFxgYGRkZGBgYGRcXGBgYGBgYGBgYGBcYFxgXGBgYGBcYFhgXFxgYGBkYGBcYFxcYFxcYFxcXFxgXFxcYGBcYGBgXFxgZGRgYFxgYGRgYGBgYGBkYGRgYGBkYGBgXGBgZGRgZGBgZGRgZGRkZGRgYGRkZGRgYGRkZGRkZGBgaGRkaGRobGxoaGhoaGRkZGRkaGRoZGRoZGhoaGRkaGRkZGhoaGhkZGhsZGhoaGxoaHBsbGxsaGxobGxsbGxsaGxwbGxwcGxsbGxsbGxsbGxwbHRsdHR0eHx0eHhsZEwwDAAA=",
+            "AAEDBgcJDhQdJi43PkRJTlRWWFpaXVxdXV5eXl5fXl9fX19gX19eX15fX15fX19fX15fYV9fX15eXl9fX19fXl9fX2BeYF9eXl5fXl5eXl9dXV5eXFtZVlNNSEI6MysgGhcVFRYVFRUVFhUWFxYVFRUVFRUVFhYVFhUVFRUWFhUWFRUVFRUVFRYWFhYWFhYVFhYWFxcWFhYWFxcWFRYXFhUXFxYWFhcXFhcXFhcXFhcYFhYWFhcXFxYWFxcWFhYWFxcXFxcXFxgWFxcXFhYWFxcXGBcXFxYYFxcXGBYWFxgXFxcYFxYXGBcXGBgZGRgZGBgYGBgZGBgYGBgYFxcYGRkYFxkYGBkYFxgXGBgXGBgYGBgYFxgYFxgYGBcYGBcXGBgYGRgXFxgYGBgYGRkXGBgaGBgZFxgZGRkZGBgZGRgYGRoZGBkZGBkZGhgYGRgYGRgZGBkZGRgZGRgZGBkZGBkZGRkYGBkaGhkZGhkaGhsbGhoaGhoaGRoZGRkaGhobGxoaGhobGhoaGhsZGhobGhobGxsbGhsbGxsbGxocHBsbHBsbHBsbGxwbHBscHB0cHR0bHBwcHBscHBwdHB0cHh4fHx8eHRwaEw0EAAA=",
+            "AAEDBQcKDhQdJi42PURJT1JWWFtbXF5eXV5eXl5eXl9fX19gX19fYF5gX19fYGBgX19eYF9eX19fX19fX19fX19fXl9fX19fX15fXl5eXl9eXl1eXFtZV1JOSUI8NCohGRYWFRYVFRYWFhUVFhUVFhYUFhUWFRYUFRUWFRYWFhYWFRYVFhYVFhYWFxYWFRYWFxYWFxcWFxYWFRYXFhcWFxYWFhcWFhYXFxgXGBYXFxYXFxYWGBgXFxcXFhcWFhcXFxcXFxcXGBgXFxYYFxcXFxgXFxcXFhYXFhcXGBcXGBgYFxcYFxcXGBcYGBkYGRkaGRsZGhkYGRgYGBgYFxgYGRgZGRgYGBgYGRgYGBgYGBkZFxgYGBcYGBgYGBkXGBkXGBgZFxgYGRgXGRgYGBgXGRkZGRgYGRkaGRkZGBgYGRkZGRoZGRgZGRgZGRkZGhoZGRgZGRkYGRkZGRgZGRkaGRkaGRoaGhoaGRoaGxoaGxoaGhoaGhoaGRoaGhoaGhkbGxoaGhsaGhoZGhsZGxsaGhsbGxsaGhsbGxobGxsbHBwbGxscHBwcHBsbGxwcHBwbHB0cHRweHBscHBwdHB0dHR4eHx8fHh0aEw0EAAA=",
+            "AAECBgcKDhUdJi42PkRJUFNVWVpbW1xdXV1eX15fX19fYGBgYV9fYF5fYF5gX2BgX19fX19fX19fX15fXl5fX19gX15gX19fX15fX19eXl5eXl1eXVtZVVJPSUM7NSogGRYVFRUWFRUVFRYVFRUVFRUWFRYVFRYVFRUVFhUWFhUWFhUVFRcVFxYWFRUWFhcXFxYXFxcWFhYWFhYVFhYWFhYXFxYWFhkWFxcZFxYXGBcXFxYWFxYXGBYXFhcWFhYXFxgXFxcXFxcXFxcWFxYXFhYYFxcXFhYWFhcXGBcXGBcYGBcYFhcYFxYYFxcYFxgYGRkYGRgZGBgYGBkZFxgYGRgZGBgZGRgYGBkYFxgYGBgZGBcYGBgXFxgXGBgXGBgZGRgYGRgZGBgYGBkYGBkZGBgZGRgZGBkZGBgYGBgZGBkZGhkYGRkZGRkZGRkZGRoZGRgZGRkYFxgYGRkYGRkZGBgaGRkZGRoaGhkaGRoaGRoaGhsaGxoZGhoZGRoaGhkaGhoaGhkaGhobGhsZGhsaGxobGxsbGxsbHBsbGxsbGxsbHBscGxwdGxsbHBwbHRwbGxwcHBscGxwcHBwdHB0dHh4eHh8fHR0aFA4DAAA=",
+            "AAIDBgcKDRQdJi42PkRJT1NXWFpcW11dXl5fXV9eX19gYGBfX2BfX19fX19fYF9gX15fX19gX15fX19gX15fX15fXmBfX19gXl9eXl5eXV5eXV1dXFxYVlNPSEE7MysgGhYWFhUXFRUWFRUVFhUWFhUVFRYWFRUVFhUWFRUVFhUWFhUWFhYWFhYXFhUWFRYVFhYWFhYWFhcXFhYXFhYWFhcXFxYWFxYXGBYWFhYXFhYXFxcXFhcXFxYVFxYXFxcXFxYWFxcXFxcWFxgWFhgYFxcYFxcYFxcXFxcXGBcXFxcXGBgXGBgXGRcXGBcXGRgYGhkZGRgYGBkZGBkYGBgYGBoZGRkYGBkYGBgZGBgYGBgYGBgYGRgYGBcZGBcYGBcYGBgYGRkYGBkYGBgYGRgZGBgZGRgZGRgYGRgYGRkZGRkZGhkZGRgZGhoYGRgZGRkaGBkaGRkZGRgYGRkZGRkZGRkZGRoZGRobGRkbGBkZGhoZGhoaGxoaGhobGhoaGxsZGRkbGxoaGhoZGRsaGhoaGhsbGxsaGxscGxscGRobGxsbGxscHBscGxscGxwcHBwcHB0cHBwcHBsbHB0dHB4dHR0eHx8fHRwZFA0EAAA=",
+            "AAEEBQcKDxYeJi82PkZLUFNYWVtbXV1dXWBfX19fYGBhYGFhYGFhYGBgYGFfYWBfYGBfYGBeX2BfYF9gX2BfX2BgYF9fYGBgYGBfX19fX19fXl9fXV1ZWFNPSkM8NCsiGhYWFRYWFhYVFhYWFhYXFRYWFhYWFhYVFhYWFRYVFhUXFhYWFhYWFxUWFxYXFxUXFxcXFhYXFhcXFxcXFhYWGBYXFxgYFhYXFxcWFxcXFxcWFxcXGBgYGBgYFxgXGRgXGBgXGBcXFxcXFxgYGBgYGBgXGBcXFxgXGBgYGBcYGBcYGBgYGBkYGRkYGBkYGBkZGRkZGhkZGBkZGBgZGBgZGBoYGhgZGRkYGBgYGBkYGBkZGRkZGBgYGBgYGRkZFxgYGRgYGRkZGRkYGRgYGhkZGRkaGxsZGRkZGhoaGRoZGRkZGhoZGRkZGhkaGhkYGRkaGRoaGhoaGhoaGRkZGhoaGhsZGhsaGxkaGhobGhkbGhsbGhoaGxsaGxobGxsbGhsbGxoaGxwbGxsbGxwbGhwbGxsbHBwbGxscGxsbGxscHBwcHBwdHB0dHB0bHBscHBwcHR0dHR0cHBscHRwdHR0dHh8fHyAfHxwaFQ8EAAA=",
+            "AAEDBQcKDRQcJC01PENJTlFVV1lZWltbW11cXV5dXl5eXl5eXl9gXl1eXl5eX15eXl5eX15eXl5eXl5eXl5eXV5eXl1eXV5eXl5dXV1eXV1cXl1cXFpYVFFNSEE7MiohGRUVFRUVFRUWFBYVFRUXFRUWFRUVFRUUFBUWFBUVFhUVFRUVFRUWFRUVFRUUFhYWFRUVFRUWFhYWFRYWFhUWFhYWFhYWFhYWFhYWFhYWFxcXFhYWFhcXFhcWFhYWFxYWGBYXFxcYFxYWFhcWFhYWFhYWFhYWFxYWFhcXFhUXFhYXFxcYFxcWFxcXFhcXGBcYGBgYGBgYGBgYFxcYFxcYGBkXGBcYFxcXGBcXFxcZFxgYFxgXFxcYGBcXFxgYFxgYFxcYFxcXFxgXGBgYGBgXGBgYGBgYFxgYFxkZGBkZGhgYGBgYGBgYGRgYGRgYGBgYGBkZGRgYGBgYGBgZGBgYGRgYGRkZGBgZGBgZGhkZGRkZGhkaGhkZGhoYGRkZGRoaGRoaGhoZGRkZGRkZGhoZGhoZGhoZGRsaGhobGhobGxsbHBsbGxsbHBsbGxsbGxsbGxsaGxscGhsaHBsbHR0cHR4dHR4eHRsZFA0EAAA=",
+            "AAADBQcKEBUeJS43PURJT1NWWFpbXF1dXl5eXl9fYGBgYWFfYGBgX19gXmBgYGFgX19fYF9fYGBfX2BgX19fX19fXl5eX2BfX15eXV5eXV5eXl5dXVxZVVNPSEI7MyoiGhgWFhYVFhUVFBYVFRYWFhYVFRQWFRUVFhYWFhUVFRYVFhYWFhYVFhYWFRYVFRcXFhYVFhcXFxcWGBUVFRYXFxcWFxcYFxcXFxYXFxcYGBcYFhcWFxcXFxcXFhYXFxYXFxgXFxcXFxYWFxcXFxgXFxcWFxcXFxcXFhcXGBcXGBgXFxcYFxcYFxcYGBgYGBgZGRgYGBkZGRkZGBgZGBgYGBkZGBkYGBkYGBgYGBgZGBkYGBkYGBkXGBkZGBkYGRgZGBgXGBgZGBcYGBgYGRgZGBkZGRgaGBkZGRkZGBkZGRkZGRkaGhkaGRgZGRkZGRoZGRkZGRkZGhoZGRkZGRgZGRkYGRkZGRoaGRoYGhkaGhoaGxsbGhkZGRkZGhkaGhoaGRoaGhkaGhkZGhsaGxsbHBoaGhwaGhwbGxsbGxsbGxwbGxsbHBsbHBscHBwbHBwcHB0bHBscGxscHBwdHh0eHh4eHx8fHh0ZEw0EAAA=",
+            "AAIEBgcKDxUeJi83P0VKTlNXWVpcXFxdXl9fXl9fX2BfYGBgYF9fYF9fX19gYGBfYGBfX19fYF9eX19gX19gX19gX2BfX2BhX19fXl9fXl9eXl5eXVxZV1JPSUI7MywhGhcXFhYXFhYVFRUVFhUWFhYUFRUWFRYVFRUXFxYVFxYWFhYXFhUWFhYVFRYWFhYWFxYVGBcXFxYWFhcWFhYWFhYXFhcXFxcYFhcXFxcVFxcYFxcXFxcXFxcXFxcWFhYYGBcXFxgYGBYXFxcXFxgXFxcYGBgYFxcXGBgXFxcXGBcXFxkZGBgYFxcYGBcZGRgYGBkYGBgZGBgYGRkZGRgYGRkYGBkYGBkZFxgYGBgZGRgZGBgYGBkYGBgZGRkYGBkYGBgZGBkXGBkZGRgYGRkZGRkZGRkZGRoZGRoYGRoZGRkYGRoZGhkaGhkZGRoaGhkZGRoZGhkZGhoZGhoaGRkaGRoaGxkZGhoZGhoaGhoZGhobGxobGxoaGhsaGxobGhsaGxsbGhoaGxoaGxsbGxocGxsbGxsbGxwbGxwbHBsbGxsbHBwdHRwbHBscGxwbHBwcHRwcHBwcHRwcHB0eHR0dHh4fHx8fHR0ZFA0EAAA=",
+            "AAIEBgcKDRUdJS42P0VLTlJWWFpbXF5dXV5fX19fYF9gYF9gYF9fYF9eX15fX2BfX19fX19eXl9fXl9fXV9gYF9fX15eX15gX15fXl9eXl9eXl5eXFxZVlJPSEI7NCsiGRYWFRUWFhYWFRUVFhUVFRUVFRQVFRUUFRYWFRYVFRYWFhYWFhYVFRUWFRcWFRcWFxcWFhYWFhUWFhYWFhYXFhYWFxYXFxcWFxYXFxYWFxcXFhcWFhcXFxcXFxcXFhYYGBYXFxcWFxgXFxgXFhcXFxYXFxcXFxcXFhcXFxcXFxcWGBgYGBgXFxgYFxcYGRgYGRoYGRkZGRkYGRkYGBgYGBkZGRcXGRgYGBkZGBgYGBgYGRgZFxgYGBkYGRgXFxkZGBcZGBgYGBgYGBgXGBgZGBkZGRkZGBkZGBkYGRkZGBgYGRkZGRkZGRgZGBkaGRkZGRkZGhgaGRkZGBkZGBgZGRgYGRkaGhkaGhkaGhoaGhoaGRoaGxoaGRoaGhobGhobGhsaGhoaGhoaGhoaGxoaGhsaGxobGxocHBobGxsbHBsbHBscGxwcGxwbGxsbHBwcHBwcGx0cHBsbHBwcHB0dHR0eHh8fHRwZFA0EAAA="
+        ]
+    }
+}

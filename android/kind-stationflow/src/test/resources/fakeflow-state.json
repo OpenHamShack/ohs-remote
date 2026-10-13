@@ -1,0 +1,105 @@
+{
+    "title": "IC-9700",
+    "version": "1.24.0-fake",
+    "tx_enabled": false,
+    "server_time": 1791522269.60482,
+    "selected": "r2813",
+    "switching": null,
+    "digi_modes": [
+        "FT8",
+        "FT4",
+        "JS8",
+        "WSPR"
+    ],
+    "radios": {
+        "r2813": {
+            "id": "r2813",
+            "name": "IC-9700",
+            "connected": true,
+            "link_state": "connected",
+            "error": null,
+            "wanted": true,
+            "freq": 144174000,
+            "mode": "USB",
+            "data_mode": true,
+            "mode_label": "USB-D",
+            "filter": "FIL1",
+            "vfo": "VFOA",
+            "split": false,
+            "ptt": false,
+            "smeter": 136,
+            "smeter_db": 8.2,
+            "power": null,
+            "swr": null,
+            "audio": true,
+            "audio_rate": 12000,
+            "scope": true,
+            "scope_points": 475,
+            "modes": [
+                "LSB",
+                "USB",
+                "AM",
+                "CW",
+                "RTTY",
+                "FM",
+                "CWR",
+                "RTTYR",
+                "DV",
+                "DD"
+            ],
+            "data_modes": [
+                "LSB",
+                "USB",
+                "AM",
+                "FM"
+            ],
+            "bands": [
+                {
+                    "name": "2m",
+                    "hz": 144300000
+                },
+                {
+                    "name": "70cm",
+                    "hz": 432200000
+                },
+                {
+                    "name": "23cm",
+                    "hz": 1296200000
+                }
+            ],
+            "model": {
+                "key": "ic-9700",
+                "name": "IC-9700",
+                "bands": [
+                    {
+                        "from": 144000000,
+                        "to": 146000000,
+                        "watts": 100
+                    },
+                    {
+                        "from": 430000000,
+                        "to": 440000000,
+                        "watts": 75
+                    },
+                    {
+                        "from": 1240000000,
+                        "to": 1300000000,
+                        "watts": 10
+                    }
+                ]
+            },
+            "digi": {
+                "mode": "FT8",
+                "armed": false,
+                "transmitting": false,
+                "holder": "FT8"
+            },
+            "audio_stats": {
+                "enabled": true,
+                "rate": 12000,
+                "running": true,
+                "listeners": 0
+            }
+        }
+    }
+}

@@ -1,0 +1,19 @@
+# Gradle and Android Studio
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+captures/
+.kotlin/
+# Python
+__pycache__/
+# Xcode and SwiftPM
+.build/
+.swiftpm/
+xcuserdata/
+*.xcuserstate
+DerivedData/
+# VLCKit binaries: fetched by ios/tools/fetch-vlckit.sh, never committed
+ios/OpenHamShackMedia/Vendor/
+ios/.vlckit-cache/
