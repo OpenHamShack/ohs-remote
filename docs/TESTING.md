@@ -127,6 +127,18 @@ desktop app runs on the same account (they keep a station store).
   already, so choosing a mode or bookmark on a Remote shows each panel
   open and close with real events. Its frames go between the server's,
   which it parses whole.
+- **Radio's decoder sessions** (openhamshack-nb SERVER-API "Decoders",
+  RADIO-SDR-PLAN §4.4): the simulator runs none, so with
+  `FAKESHACK_DECODERS=1` fakeshack answers Radio's `api/decoders` and the
+  routes under it itself (`tools/fakedecoders.py`): a catalogue of RTTY,
+  FT8 (only as the mode: 409 `decoder_unavailable`) and DAB+ (needs the
+  missing faad2), one RTTY session `ds_fake1` already decoding a CQ and an
+  exchange on 14.0835 MHz, and sessions a client starts (RTTY: `starting`,
+  then `synced` after 2 s) and stops, four at most, with the server's
+  refusal codes. Radio's `api/status` gains `decoders`, and an events
+  socket whose `kinds` include `decoder` gets each session's results,
+  about seven characters a second, `rev` rising by one. Unset, the routes
+  go to the server as any other. Nothing is decoded; the text is made up.
 - **Band Activity (FT8 with countries):** the NB simulator's FT8 at
   10489.540 MHz has stations in eight countries (G4XYZ, DL1ABC, EA4QRP,
   F5KLM, PA3QOS, OH8ZZ, SV1QO, ON4BB). An NB from openhamshack-nb with the

@@ -81,6 +81,17 @@ What it does, and nothing more:
     status passes untouched and every band has a button. The simulator
     behind it tunes 100 kHz-6 GHz, so HF itself needs nothing.
 
+  * Radio's decoder sessions (openhamshack-nb SERVER-API "Decoders"), which
+    the simulator does not run: with FAKESHACK_DECODERS=1, Radio's
+    api/decoders and the routes under it are answered here
+    (tools/fakedecoders.py: a catalogue of RTTY, FT8 and DAB+, one RTTY
+    session already decoding on 14.0835 MHz, and sessions a client starts
+    and stops), its api/status carries `decoders`, and an events socket
+    whose `kinds` include "decoder" is sent each session's results - text
+    about seven characters a second - between the server's frames, as SSTV
+    is. The levels are the gate's as ever: reads are view, the writes fall
+    to Radio's default, control. Unset, all of it goes to the server.
+
 Bytes are piped after the head is rewritten, so the PCM stream, the TS
 stream and the websocket pass through untouched (the handshake is the
 client's own: no Sec-WebSocket-* rewriting, GUIDE section 5).
@@ -99,6 +110,9 @@ import fnmatch
 import json
 import os
 import secrets
+from urllib.parse import parse_qs
+
+from fakedecoders import Decoders
 
 PORT = int(os.environ.get("FAKESHACK_PORT", "18600"))
 SECRET = os.environ.get("FAKESHACK_SECRET", "fakeshack")
@@ -166,6 +180,8 @@ def _rxrange(raw: str) -> list[float] | None:
 
 
 RADIO_RXRANGE = _rxrange(os.environ.get("FAKESHACK_RADIO_RXRANGE", ""))
+DECODERS = Decoders(os.environ.get("FAKESHACK_CALLSIGN", "M0TST")) \
+    if os.environ.get("FAKESHACK_DECODERS", "") == "1" else None
 
 SSTV_EVERY = float(os.environ.get("FAKESHACK_SSTV_EVERY", "60"))
 SSTV_ANYMODE = os.environ.get("FAKESHACK_SSTV_ANYMODE", "") == "1"
@@ -464,6 +480,9 @@ async def handle(r, w):
     if code != 200:
         await reply(w, code, refusal)
         return
+    if app == "shack-radio" and DECODERS and rest.split("?", 1)[0].startswith("/api/decoders"):
+        await decoders_reply(r, w, method, rest, hdr)
+        return
     try:
         ur, uw = await asyncio.open_connection("127.0.0.1", APPS[app][2])
     except OSError:
@@ -478,24 +497,61 @@ async def handle(r, w):
               + "\r\n").encode("latin-1"))
     await uw.drain()
     query = target.split("?", 1)[1] if "?" in target else ""
-    if (upgrade and app in ENGINES and SSTV_EVERY > 0 and rest.split("?", 1)[0] == "/api/events"
-            and "events" in query):
+    kinds = ",".join(parse_qs(query).get("kinds", [])).split(",")
+    sstv = SSTV_EVERY > 0 and "events" in query
+    decoders = app == "shack-radio" and DECODERS is not None and "decoder" in kinds
+    if upgrade and app in ENGINES and rest.split("?", 1)[0] == "/api/events" and (sstv or decoders):
         inject: asyncio.Queue = asyncio.Queue()
         mode = {"mode": None, "changed": asyncio.Event()}
-        feed = asyncio.ensure_future(sstv_feed(inject, mode))
+        feeds = [asyncio.ensure_future(sstv_feed(inject, mode))] if sstv else []
+        if decoders:
+            feeds.append(asyncio.ensure_future(decoder_feed(inject)))
         try:
             await asyncio.gather(pipe(r, uw), server_frames(ur, w, inject, mode))
         finally:
-            feed.cancel()
+            for f in feeds:
+                f.cancel()
         return
-    if app == "shack-radio" and RADIO_RXRANGE and method == "GET" and rest.split("?", 1)[0] == "/api/status":
-        await status_with_rxrange(ur, w)
+    if app == "shack-radio" and (RADIO_RXRANGE or DECODERS) and method == "GET" \
+            and rest.split("?", 1)[0] == "/api/status":
+        await status_with_extras(ur, w)
         return
     await asyncio.gather(pipe(r, uw), pipe(ur, w))
 
 
-async def status_with_rxrange(ur, w):
-    """Radio's status, whole (the upstream closes after it), with rxRange added."""
+async def decoders_reply(r, w, method: str, rest: str, hdr: dict):
+    """Radio's decoder routes, from fakedecoders - while Radio is running,
+    as the server would answer only then."""
+    n = int(hdr.get("content-length", "0") or 0)
+    raw = await r.readexactly(n) if n else b""
+    if not running(APPS["shack-radio"][2]):
+        await reply(w, 502, {"error": "Radio is not running.", "code": "app_down"})
+        return
+    try:
+        body = json.loads(raw or b"{}")
+    except ValueError:
+        body = None
+    path, _, query = rest.partition("?")
+    got = DECODERS.answer(method, path, parse_qs(query), body if isinstance(body, dict) else {})
+    if got is None:
+        got = 404, {"error": "Not found.", "code": "not_found"}
+    await reply(w, *got)
+
+
+async def decoder_feed(inject: asyncio.Queue):
+    """Every result fakedecoders makes, as a frame, while this socket lasts."""
+    q: asyncio.Queue = asyncio.Queue()
+    DECODERS.listeners.add(q)
+    try:
+        while True:
+            await inject.put(ws_frame(await q.get()))
+    finally:
+        DECODERS.listeners.discard(q)
+
+
+async def status_with_extras(ur, w):
+    """Radio's status, whole (the upstream closes after it), with rxRange
+    and decoders added as configured."""
     data = await ur.read()
     head, _, body = data.partition(b"\r\n\r\n")
     try:
@@ -507,7 +563,10 @@ async def status_with_rxrange(ur, w):
         await w.drain()
         w.close()
         return
-    obj["rxRange"] = RADIO_RXRANGE
+    if RADIO_RXRANGE:
+        obj["rxRange"] = RADIO_RXRANGE
+    if DECODERS:
+        obj["decoders"] = DECODERS.status()
     code = int(head.split(b" ", 2)[1])
     await reply(w, code, obj)
 
@@ -519,7 +578,10 @@ async def main():
         with open(pidfile, "w") as f:
             f.write(str(os.getpid()))
     print(f"fakeshack on :{PORT} (auto-approve {'on' if AUTO else 'off'}; anonymous view: "
-          f"{', '.join(sorted(ANONYMOUS)) or 'none'})", flush=True)
+          f"{', '.join(sorted(ANONYMOUS)) or 'none'}; Radio's decoders {'faked' if DECODERS else 'passed'})",
+          flush=True)
+    if DECODERS:
+        asyncio.ensure_future(DECODERS.run())
     async with srv:
         await srv.serve_forever()
 
