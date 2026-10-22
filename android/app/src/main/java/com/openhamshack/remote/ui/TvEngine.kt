@@ -435,7 +435,10 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
             Row(
                 Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(horizontal = TvSafeH, vertical = TvSafeV)
                     .background(Color(0xF0101010), RoundedCornerShape(12.dp)).padding(10.dp)
-                    .horizontalScroll(rememberScrollState()),
+                    .horizontalScroll(rememberScrollState())
+                    // Inside the scroll: the last item, scrolled to, clears the bar's
+                    // edge instead of its focus border touching it.
+                    .padding(end = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 // Step first (REMOTE-KEYS.md §4: OK, OK still changes the step).
@@ -517,7 +520,10 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
             // Down between them, OK chooses and closes, BACK closes (SidePanel's).
             // A view-only TV is told why rather than sent to be refused again.
             val refused = stringResource(R.string.shack_antenna_view_only)
-            SidePanel(stringResource(R.string.shack_antenna_title), onClose = { antennaPanel = false }, modifier = Modifier.align(Alignment.CenterEnd)) {
+            // Opaque, as Flex's side panel is: SidePanel's own background lets the
+            // subtitle row ("Simulator", "Between bands") show through its title.
+            SidePanel(stringResource(R.string.shack_antenna_title), onClose = { antennaPanel = false },
+                modifier = Modifier.align(Alignment.CenterEnd).background(Color(0xFF101418))) {
                 Text(stringResource(R.string.shack_antenna_summary, antennaNow(antenna)), fontSize = 16.sp, color = Dim)
                 val lit = antenna.rows.indexOf(antenna.chosen).coerceAtLeast(0)
                 antenna.rows.forEachIndexed { i, name ->

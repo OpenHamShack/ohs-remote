@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -252,7 +253,8 @@ private fun RadioDial(u: EngineUi, modifier: Modifier, maxSize: Int, onType: () 
  */
 @Composable
 private fun RadioAntennaSheet(e: EngineSession, u: EngineUi, a: AntennaChoice, onDone: () -> Unit) {
-    Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    // The navigation bar's inset: the footnote sat under the gesture bar.
+    Column(Modifier.navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(stringResource(R.string.shack_antenna_title), fontWeight = FontWeight.Bold, fontSize = 18.sp)
         Text(stringResource(R.string.shack_antenna_summary, antennaNow(a)), color = Dim)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
