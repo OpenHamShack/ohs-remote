@@ -47,6 +47,8 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -130,6 +132,7 @@ import com.openhamshack.remote.shack.Span
  * scope's own canFocus), so the D-pad cannot reach a control nobody can
  * see (GUIDE 5, "focus leaks out of overlays").
  */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit) {
     val u by e.ui.collectAsStateWithLifecycle()
@@ -432,55 +435,59 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
         if (controls) {
             // The controls row, over the foot of the screen like the picker
             // over its head: the screen beneath does not move when it opens.
-            Row(
-                Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(horizontal = TvSafeH, vertical = TvSafeV)
-                    .background(Color(0xF0101010), RoundedCornerShape(12.dp)).padding(10.dp)
-                    .horizontalScroll(rememberScrollState())
-                    // Inside the scroll: the last item, scrolled to, clears the bar's
-                    // edge instead of its focus border touching it.
-                    .padding(end = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                // Step first (REMOTE-KEYS.md §4: OK, OK still changes the step).
-                TvItem(onClick = { e.step(1) }, focus = firstControl) { Text(stringResource(R.string.shack_step, stepText(u.stepHz)), fontSize = 16.sp) }
-                TvItem(onClick = { e.mute(!u.muted) }) { Text(stringResource(if (u.muted) R.string.shack_unmute else R.string.shack_mute), fontSize = 16.sp) }
-                TvItem(onClick = { e.span(if (u.span == Span.WIDE) Span.ZOOM else Span.WIDE) }) {
-                    Text(stringResource(if (u.span == Span.WIDE) R.string.shack_span_wide else R.string.shack_span_zoom), fontSize = 16.sp)
-                }
-                if (u.hasNr) {
-                    val refused = stringResource(R.string.shack_nr_view_only)
-                    TvItem(onClick = { if (u.viewOnly) e.note(refused) else e.nr(u.state.nr != true) }, selected = u.state.nr == true) {
-                        Text(nrLabel(u.state.nr), fontSize = 16.sp, color = if (u.viewOnly) Dim else Color.Unspecified)
+            // Focus scrolls each item 16 dp clear of the row's ends, into the
+            // end padding inside the scroll, so the last one's ring is not cut by its clip.
+            val clear = with(LocalDensity.current) { 16.dp.toPx() }
+            CompositionLocalProvider(LocalBringIntoViewSpec provides remember(clear) { ScrollWithMargin(clear) }) {
+                Row(
+                    Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(horizontal = TvSafeH, vertical = TvSafeV)
+                        .background(Color(0xF0101010), RoundedCornerShape(12.dp)).padding(10.dp)
+                        .horizontalScroll(rememberScrollState())
+                        // Inside the scroll: room past the last item for ScrollWithMargin to scroll into.
+                        .padding(end = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    // Step first (REMOTE-KEYS.md §4: OK, OK still changes the step).
+                    TvItem(onClick = { e.step(1) }, focus = firstControl) { Text(stringResource(R.string.shack_step, stepText(u.stepHz)), fontSize = 16.sp) }
+                    TvItem(onClick = { e.mute(!u.muted) }) { Text(stringResource(if (u.muted) R.string.shack_unmute else R.string.shack_mute), fontSize = 16.sp) }
+                    TvItem(onClick = { e.span(if (u.span == Span.WIDE) Span.ZOOM else Span.WIDE) }) {
+                        Text(stringResource(if (u.span == Span.WIDE) R.string.shack_span_wide else R.string.shack_span_zoom), fontSize = 16.sp)
                     }
-                }
-                if (e.kind == Kind.RADIO) {
-                    TvItem(onClick = { e.band(-1) }) { Text(stringResource(R.string.shack_band_down), fontSize = 16.sp) }
-                    TvItem(onClick = { e.band(1) }) { Text(stringResource(R.string.shack_band_up), fontSize = 16.sp) }
-                }
-                antenna?.let { a ->
-                    TvItem(onClick = { controls = false; antennaPanel = true }) {
-                        Text(stringResource(R.string.shack_antenna_summary, antennaNow(a)), fontSize = 16.sp)
+                    if (u.hasNr) {
+                        val refused = stringResource(R.string.shack_nr_view_only)
+                        TvItem(onClick = { if (u.viewOnly) e.note(refused) else e.nr(u.state.nr != true) }, selected = u.state.nr == true) {
+                            Text(nrLabel(u.state.nr), fontSize = 16.sp, color = if (u.viewOnly) Dim else Color.Unspecified)
+                        }
                     }
-                }
-                TvItem(onClick = { typing = "" }) { Text(stringResource(R.string.shack_frequency), fontSize = 16.sp) }
-                TvItem(onClick = { controls = false; logOpen = true }) { Text(stringResource(R.string.shack_log), fontSize = 16.sp) }
-                // Clear is here rather than on the panel, which is one focus target
-                // beside the scope (REMOTE-KEYS section 4): the controls row is where
-                // the D-pad already goes for everything that is not tuning.
-                if (shown == DecoderPanel.SLOTS && u.decodes.items.isNotEmpty()) {
-                    TvItem(onClick = { e.clearDecodes(); controls = false }) { Text(stringResource(R.string.shack_decodes_clear_item), fontSize = 16.sp) }
-                }
-                if (u.panel.active != DecoderPanel.NONE) {
-                    TvItem(onClick = { if (shown == DecoderPanel.NONE) e.openPanel() else e.closePanel() }) {
-                        Text(stringResource(if (shown == DecoderPanel.NONE) R.string.shack_panel_show else R.string.shack_panel_hide), fontSize = 16.sp)
+                    if (e.kind == Kind.RADIO) {
+                        TvItem(onClick = { e.band(-1) }) { Text(stringResource(R.string.shack_band_down), fontSize = 16.sp) }
+                        TvItem(onClick = { e.band(1) }) { Text(stringResource(R.string.shack_band_up), fontSize = 16.sp) }
                     }
+                    antenna?.let { a ->
+                        TvItem(onClick = { controls = false; antennaPanel = true }) {
+                            Text(stringResource(R.string.shack_antenna_summary, antennaNow(a)), fontSize = 16.sp)
+                        }
+                    }
+                    TvItem(onClick = { typing = "" }) { Text(stringResource(R.string.shack_frequency), fontSize = 16.sp) }
+                    TvItem(onClick = { controls = false; logOpen = true }) { Text(stringResource(R.string.shack_log), fontSize = 16.sp) }
+                    // Clear is here rather than on the panel, which is one focus target
+                    // beside the scope (REMOTE-KEYS section 4): the controls row is where
+                    // the D-pad already goes for everything that is not tuning.
+                    if (shown == DecoderPanel.SLOTS && u.decodes.items.isNotEmpty()) {
+                        TvItem(onClick = { e.clearDecodes(); controls = false }) { Text(stringResource(R.string.shack_decodes_clear_item), fontSize = 16.sp) }
+                    }
+                    if (u.panel.active != DecoderPanel.NONE) {
+                        TvItem(onClick = { if (shown == DecoderPanel.NONE) e.openPanel() else e.closePanel() }) {
+                            Text(stringResource(if (shown == DecoderPanel.NONE) R.string.shack_panel_show else R.string.shack_panel_hide), fontSize = 16.sp)
+                        }
+                    }
+                    // The D-pad-only way to Enable TX, for a remote without Play/Pause (§5.2).
+                    if (mode in AutoTxStatus.SEQUENCED || mode in AutoTxStatus.LINES) {
+                        TvItem(onClick = armFromControls) { Text(stringResource(R.string.shack_tx_item), fontSize = 16.sp, color = OnAirRed) }
+                    }
+                    TvItem(onClick = { controls = false; keys.legend = true }) { Text(stringResource(R.string.shack_keys_item), fontSize = 16.sp) }
+                    TvItem(onClick = { controls = false }) { Text(stringResource(R.string.shack_done), fontSize = 16.sp) }
                 }
-                // The D-pad-only way to Enable TX, for a remote without Play/Pause (§5.2).
-                if (mode in AutoTxStatus.SEQUENCED || mode in AutoTxStatus.LINES) {
-                    TvItem(onClick = armFromControls) { Text(stringResource(R.string.shack_tx_item), fontSize = 16.sp, color = OnAirRed) }
-                }
-                TvItem(onClick = { controls = false; keys.legend = true }) { Text(stringResource(R.string.shack_keys_item), fontSize = 16.sp) }
-                TvItem(onClick = { controls = false }) { Text(stringResource(R.string.shack_done), fontSize = 16.sp) }
             }
         }
 

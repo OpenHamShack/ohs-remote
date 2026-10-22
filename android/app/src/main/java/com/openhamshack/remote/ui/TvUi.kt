@@ -124,6 +124,19 @@ internal object ScrollOnlyAsNeeded : BringIntoViewSpec {
     }
 }
 
+/**
+ * [ScrollOnlyAsNeeded] that brings an item in [margin] px clear of the
+ * view's edges, for a scrolling row of [TvItem]s: flush with the edge, a
+ * focused item's ring (3 dp, and the item lifted 2% by its scale) is cut
+ * off by the scroll's clip. The content needs that much room past its last
+ * item (end padding inside the scroll), or there is nowhere to scroll to.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+internal class ScrollWithMargin(private val margin: Float) : BringIntoViewSpec {
+    override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float =
+        ScrollOnlyAsNeeded.calculateScrollDistance(offset - margin, size + 2 * margin, containerSize)
+}
+
 /** Focus on a TV is a ring the whole room can see, not Material's faint tint. */
 internal val TvFocus = Color(0xFF4FC3F7)
 private val TvCard = Color(0xFF161616)
