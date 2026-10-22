@@ -139,6 +139,24 @@ desktop app runs on the same account (they keep a station store).
   socket whose `kinds` include `decoder` gets each session's results,
   about seven characters a second, `rev` rising by one. Unset, the routes
   go to the server as any other. Nothing is decoded; the text is made up.
+- **Radio's SDR antenna inputs** (openhamshack-nb SERVER-API: `soapyAntenna`,
+  `soapyAntennaLabels`, `deviceStatus.antenna`/`antennas`): the simulator
+  opens no SoapySDR device, so with `FAKESHACK_RADIO_ANTENNAS=1` fakeshack
+  makes Radio look like an SDRplay RSPdx (`tools/fakeantennas.py`):
+  inputs `Antenna A`, `Antenna B`, `Antenna C`, with C in use, labelled
+  "Diamond X7000", "Unused" and "Loop Antenna". They appear in `GET
+  api/state` (flat, as the server's: the settings and `deviceStatus` are
+  top-level keys, the labels one line of JSON in a string) and in every
+  events `state` message carrying `deviceStatus` or either setting.
+  `POST api/set` with `soapyAntenna` or `soapyAntennaLabels` is applied by
+  the fake and sent out as a `state` message, as the engine does; `""` is
+  the driver's default (`Antenna A` on an RSPdx), and an input the radio
+  lacks is kept as the setting but not applied, with the engine's
+  "Antenna not changed: ..." toast. Any other key in the same set goes on
+  to the server, and the antenna keys are applied only if the server takes
+  the rest, so the set stays all or nothing. The gate makes `api/set`
+  Control as ever. Remote's antenna line and picker (Radio's screen, the
+  TV's controls row) need this to show at all against a simulator.
 - **Band Activity (FT8 with countries):** the NB simulator's FT8 at
   10489.540 MHz has stations in eight countries (G4XYZ, DL1ABC, EA4QRP,
   F5KLM, PA3QOS, OH8ZZ, SV1QO, ON4BB). An NB from openhamshack-nb with the

@@ -92,6 +92,19 @@ What it does, and nothing more:
     is. The levels are the gate's as ever: reads are view, the writes fall
     to Radio's default, control. Unset, all of it goes to the server.
 
+  * Radio's SDR antenna inputs (openhamshack-nb SERVER-API: soapyAntenna,
+    soapyAntennaLabels, deviceStatus.antenna/antennas), which the
+    simulator does not have: with FAKESHACK_RADIO_ANTENNAS=1 Radio looks
+    like an SDRplay RSPdx (tools/fakeantennas.py) - inputs "Antenna A",
+    "Antenna B" and "Antenna C", "Antenna C" in use, labelled "Diamond
+    X7000", "Unused" and "Loop Antenna" - in GET api/state and in every
+    state message on an events socket that carries deviceStatus or the
+    settings. A POST api/set's soapyAntenna and soapyAntennaLabels are
+    taken here and sent out as a state message, as the engine does; any
+    other key in the same set goes on to the server, and the antenna keys
+    are applied only if the server takes the rest (all or nothing still).
+    The gate makes api/set Control as ever. Unset, all of it passes.
+
 Bytes are piped after the head is rewritten, so the PCM stream, the TS
 stream and the websocket pass through untouched (the handshake is the
 client's own: no Sec-WebSocket-* rewriting, GUIDE section 5).
@@ -112,6 +125,7 @@ import os
 import secrets
 from urllib.parse import parse_qs
 
+from fakeantennas import Antennas
 from fakedecoders import Decoders
 
 PORT = int(os.environ.get("FAKESHACK_PORT", "18600"))
@@ -182,6 +196,10 @@ def _rxrange(raw: str) -> list[float] | None:
 RADIO_RXRANGE = _rxrange(os.environ.get("FAKESHACK_RADIO_RXRANGE", ""))
 DECODERS = Decoders(os.environ.get("FAKESHACK_CALLSIGN", "M0TST")) \
     if os.environ.get("FAKESHACK_DECODERS", "") == "1" else None
+
+ANTENNAS = Antennas() if os.environ.get("FAKESHACK_RADIO_ANTENNAS", "") == "1" else None
+#: The simulator's last deviceStatus as it went by, for the antenna fixture to lay its keys over.
+radio_device: dict = {}
 
 SSTV_EVERY = float(os.environ.get("FAKESHACK_SSTV_EVERY", "60"))
 SSTV_ANYMODE = os.environ.get("FAKESHACK_SSTV_ANYMODE", "") == "1"
@@ -392,10 +410,12 @@ def engine_mode(payload: bytes) -> str | None:
     return None
 
 
-async def server_frames(r, w, inject: asyncio.Queue, mode: dict):
+async def server_frames(r, w, inject: asyncio.Queue, mode: dict, rewrite=None):
     """Copy the server's HTTP answer and then its websocket frames whole,
     writing any injected frame between two of them, and noting the
-    engine's mode in [mode] as it goes by."""
+    engine's mode in [mode] as it goes by. [rewrite], given a whole
+    unmasked text frame's payload, returns the text to send in its place,
+    or None to send it as it came."""
     try:
         w.write(await r.readuntil(b"\r\n\r\n"))
         while True:
@@ -417,6 +437,12 @@ async def server_frames(r, w, inject: asyncio.Queue, mode: dict):
                 if m is not None and m != mode.get("mode"):
                     mode["mode"] = m
                     mode["changed"].set()
+                # Only a final frame (FIN set) is a whole message to rewrite.
+                text = rewrite(payload) if rewrite and head[0] & 0x80 else None
+                if text is not None:
+                    w.write(ws_frame(text))
+                    await w.drain()
+                    continue
             w.write(head + ext + mask + payload)
             await w.drain()
     except (asyncio.IncompleteReadError, ConnectionError, OSError):
@@ -493,6 +519,9 @@ async def handle(r, w):
         "authorization", "connection", "x-forwarded-prefix") and not k.strip().lower().startswith("x-openhamshack-")]
     keep += [("Connection", "Upgrade" if upgrade else "close"), ("X-Forwarded-Prefix", "/" + app),
              ("X-OpenHamShack-Proxy-Secret", SECRET), *identity.items()]
+    if app == "shack-radio" and ANTENNAS and method == "POST" and rest.split("?", 1)[0] == "/api/set":
+        await antenna_set(r, w, ur, uw, f"{method} {rest} {version}", keep, hdr)
+        return
     uw.write((f"{method} {rest} {version}\r\n" + "".join(f"{k.strip()}: {v.strip()}\r\n" for k, v in keep)
               + "\r\n").encode("latin-1"))
     await uw.drain()
@@ -500,21 +529,28 @@ async def handle(r, w):
     kinds = ",".join(parse_qs(query).get("kinds", [])).split(",")
     sstv = SSTV_EVERY > 0 and "events" in query
     decoders = app == "shack-radio" and DECODERS is not None and "decoder" in kinds
-    if upgrade and app in ENGINES and rest.split("?", 1)[0] == "/api/events" and (sstv or decoders):
+    # The engine's default feeds include state when a socket names none.
+    antennas = app == "shack-radio" and ANTENNAS is not None and ("state" in kinds or kinds == [""])
+    if upgrade and app in ENGINES and rest.split("?", 1)[0] == "/api/events" and (sstv or decoders or antennas):
         inject: asyncio.Queue = asyncio.Queue()
         mode = {"mode": None, "changed": asyncio.Event()}
         feeds = [asyncio.ensure_future(sstv_feed(inject, mode))] if sstv else []
         if decoders:
-            feeds.append(asyncio.ensure_future(decoder_feed(inject)))
+            feeds.append(asyncio.ensure_future(listener_feed(inject, DECODERS.listeners)))
+        if antennas:
+            feeds.append(asyncio.ensure_future(listener_feed(inject, ANTENNAS.listeners)))
         try:
-            await asyncio.gather(pipe(r, uw), server_frames(ur, w, inject, mode))
+            await asyncio.gather(pipe(r, uw), server_frames(ur, w, inject, mode, antenna_frame if antennas else None))
         finally:
             for f in feeds:
                 f.cancel()
         return
     if app == "shack-radio" and (RADIO_RXRANGE or DECODERS) and method == "GET" \
             and rest.split("?", 1)[0] == "/api/status":
-        await status_with_extras(ur, w)
+        await json_with_extras(ur, w, status_extras)
+        return
+    if app == "shack-radio" and ANTENNAS and method == "GET" and rest.split("?", 1)[0] == "/api/state":
+        await json_with_extras(ur, w, state_extras)
         return
     await asyncio.gather(pipe(r, uw), pipe(ur, w))
 
@@ -538,20 +574,125 @@ async def decoders_reply(r, w, method: str, rest: str, hdr: dict):
     await reply(w, *got)
 
 
-async def decoder_feed(inject: asyncio.Queue):
-    """Every result fakedecoders makes, as a frame, while this socket lasts."""
+async def listener_feed(inject: asyncio.Queue, listeners: set):
+    """Every message a fixture (fakedecoders, fakeantennas) sends, as a frame, while this socket lasts."""
     q: asyncio.Queue = asyncio.Queue()
-    DECODERS.listeners.add(q)
+    listeners.add(q)
     try:
         while True:
             await inject.put(ws_frame(await q.get()))
     finally:
-        DECODERS.listeners.discard(q)
+        listeners.discard(q)
 
 
-async def status_with_extras(ur, w):
-    """Radio's status, whole (the upstream closes after it), with rxRange
-    and decoders added as configured."""
+def status_extras(obj: dict) -> dict:
+    """Radio's api/status with rxRange and decoders added as configured."""
+    if RADIO_RXRANGE:
+        obj["rxRange"] = RADIO_RXRANGE
+    if DECODERS:
+        obj["decoders"] = DECODERS.status()
+    return obj
+
+
+def state_extras(obj: dict) -> dict:
+    """Radio's api/state with the antenna fixture's inputs, setting and labels."""
+    global radio_device
+    if isinstance(obj.get("deviceStatus"), dict):
+        radio_device = obj["deviceStatus"]
+    return ANTENNAS.state(obj)
+
+
+def antenna_frame(payload: bytes) -> str | None:
+    """A state message carrying deviceStatus or an antenna setting, with
+    the fixture's keys laid over the simulator's; None for anything else
+    (spectra, the bulk of the traffic, are not parsed)."""
+    global radio_device
+    if len(payload) > 65536 or not (b'"deviceStatus"' in payload or b'"soapyAntenna' in payload):
+        return None
+    try:
+        o = json.loads(payload)
+    except ValueError:
+        return None
+    ch = o.get("changes") if o.get("kind") == "state" else None
+    if not isinstance(ch, dict):
+        return None
+    if isinstance(ch.get("deviceStatus"), dict):
+        radio_device = ch["deviceStatus"]
+    return json.dumps(dict(o, changes=ANTENNAS.changes(ch)))
+
+
+async def antenna_set(r, w, ur, uw, request_line: str, keep: list, hdr: dict):
+    """Radio's api/set with the antenna keys taken here and the rest passed
+    to the server, keeping the server's all or nothing: a bad antenna value
+    refuses the whole set before the server sees any of it, and the antenna
+    keys are applied only once the server has taken the rest (or there was
+    no rest). The gate has already made this Control."""
+    n = int(hdr.get("content-length", "0") or 0)
+    raw = await r.readexactly(n) if n else b""
+    try:
+        body = json.loads(raw or b"{}")
+    except ValueError:
+        body = None
+    if not isinstance(body, dict):
+        uw.close()
+        await reply(w, 400, {"error": "The request must be a JSON object", "code": "bad_request"})
+        return
+    wrapped = isinstance(body.get("changes"), dict)
+    mine, rest = Antennas.split(body["changes"] if wrapped else body)
+    if not mine:
+        # Nothing of ours: the request as it came.
+        await forward(ur, uw, w, request_line, keep, raw)
+        return
+    bad = Antennas.check(mine)
+    if bad:
+        uw.close()
+        await reply(w, 400, {"error": bad, "code": "bad_request"})
+        return
+    if not rest:
+        uw.close()
+        await reply(w, 200, {"changed": ANTENNAS.apply(mine, radio_device)})
+        return
+    out = json.dumps({"changes": rest} if wrapped else rest).encode()
+    code, obj, data = await forward(ur, uw, None, request_line, keep, out)
+    if 200 <= code < 300 and isinstance(obj, dict):
+        obj["changed"] = dict(obj.get("changed") or {}, **ANTENNAS.apply(mine, radio_device))
+        await reply(w, code, obj)
+    else:
+        w.write(data)
+        await w.drain()
+        w.close()
+
+
+async def forward(ur, uw, w, request_line: str, keep: list, body: bytes):
+    """One request to the server with [body] (Content-Length set to it) and
+    its whole answer: written to [w] as it came when given, else returned
+    as (status, parsed JSON or None, raw bytes) for the caller to finish."""
+    head = [(k, v) for k, v in keep if k.strip().lower() != "content-length"] + [("Content-Length", str(len(body)))]
+    uw.write((request_line + "\r\n" + "".join(f"{k.strip()}: {v.strip()}\r\n" for k, v in head)
+              + "\r\n").encode("latin-1") + body)
+    await uw.drain()
+    data = await ur.read()
+    uw.close()
+    if w is not None:
+        w.write(data)
+        await w.drain()
+        w.close()
+        return None
+    head_b, _, payload = data.partition(b"\r\n\r\n")
+    try:
+        code = int(head_b.split(b" ", 2)[1])
+    except (IndexError, ValueError):
+        code = 502
+    try:
+        obj = json.loads(payload) if b"chunked" not in head_b.lower() else None
+    except ValueError:
+        obj = None
+    return code, obj, data
+
+
+async def json_with_extras(ur, w, extras):
+    """One of Radio's JSON answers, whole (the upstream closes after it),
+    passed through [extras] before it goes on."""
     data = await ur.read()
     head, _, body = data.partition(b"\r\n\r\n")
     try:
@@ -563,10 +704,7 @@ async def status_with_extras(ur, w):
         await w.drain()
         w.close()
         return
-    if RADIO_RXRANGE:
-        obj["rxRange"] = RADIO_RXRANGE
-    if DECODERS:
-        obj["decoders"] = DECODERS.status()
+    obj = extras(obj)
     code = int(head.split(b" ", 2)[1])
     await reply(w, code, obj)
 
@@ -578,7 +716,8 @@ async def main():
         with open(pidfile, "w") as f:
             f.write(str(os.getpid()))
     print(f"fakeshack on :{PORT} (auto-approve {'on' if AUTO else 'off'}; anonymous view: "
-          f"{', '.join(sorted(ANONYMOUS)) or 'none'}; Radio's decoders {'faked' if DECODERS else 'passed'})",
+          f"{', '.join(sorted(ANONYMOUS)) or 'none'}; Radio's decoders {'faked' if DECODERS else 'passed'}; "
+          f"Radio's antennas {'faked' if ANTENNAS else 'passed'})",
           flush=True)
     if DECODERS:
         asyncio.ensure_future(DECODERS.run())
