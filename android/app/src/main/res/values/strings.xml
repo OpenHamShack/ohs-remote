@@ -319,6 +319,17 @@
     <string name="shack_nr_on">Noise reduction: on</string>
     <string name="shack_nr_off">Noise reduction: off</string>
     <string name="shack_nr_view_only">Noise reduction needs the Control level for this app.</string>
+
+    <!-- Radio: the SDR's antenna input (soapyAntenna). -->
+    <string name="shack_antenna_title">Antenna input</string>
+    <!-- %1$s the input, with the operator's label when there is one ("Antenna C — Loop Antenna"). -->
+    <string name="shack_antenna_summary">Antenna: %1$s</string>
+    <!-- The empty setting: the receiver's driver picks the input itself. -->
+    <string name="shack_antenna_default">Driver default</string>
+    <!-- %1$s the input the driver chose, with its label ("Antenna A — Diamond X7000"). -->
+    <string name="shack_antenna_default_now">Driver default (now %1$s)</string>
+    <string name="shack_antenna_view_only">Changing the antenna input needs the Control level for this app.</string>
+    <string name="shack_antenna_rx_only">Receive input only: nothing here transmits.</string>
     <!-- %1$s the decoder's mode (FT8). -->
     <string name="shack_decodes_title">%1$s decodes</string>
     <string name="shack_decodes_empty">No decodes yet: they arrive at the end of each slot.</string>

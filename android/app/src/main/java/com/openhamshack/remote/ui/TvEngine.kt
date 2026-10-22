@@ -57,6 +57,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import com.openhamshack.core.tv.LocalTvInert
 import com.openhamshack.remote.R
+import com.openhamshack.remote.shack.AntennaChoice
 import com.openhamshack.remote.shack.Bookmark
 import com.openhamshack.remote.shack.Bookmarks
 import com.openhamshack.remote.shack.DecoderPanel
@@ -141,6 +142,8 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
     val res = LocalResources.current
     var controls by remember { mutableStateOf(false) }
     var settings by remember { mutableStateOf(false) }
+    // Radio's antenna inputs, a side panel at the right like the settings.
+    var antennaPanel by remember { mutableStateOf(false) }
     // The frequency dialog, with any digit already typed; null when closed.
     var typing by remember { mutableStateOf<String?>(null) }
     var askLine by remember { mutableStateOf(false) }
@@ -151,11 +154,12 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
     // What the armed plan will send, once confirmed.
     var choice by remember { mutableStateOf<TxChoice?>(null) }
     val covered = typing != null || logOpen || full || askLine
-    val inert = controls || settings || covered || picker != null
+    val inert = controls || settings || antennaPanel || covered || picker != null
 
     val tuner = remember { FocusRequester() }
     val firstControl = remember { FocusRequester() }
     val firstSetting = remember { FocusRequester() }
+    val firstAntenna = remember { FocusRequester() }
     val pickerFocus = remember { FocusRequester() }
     val panelFocus = remember { FocusRequester() }
     var panelFocused by remember { mutableStateOf(false) }
@@ -266,13 +270,14 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
 
     // Focus always comes back somewhere when an overlay closes: with
     // nothing focused, the next key goes nowhere on a TV.
-    LaunchedEffect(controls, settings, covered, picker != null, keys.legend) {
+    LaunchedEffect(controls, settings, antennaPanel, covered, picker != null, keys.legend) {
         delay(80)
         runCatching {
             when {
                 keys.legend -> {}
                 picker != null -> pickerFocus.requestFocus()
                 settings -> firstSetting.requestFocus()
+                antennaPanel -> firstAntenna.requestFocus()
                 controls -> firstControl.requestFocus()
                 !covered -> tuner.requestFocus()
             }
@@ -294,6 +299,9 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
         delay((p.touchedMs + PickerFocus.IDLE_MS - SystemClock.uptimeMillis()).coerceAtLeast(0))
         if (picker?.idle(SystemClock.uptimeMillis()) == true) picker = null
     }
+    val antenna = if (e.kind == Kind.RADIO) AntennaChoice.of(u.state) else null
+    // The inputs went while the panel was open (another radio, an older server): close it rather than strand focus in nothing.
+    LaunchedEffect(antenna == null) { if (antenna == null) antennaPanel = false }
     val looking = picker?.takeIf { it.row == PickerRow.MARKS }?.let { marks.getOrNull(it.index) }
     val named = marks.getOrNull(ScopeLabels.named(marks, u.dialHz, looking, range?.first, range?.second))
 
@@ -319,6 +327,10 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
                     if (u.state.segment.isNotBlank()) Text(u.state.segment, fontSize = 16.sp, color = Dim, maxLines = 1,
                         overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                     if (stepShown) Text(stringResource(R.string.shack_step, stepText(u.stepHz)), fontSize = 16.sp, color = Dim, maxLines = 1)
+                    // In the quiet line rather than the header: it is worth seeing from the
+                    // sofa (which socket is this?) but not something acted on every minute.
+                    antenna?.let { Text(stringResource(R.string.shack_antenna_summary, antennaNow(it)), fontSize = 16.sp, color = Dim, maxLines = 1,
+                        overflow = TextOverflow.Ellipsis) }
                     u.toast?.let { Text(it, color = Dim, fontSize = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
                 }
                 Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
@@ -442,6 +454,11 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
                     TvItem(onClick = { e.band(-1) }) { Text(stringResource(R.string.shack_band_down), fontSize = 16.sp) }
                     TvItem(onClick = { e.band(1) }) { Text(stringResource(R.string.shack_band_up), fontSize = 16.sp) }
                 }
+                antenna?.let { a ->
+                    TvItem(onClick = { controls = false; antennaPanel = true }) {
+                        Text(stringResource(R.string.shack_antenna_summary, antennaNow(a)), fontSize = 16.sp)
+                    }
+                }
                 TvItem(onClick = { typing = "" }) { Text(stringResource(R.string.shack_frequency), fontSize = 16.sp) }
                 TvItem(onClick = { controls = false; logOpen = true }) { Text(stringResource(R.string.shack_log), fontSize = 16.sp) }
                 // Clear is here rather than on the panel, which is one focus target
@@ -492,6 +509,25 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
                 TvItem(onClick = { settings = false; keys.legend = true }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.shack_keys_item), fontSize = 17.sp)
                 }
+            }
+        }
+
+        if (antennaPanel && antenna != null) {
+            // The inputs, one focusable row each, as Flex's antenna page: Up and
+            // Down between them, OK chooses and closes, BACK closes (SidePanel's).
+            // A view-only TV is told why rather than sent to be refused again.
+            val refused = stringResource(R.string.shack_antenna_view_only)
+            SidePanel(stringResource(R.string.shack_antenna_title), onClose = { antennaPanel = false }, modifier = Modifier.align(Alignment.CenterEnd)) {
+                Text(stringResource(R.string.shack_antenna_summary, antennaNow(antenna)), fontSize = 16.sp, color = Dim)
+                val lit = antenna.rows.indexOf(antenna.chosen).coerceAtLeast(0)
+                antenna.rows.forEachIndexed { i, name ->
+                    TvItem(onClick = { if (u.viewOnly) e.note(refused) else { e.setAntenna(name); antennaPanel = false } },
+                        selected = name == antenna.chosen, focus = if (i == lit) firstAntenna else null, modifier = Modifier.fillMaxWidth()) {
+                        Text(antennaName(name, antenna), fontSize = 18.sp, color = if (u.viewOnly) Dim else Color.Unspecified)
+                    }
+                }
+                if (u.viewOnly) Text(refused, fontSize = 14.sp, color = Amber)
+                Text(stringResource(R.string.shack_antenna_rx_only), fontSize = 14.sp, color = Dim)
             }
         }
 

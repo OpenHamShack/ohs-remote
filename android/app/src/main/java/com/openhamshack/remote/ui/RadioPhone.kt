@@ -52,6 +52,7 @@ import com.openhamshack.core.tv.RemoteKeysHost
 import com.openhamshack.core.tv.remoteKeys
 import com.openhamshack.remote.R
 import com.openhamshack.remote.ptt.PttPhase
+import com.openhamshack.remote.shack.AntennaChoice
 import com.openhamshack.remote.shack.Bookmarks
 import com.openhamshack.remote.shack.DecoderPanel
 import com.openhamshack.remote.shack.EngineSession
@@ -89,6 +90,7 @@ internal fun RadioPhone(e: EngineSession, onBack: () -> Unit, onRepair: () -> Un
     var logOpen by remember { mutableStateOf(false) }
     var scopeSheet by remember { mutableStateOf(false) }
     var controlsSheet by remember { mutableStateOf(false) }
+    var antennaSheet by remember { mutableStateOf(false) }
     val config = LocalConfiguration.current
     val wide = config.screenWidthDp >= 840
     val landscape = config.screenWidthDp > config.screenHeightDp
@@ -109,6 +111,11 @@ internal fun RadioPhone(e: EngineSession, onBack: () -> Unit, onRepair: () -> Un
         RadioControlsSheet(e, u, onType = { controlsSheet = false; typing = true }, onLog = { controlsSheet = false; logOpen = true },
             onDone = { controlsSheet = false })
     }
+    val antenna = AntennaChoice.of(u.state)
+    // The inputs went (the radio is no longer an SDR, or the app was replaced by an older one): nothing to pick from.
+    if (antennaSheet && antenna != null) ModalBottomSheet(onDismissRequest = { antennaSheet = false }) {
+        RadioAntennaSheet(e, u, antenna, onDone = { antennaSheet = false })
+    }
 
     Box(Modifier.fillMaxSize().remoteKeys(tx.keys)) {
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -123,7 +130,8 @@ internal fun RadioPhone(e: EngineSession, onBack: () -> Unit, onRepair: () -> Un
                 TextButton(onClick = onBack, modifier = Modifier.testTag("back")) { Text(stringResource(R.string.shack_back), softWrap = false) }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioDial(u, Modifier.weight(1f), maxSize = if (tablet) 56 else 44, onType = { typing = true }, onMode = { controlsSheet = true })
+                RadioDial(u, Modifier.weight(1f), maxSize = if (tablet) 56 else 44, onType = { typing = true }, onMode = { controlsSheet = true },
+                    antenna = antenna, onAntenna = { antennaSheet = true })
                 SignalMeter(u.rxDb, if (tablet) 160.dp else 100.dp, big = tablet)
             }
             u.problem?.let { p ->
@@ -207,7 +215,8 @@ private fun RadioChips(e: EngineSession, u: EngineUi) {
  * is on its way, as on the NB screen.
  */
 @Composable
-private fun RadioDial(u: EngineUi, modifier: Modifier, maxSize: Int, onType: () -> Unit, onMode: () -> Unit) {
+private fun RadioDial(u: EngineUi, modifier: Modifier, maxSize: Int, onType: () -> Unit, onMode: () -> Unit,
+                      antenna: AntennaChoice?, onAntenna: () -> Unit) {
     Column(modifier) {
         BasicText(
             dialText(u.dialHz),
@@ -225,6 +234,36 @@ private fun RadioDial(u: EngineUi, modifier: Modifier, maxSize: Int, onType: () 
             if (u.state.segment.isNotBlank()) Text(u.state.segment, fontSize = (maxSize / 4).sp, color = Dim, maxLines = 1,
                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
         }
+        // Under the band, where the operator looks to see what they are
+        // hearing: which socket it comes in on matters as much as the band on
+        // an RSPdx with an HF wire on one input and a VHF antenna on another.
+        // A tap opens the inputs, as a tap on the mode opens the modes.
+        if (antenna != null) Text(stringResource(R.string.shack_antenna_summary, antennaNow(antenna)), fontSize = (maxSize / 4).sp,
+            color = Dim, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            modifier = Modifier.clickable(onClick = onAntenna).testTag("antenna"))
+    }
+}
+
+/**
+ * The antenna sheet: the driver's default and each input the radio
+ * reported, with the operator's labels (Flex's antenna chips, the same
+ * look). Disabled once the controller has refused a change for this
+ * person's level, as the modes are; the refusal itself is the toast line.
+ */
+@Composable
+private fun RadioAntennaSheet(e: EngineSession, u: EngineUi, a: AntennaChoice, onDone: () -> Unit) {
+    Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(stringResource(R.string.shack_antenna_title), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        Text(stringResource(R.string.shack_antenna_summary, antennaNow(a)), color = Dim)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            a.rows.forEach { name ->
+                FilterChip(selected = name == a.chosen, onClick = { e.setAntenna(name); onDone() }, enabled = !u.viewOnly,
+                    label = { Text(antennaName(name, a)) }, modifier = Modifier.testTag("antenna-$name"))
+            }
+        }
+        if (u.viewOnly) Text(stringResource(R.string.shack_antenna_view_only), color = Amber)
+        Text(stringResource(R.string.shack_antenna_rx_only), color = Dim, fontSize = 12.sp)
+        Spacer(Modifier.height(16.dp))
     }
 }
 

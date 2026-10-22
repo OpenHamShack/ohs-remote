@@ -9,6 +9,8 @@ import com.openhamshack.remote.R
 import com.openhamshack.remote.api.BoxConfig
 import com.openhamshack.remote.api.Qo100
 import com.openhamshack.remote.api.Receiver
+import com.openhamshack.remote.shack.AntennaChoice
+import com.openhamshack.remote.shack.Antennas
 
 // The catalog side of the pure functions in Format.kt and Qo100Tune.kt:
 // they decide what to say, these say it in the device's language. Kept
@@ -47,6 +49,24 @@ fun qo100StateText(state: Qo100State, tapHint: Boolean = false): String = when (
 @Composable
 internal fun nrLabel(on: Boolean?): String = androidx.compose.ui.res.stringResource(
     if (on == true) com.openhamshack.remote.R.string.shack_nr_on else com.openhamshack.remote.R.string.shack_nr_off)
+
+/** One antenna input as a row of the picker says it ("Antenna C — Loop Antenna", or "Driver default" for ""). */
+@Composable
+internal fun antennaName(name: String, c: AntennaChoice): String =
+    Antennas.display(name, c.labels, stringResource(R.string.shack_antenna_default))
+
+/**
+ * The input in use, for the screen's antenna line: the radio's own report
+ * when it has made one, so "Driver default" is followed by the input the
+ * driver actually picked ("Driver default (now Antenna A — Diamond
+ * X7000)"); the setting alone before the radio has said anything.
+ */
+@Composable
+internal fun antennaNow(c: AntennaChoice): String = when {
+    c.current.isEmpty() -> antennaName(c.chosen, c)
+    c.chosen.isEmpty() -> stringResource(R.string.shack_antenna_default_now, antennaName(c.current, c))
+    else -> antennaName(c.current, c)
+}
 
 /** "437.000 MHz · 333 kS", with " · LNB" when received through one. */
 @Composable
