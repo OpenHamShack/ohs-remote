@@ -330,6 +330,21 @@ class EngineState(initial: JSONObject = JSONObject()) {
     val nr: Boolean? get() = if (o.has("nr") && !o.isNull("nr")) o.optBoolean("nr") else null
     val error: String get() = o.optString("error")
 
+    // Radio's SDR antenna input ([AntennaChoice]). The current input and the
+    // list are the device's (`deviceStatus`, replaced whole by each state
+    // change that carries it); the choice and the labels are settings, which
+    // the store API keeps as state keys like any other.
+    /** The input in use, as the driver names it; null when the device says none. */
+    val antenna: String? get() = o.optJSONObject("deviceStatus")?.optString("antenna")?.takeIf { it.isNotEmpty() }
+    /** Every input the open radio reported; empty for a radio that is not an SDR, or a server without them. */
+    val antennas: List<String> get() = o.optJSONObject("deviceStatus")?.optJSONArray("antennas")?.let { a ->
+        (0 until a.length()).mapNotNull { i -> (a.opt(i) as? String)?.takeIf { it.isNotEmpty() } }
+    }.orEmpty()
+    /** The `soapyAntenna` setting: "" is the driver's default; null from a server without it. */
+    val soapyAntenna: String? get() = if (o.has("soapyAntenna") && !o.isNull("soapyAntenna")) o.optString("soapyAntenna") else null
+    /** `soapyAntennaLabels` as stored: one line of JSON, read by [Antennas.parseLabels]. */
+    val antennaLabels: String get() = o.optString("soapyAntennaLabels")
+
     /** Any other numeric key (filter edges, CW pitch: [ModeAudio]); null when absent. */
     fun raw(key: String): Double? = o.num(key)
 }

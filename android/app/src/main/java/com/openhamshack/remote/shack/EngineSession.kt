@@ -526,6 +526,20 @@ class EngineSession(
         }
     }
 
+    /**
+     * Radio's SDR antenna input ([AntennaChoice]): the input's driver name,
+     * or "" for the driver's default. Receive-side, so Control, not
+     * Transmit (SERVER-API: `soapyAntenna` through api/set at control
+     * level), and applied live by the server: the next state carries the
+     * new `deviceStatus.antenna`, which is what the screen then shows -
+     * nothing is assumed here before the radio says so. A refusal for the
+     * level marks the screen view only, as the mode and NR do.
+     */
+    fun setAntenna(name: String) {
+        if (AntennaChoice.of(_ui.value.state)?.chosen == name) return
+        scope.launch { control { client.set(JSONObject().put("soapyAntenna", name)) } }
+    }
+
     /** A line for the screen's toast row, from the screen itself (a refusal it can tell before asking). */
     fun note(text: String) = _ui.update { it.copy(toast = text) }
 
