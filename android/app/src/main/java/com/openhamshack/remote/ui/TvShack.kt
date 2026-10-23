@@ -210,8 +210,15 @@ internal fun dialText(hz: Double?, tag: String): String {
 }
 
 @Composable
-internal fun stepText(hz: Int): String = com.openhamshack.i18n.ShackFormat.frequency(hz, localeTag(), if (hz >= 1000) "kHz" else "Hz",
-    if (hz >= 1000 && hz % 1000 != 0) 1 else 0)
+internal fun stepText(hz: Int): String = stepText(hz, localeTag())
+
+/**
+ * A step as the operator knows it: 12.5 kHz to one place, and the airband
+ * step (Tuning.AIRBAND_833, 8333) to two, "8.33 kHz", the name every
+ * airband radio gives it.
+ */
+internal fun stepText(hz: Int, tag: String): String = com.openhamshack.i18n.ShackFormat.frequency(hz, tag, if (hz >= 1000) "kHz" else "Hz",
+    when { hz < 1000 || hz % 1000 == 0 -> 0; hz % 100 == 0 -> 1; else -> 2 })
 
 @Composable
 internal fun Chip(text: String, colour: Color) {

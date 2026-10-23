@@ -1,6 +1,7 @@
 package com.openhamshack.remote.shack
 
 import kotlin.math.floor
+import kotlin.math.roundToLong
 
 /**
  * Tuning steps and arithmetic for the NB and Radio screens, pure for tests.
@@ -9,11 +10,22 @@ import kotlin.math.floor
  * has no step setting of its own. NB's run from 10 Hz (zero-beating an
  * SSB voice) to 5 kHz (crossing the transponder in a hundred presses);
  * Radio's add the channel steps of VHF/UHF FM (12.5 and 25 kHz) and
- * 100 kHz for moving across HF bands.
+ * 100 kHz for moving across HF bands, and (23/10/2026, the listening areas)
+ * the broadcast and airband rasters: 8.33 kHz airband channels, 9 kHz
+ * LW/MW, 10 kHz CB, and 200 kHz for crossing Band II and Band III.
  */
 object Tuning {
+    /**
+     * The 8.33 kHz airband step. Its real size is 25 kHz / 3 (8333.33 Hz),
+     * which no Int holds: this value is the step's name, and [stepped]
+     * counts in thirds of 25 kHz whenever it is the step, so three presses
+     * are exactly 25 kHz and a channel is never a hertz adrift.
+     */
+    const val AIRBAND_833 = 8_333
+    private const val AIRBAND_UNIT = 25_000.0 / 3
+
     val NB_STEPS = listOf(10, 50, 100, 500, 1_000, 5_000)
-    val RADIO_STEPS = listOf(10, 100, 1_000, 5_000, 12_500, 25_000, 100_000)
+    val RADIO_STEPS = listOf(10, 100, 1_000, 5_000, AIRBAND_833, 9_000, 10_000, 12_500, 25_000, 100_000, 200_000)
 
     fun steps(kind: Kind): List<Int> = if (kind == Kind.RADIO) RADIO_STEPS else NB_STEPS
 
@@ -31,16 +43,26 @@ object Tuning {
      * [by] steps from [hz], landing on the step's grid: from 10 489 703 Hz
      * a 100 Hz step up is 10 489 800, not 10 489 803, so the dial reads as
      * the operator expects after the first press.
+     *
+     * The grid is counted from [origin] (a listening area's first channel,
+     * ListenAreas.origin: PMR446's channels are 12.5 kHz apart from
+     * 446.00625 MHz, not from 0 Hz). [AIRBAND_833] counts in 25 kHz / 3 and
+     * lands on whole Hz: 118.000 up one is 118.008333 MHz, sent as
+     * 118 008 333 Hz, which the server takes as it is (RADIO-LISTEN-CONTRACT §2).
      */
-    fun stepped(hz: Double, step: Int, by: Int, min: Double? = null, max: Double? = null): Double {
-        val base = floor(hz / step) * step
-        val onGrid = hz - base < 0.5
+    fun stepped(hz: Double, step: Int, by: Int, min: Double? = null, max: Double? = null, origin: Double = 0.0): Double {
+        val unit = if (step == AIRBAND_833) AIRBAND_UNIT else step.toDouble()
+        val k = floor((hz - origin) / unit)
+        val base = origin + k * unit
+        // Within half a hertz of a channel is on it: an 8.33 kHz channel is sent rounded.
+        val onGrid = hz - base < 0.5 || base + unit - hz < 0.5
+        val from = if (base + unit - hz < 0.5) k + 1 else k
         val n = when {
-            by > 0 -> base + step.toDouble() * by
-            onGrid -> base + step.toDouble() * by
-            else -> base + step.toDouble() * (by + 1)
+            by > 0 -> from + by
+            onGrid -> from + by
+            else -> from + by + 1
         }
-        var out = n
+        var out = (origin + n * unit).let { if (step == AIRBAND_833) it.roundToLong().toDouble() else it }
         if (min != null && out < min) out = min
         if (max != null && out > max) out = max
         return out

@@ -28,7 +28,9 @@ class TuningTest {
         assertEquals(500, Tuning.nextStep(Kind.QO100NB, 100, 1))
         assertEquals(5_000, Tuning.nextStep(Kind.QO100NB, 5_000, 1))
         assertEquals(10, Tuning.nextStep(Kind.QO100NB, 10, -1))
-        assertEquals(12_500, Tuning.nextStep(Kind.RADIO, 5_000, 1))
+        // Up from 5 kHz is the next rung: the airband step since the listening areas (23/10/2026).
+        assertEquals(Tuning.AIRBAND_833, Tuning.nextStep(Kind.RADIO, 5_000, 1))
+        assertEquals(12_500, Tuning.nextStep(Kind.RADIO, 10_000, 1))
         // A step not in this kind's list starts again from the default.
         assertEquals(1_000, Tuning.nextStep(Kind.QO100NB, 12_500, 2))
     }

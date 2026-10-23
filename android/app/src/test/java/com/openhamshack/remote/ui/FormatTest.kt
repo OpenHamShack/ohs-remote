@@ -36,6 +36,16 @@ class FormatTest {
     }
 
     @Test
+    fun stepsReadAsARadioNamesThem() {
+        // The airband step is 25 kHz / 3; every airband radio calls it 8.33 kHz.
+        assertEquals("8.33\u00a0kHz", stepText(8_333, "en-GB"))
+        assertEquals("12.5\u00a0kHz", stepText(12_500, "en-GB"))
+        assertEquals("9\u00a0kHz", stepText(9_000, "en-GB"))
+        assertEquals("200\u00a0kHz", stepText(200_000, "en-GB"))
+        assertEquals("10\u00a0Hz", stepText(10, "en-GB"))
+    }
+
+    @Test
     fun aTypedFrequencyPicksTheLnbAsTheConsoleDoes() {
         assertEquals(9750.0, rxOffsetFor(10491.5, 0.0, 9750.0), 0.0)        // QO-100 from terrestrial
         assertEquals(9739.0, rxOffsetFor(10491.5, 9739.0, 9750.0), 0.0)     // keeps a receiver's own LNB
