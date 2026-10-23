@@ -342,6 +342,7 @@ private fun RadioControlsSheet(e: EngineSession, u: EngineUi, onType: () -> Unit
                 }
             }
         }
+        if (e.kind == com.openhamshack.remote.shack.Kind.RADIO) CalibrateSection(e, u)
         // Why the meter has no S reading (no calibration yet), where there is room to say it.
         u.sMeter.explanation?.let { Text(stringResource(R.string.shack_smeter_why, it), color = Dim, fontSize = 13.sp) }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -361,5 +362,52 @@ private fun RadioControlsSheet(e: EngineSession, u: EngineUi, onType: () -> Unit
             }
         }
         Spacer(Modifier.height(16.dp))
+    }
+}
+
+/**
+ * Calibrating the S-meter (Radio only; NB has no such API): S9 in one press,
+ * another level typed as dBm or an S reading, or clearing this band's and
+ * antenna's calibration. The server measures the signal itself (a 3 s
+ * average); a refusal says why in its words on the toast line.
+ */
+@Composable
+private fun CalibrateSection(e: EngineSession, u: EngineUi) {
+    var typing by remember { mutableStateOf(false) }
+    val tag = localeTag()
+    val s9 = com.openhamshack.remote.shack.SMeterCal.s9Dbm(u.dialHz)
+    val number = { d: Double -> com.openhamshack.i18n.ShackFormat.number(d, tag, if (d % 1.0 == 0.0) 0 else 1) }
+    val res = androidx.compose.ui.platform.LocalResources.current
+    Text(stringResource(R.string.shack_cal_title), color = Dim)
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        FilledTonalButton(onClick = { e.calibrate(s9, res.getString(R.string.shack_cal_done, number(s9))) }, enabled = !u.viewOnly,
+            modifier = Modifier.testTag("calS9")) { Text(stringResource(R.string.shack_cal_s9, number(s9))) }
+        FilledTonalButton(onClick = { typing = true }, enabled = !u.viewOnly, modifier = Modifier.testTag("calOther")) {
+            Text(stringResource(R.string.shack_cal_other))
+        }
+        TextButton(onClick = { e.clearCalibration(res.getString(R.string.shack_cal_cleared)) }, enabled = !u.viewOnly,
+            modifier = Modifier.testTag("calClear")) { Text(stringResource(R.string.shack_cal_clear)) }
+    }
+    Text(stringResource(if (u.viewOnly) R.string.shack_cal_view_only else R.string.shack_cal_help), color = if (u.viewOnly) Amber else Dim, fontSize = 12.sp)
+    if (typing) {
+        var text by remember { mutableStateOf("") }
+        val dbm = com.openhamshack.remote.shack.SMeterCal.parseLevel(text, u.dialHz)
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { typing = false },
+            title = { Text(stringResource(R.string.shack_cal_level_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(stringResource(R.string.shack_cal_level_help), fontSize = 13.sp, color = Dim)
+                    androidx.compose.material3.OutlinedTextField(text, { text = it }, singleLine = true, isError = text.isNotBlank() && dbm == null,
+                        modifier = Modifier.testTag("calLevel"))
+                    if (text.isNotBlank() && dbm == null) Text(stringResource(R.string.shack_cal_level_bad), color = Amber, fontSize = 12.sp)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { dbm?.let { typing = false; e.calibrate(it, res.getString(R.string.shack_cal_done, number(it))) } },
+                    enabled = dbm != null) { Text(stringResource(R.string.shack_local_save)) }
+            },
+            dismissButton = { TextButton(onClick = { typing = false }) { Text(stringResource(R.string.shack_local_cancel)) } },
+        )
     }
 }

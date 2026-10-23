@@ -47,7 +47,12 @@ What it makes Radio look like (FAKESHACK_RADIO_LISTEN=1):
     -93 dBm above 30 MHz and -73 dBm below, 6 dB an S-unit, "S9+N" (dB)
     above S9, S0 at the bottom - judged at the dial the server last
     reported. With FAKESHACK_RADIO_LISTEN_SMETER=uncalibrated it gains
-    only a `why` sentence instead, to see the uncalibrated path.
+    only `why` (a code, no_calibration) and `whyText` (the sentence) instead,
+    to see the uncalibrated path; calibrated, `why` is null and `whyText` "",
+    as openhamshack-nb's final shape. api/smeter/calibrate takes a
+    calibration as the server does (POST {"dbm"}: the last reading is that
+    level, for the dial's side of 30 MHz; DELETE clears it; GET lists them),
+    and refuses 409 cannot_calibrate with a sentence before any reading.
 
   * local frequencies (RADIO-LISTEN-CONTRACT §5, Radio's API not out yet):
     GET api/local answers a made-up list near Edinburgh (IO85) - airports,
@@ -74,7 +79,8 @@ import time
 RX_RANGE = [1_000.0, 2_000_000_000.0]
 #: The made-up calibration: dBm at the antenna from the simulator's dBFS.
 DBM_OFFSET = -50.4
-UNCALIBRATED = "This receiver has not been calibrated yet (Radio › Settings › S-meter)."
+UNCALIBRATED = "This band has not been calibrated yet: tune to a signal of known strength and calibrate (Controls › S-meter)."
+NO_READING = "There is no reading to calibrate against yet."
 SYNC_AFTER = 2.0
 MAX_SESSIONS = 4
 #: Blocks with nothing on them, to see the "nothing here" sentence.
@@ -254,6 +260,8 @@ class Listen:
         self.listeners: set[asyncio.Queue] = set()
         self.n = 0
         self.local = Local()
+        self.cals: dict[str, dict] = {}
+        self.last_rx: float | None = None
 
     # --- api/spec, api/status, api/state and api/set ------------------------
 
@@ -343,14 +351,39 @@ class Listen:
         self.state(ch)
         return json.dumps(o) if json.dumps(ch, sort_keys=True) != before else None
 
+    def cal_key(self) -> str:
+        """The calibration's key: the server's is the device, antenna and band; the fake's is the dial's side of 30 MHz."""
+        return "sim|" + ("vhf" if self.dial >= 30e6 else "hf")
+
     def meter(self, o: dict) -> dict:
         rx = o.get("rx")
-        if not self.calibrated:
-            return dict(o, why=UNCALIBRATED)
+        if isinstance(rx, (int, float)) and not isinstance(rx, bool):
+            self.last_rx = float(rx)
+        offset = self.cals.get(self.cal_key(), {}).get("offset")
+        if offset is None and self.calibrated:
+            offset = DBM_OFFSET
+        if offset is None:
+            return dict(o, dbm=None, s=None, why="no_calibration", whyText=UNCALIBRATED)
         if isinstance(rx, bool) or not isinstance(rx, (int, float)):
             return o
-        dbm = round(rx + DBM_OFFSET, 1)
-        return dict(o, dbm=dbm, s=s_units(dbm, self.dial))
+        dbm = round(rx + offset, 1)
+        return dict(o, dbm=dbm, s=s_units(dbm, self.dial), why=None, whyText="")
+
+    def calibrate(self, method: str, b: dict) -> tuple[int, dict]:
+        """api/smeter/calibrate as SERVER-API has it, against the last reading rather than a 3 s average."""
+        if method == "GET":
+            return 200, {"calibrations": self.cals}
+        if method == "DELETE":
+            self.cals.pop(self.cal_key(), None)
+            return 200, {"ok": True}
+        dbm = b.get("dbm")
+        if isinstance(dbm, bool) or not isinstance(dbm, (int, float)) or not -140 <= dbm <= 30:
+            return 400, {"error": "dbm must be a number from -140 to +30", "code": "bad_params"}
+        if self.last_rx is None:
+            return 409, {"error": NO_READING, "code": "cannot_calibrate"}
+        entry = {"offset": round(dbm - self.last_rx, 2), "gain": 0.0, "when": round(time.time())}
+        self.cals[self.cal_key()] = entry
+        return 200, {"calibration": entry}
 
     # --- the dab decoder ----------------------------------------------------
 
@@ -358,6 +391,8 @@ class Listen:
         """(status, body) for a dab or local route, or None for anything this fixture does not own."""
         if path.startswith("/api/local"):
             return self.local.answer(method, path, body)
+        if path == "/api/smeter/calibrate" and method in ("GET", "POST", "DELETE"):
+            return self.calibrate(method, body)
         if path == "/api/decoders/sessions" and method == "POST" and body.get("decoder") == "dab":
             return self._start(body)
         if path.startswith("/api/decoders/sessions/"):

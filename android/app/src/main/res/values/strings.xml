@@ -152,6 +152,20 @@
     <string name="shack_band_none">Between bands</string>
     <!-- Why the meter shows no S reading, in the server's words. %1$s that sentence -->
     <string name="shack_smeter_why">S-meter: %1$s</string>
+    <!-- Calibrating Radio's S-meter (SERVER-API api/smeter/calibrate), in Controls and the TV's settings. -->
+    <string name="shack_cal_title">S-meter calibration</string>
+    <!-- The one-press calibration: %1$s the S9 level in dBm for this band (-93 above 30 MHz, -73 below). -->
+    <string name="shack_cal_s9">This signal is S9 (%1$s dBm)</string>
+    <string name="shack_cal_other">Another level…</string>
+    <string name="shack_cal_clear">Clear this band\'s calibration</string>
+    <string name="shack_cal_help">Tune to a steady signal of known strength first. A calibration is kept for each band and antenna.</string>
+    <!-- After a calibration: %1$s the level given, in dBm. -->
+    <string name="shack_cal_done">S-meter calibrated: this signal is %1$s dBm.</string>
+    <string name="shack_cal_cleared">S-meter calibration cleared for this band and antenna.</string>
+    <string name="shack_cal_level_title">The signal now is…</string>
+    <string name="shack_cal_level_help">A level in dBm, such as −85, or an S reading, such as S7 or S9+10.</string>
+    <string name="shack_cal_level_bad">Give dBm from −140 to +30, or an S reading such as S7.</string>
+    <string name="shack_cal_view_only">Calibrating the S-meter needs the Control level for this app.</string>
     <!-- Radio's overhauled screen (Brian's mockups, 23/10/2026). -->
     <!-- The header's second line: %1$s the controller's name, %2$s the receiver ("GM4BRI · SDRplay"). -->
     <string name="shack_header_box_rx">%1$s · %2$s</string>

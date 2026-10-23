@@ -29,8 +29,41 @@ data class SMeter(val s: String? = null, val dbm: Double? = null, val why: Strin
         fun parse(o: JSONObject): SMeter {
             val s = o.optString("s").trim().takeIf { !o.isNull("s") && it.isNotEmpty() && it.length <= MAX_S && it.none { c -> c == '\n' } }
             val dbm = o.num("dbm")?.takeIf { it in -200.0..50.0 }
-            val why = o.optString("why").trim().takeIf { !o.isNull("why") && it.isNotEmpty() }
+            // Final shape (openhamshack-nb, 23/10/2026): `why` is a code (agc, between_bands,
+            // no_calibration, extra_changed) and `whyText` the server's sentence for it, "" while
+            // calibrated. The sentence is what is shown; a server from before that sent the
+            // sentence in `why` itself, so `why` is the fallback only when `whyText` is absent.
+            val why = if (o.has("whyText")) o.optString("whyText").trim().takeIf { !o.isNull("whyText") && it.isNotEmpty() }
+                else o.optString("why").trim().takeIf { !o.isNull("why") && it.isNotEmpty() }
             return SMeter(s, dbm, why)
         }
+    }
+}
+
+/**
+ * Calibrating Radio's S-meter from Remote (SERVER-API `api/smeter/calibrate`):
+ * "the signal now is this level". The one-press default is S9, which by the
+ * IARU rule is -93 dBm above 30 MHz and -73 dBm below; any other level is
+ * typed as dBm ("-85", "-85 dBm") or as an S reading ("S7", "S9+10", 6 dB
+ * an S-unit). The server's own range check (-140..+30 dBm) is repeated here
+ * so a typo is caught before it is sent.
+ */
+object SMeterCal {
+    const val LO_DBM = -140.0
+    const val HI_DBM = 30.0
+
+    fun s9Dbm(dialHz: Double?): Double = if ((dialHz ?: 0.0) >= 30e6) -93.0 else -73.0
+
+    /** The level [text] means at [dialHz], in dBm; null when it is not one, or out of range. */
+    fun parseLevel(text: String, dialHz: Double?): Double? {
+        val t = text.trim().uppercase().replace(" ", "").removeSuffix("DBM")
+        val s = Regex("""^S(\d)(?:\+(\d+))?$""").find(t)
+        val dbm = if (s != null) {
+            val units = s.groupValues[1].toInt()
+            val over = s.groupValues[2].toIntOrNull() ?: 0
+            if (units < 9 && over > 0) return null
+            s9Dbm(dialHz) - (9 - units) * 6.0 + over
+        } else t.replace(',', '.').replace('\u2212', '-').toDoubleOrNull()
+        return dbm?.takeIf { it.isFinite() && it in LO_DBM..HI_DBM }
     }
 }

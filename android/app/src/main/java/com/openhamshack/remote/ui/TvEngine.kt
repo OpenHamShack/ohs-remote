@@ -161,6 +161,8 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
     // The frequency dialog, with any digit already typed; null when closed.
     var typing by remember { mutableStateOf<String?>(null) }
     var askLine by remember { mutableStateOf(false) }
+    // Radio's S-meter calibration at a typed level (the settings' Another level…).
+    var calTyping by remember { mutableStateOf(false) }
     var logOpen by remember { mutableStateOf(false) }
     var full by remember { mutableStateOf(false) }
     var picker by remember { mutableStateOf<PickerFocus?>(null) }
@@ -169,7 +171,7 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
     var choice by remember { mutableStateOf<TxChoice?>(null) }
     // Radio's local frequencies: a screen over the radio while open (the Local item in the band picker).
     val localOpen = u.local != null
-    val covered = typing != null || logOpen || full || askLine || localOpen
+    val covered = typing != null || logOpen || full || askLine || localOpen || calTyping
     // DAB's station list: open while the DAB area is (Ch± or Bands onto it opens it). Radio's
     // since the overhaul is in the scope's place, not over it, so it is not an overlay.
     val dabOpen = u.dab != null
@@ -614,6 +616,20 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
                 TvItem(onClick = { settings = false; keys.legend = true }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.shack_keys_item), fontSize = 17.sp)
                 }
+                // Radio's S-meter calibration (NB has none): S9 in one press, another level typed, or clear.
+                if (radio) {
+                    val s9 = com.openhamshack.remote.shack.SMeterCal.s9Dbm(u.dialHz)
+                    val tag = localeTag()
+                    val number = { d: Double -> com.openhamshack.i18n.ShackFormat.number(d, tag, if (d % 1.0 == 0.0) 0 else 1) }
+                    val refused = stringResource(R.string.shack_cal_view_only)
+                    TvItem(onClick = { if (u.viewOnly) e.note(refused) else e.calibrate(s9, res.getString(R.string.shack_cal_done, number(s9))) },
+                        modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.shack_cal_s9, number(s9)), fontSize = 17.sp) }
+                    TvItem(onClick = { if (u.viewOnly) e.note(refused) else { settings = false; calTyping = true } }, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.shack_cal_other), fontSize = 17.sp)
+                    }
+                    TvItem(onClick = { if (u.viewOnly) e.note(refused) else e.clearCalibration(res.getString(R.string.shack_cal_cleared)) },
+                        modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.shack_cal_clear), fontSize = 17.sp) }
+                }
                 // Why the meter shows no S reading, in the server's words: the settings
                 // are where a TV has room to explain, and the header has none.
                 u.sMeter.explanation?.let { Text(stringResource(R.string.shack_smeter_why, it), fontSize = 15.sp, color = Dim) }
@@ -666,6 +682,19 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
     }
     typing?.let { start ->
         FrequencyDialog(initial = start, onTune = { hz -> e.setDial(hz); typing = null; controls = false }, onDismiss = { typing = null })
+    }
+    if (calTyping) {
+        val bad = stringResource(R.string.shack_cal_level_bad)
+        val tag = localeTag()
+        TvTextDialog(stringResource(R.string.shack_cal_level_title), stringResource(R.string.shack_cal_level_help), KeyboardType.Text,
+            onDismiss = { calTyping = false }) { text, error ->
+            val dbm = com.openhamshack.remote.shack.SMeterCal.parseLevel(text, u.dialHz)
+            if (dbm == null) error(bad)
+            else {
+                calTyping = false
+                e.calibrate(dbm, res.getString(R.string.shack_cal_done, com.openhamshack.i18n.ShackFormat.number(dbm, tag, if (dbm % 1.0 == 0.0) 0 else 1)))
+            }
+        }
     }
     if (askLine) {
         val lineTitle = stringResource(R.string.shack_tx_line_title, mode.uppercase())

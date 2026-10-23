@@ -192,7 +192,11 @@ desktop app runs on the same account (they keep a station store).
   item gains `dbm` (`rx` less 50.4 dB) and `s` by the IARU rule at the
   last reported dial (S9 = -93 dBm above 30 MHz, -73 dBm below, 6 dB an
   S-unit, "S9+N" above). `FAKESHACK_RADIO_LISTEN_SMETER=uncalibrated` sends
-  a `why` sentence instead, for the screens' uncalibrated path.
+  `why` (the code `no_calibration`) and `whyText` (the sentence) instead,
+  for the screens' uncalibrated path. `api/smeter/calibrate` takes a
+  calibration as the server does (POST `{"dbm"}` against the last reading,
+  for the dial's side of 30 MHz; DELETE clears it; GET lists them) and
+  refuses 409 `cannot_calibrate` before any reading.
 - **Radio's 48 kHz audio and stereo** (openhamshack-nb 78ec61f, SERVER-API
   "Receive audio"): with `FAKESHACK_RADIO_TONE=1` fakeshack answers
   Radio's `api/audio/rx` itself with a test tone at 48 kHz, whatever

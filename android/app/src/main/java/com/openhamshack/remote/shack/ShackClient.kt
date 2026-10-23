@@ -181,6 +181,17 @@ class EngineClient(val url: String, private val controller: ShackController) {
         withContext(Dispatchers.IO) { shackHttp.newCall(req("api/local/mine/$id").delete().build()).execute().use { r -> answer(r) } }
     }
 
+    /**
+     * Radio's S-meter calibration (SERVER-API `api/smeter/calibrate`, Radio
+     * only: NB answers 404): "the signal now is [dbm]", and clearing the
+     * dial's band and antenna. A refusal is a [ShackException] with the
+     * server's sentence (409 cannot_calibrate under AGC, between bands...).
+     */
+    suspend fun smeterCalibrate(dbm: Double): JSONObject = postJson("api/smeter/calibrate", JSONObject().put("dbm", dbm))
+    suspend fun smeterClear() {
+        withContext(Dispatchers.IO) { shackHttp.newCall(req("api/smeter/calibrate").delete().build()).execute().use { r -> answer(r) } }
+    }
+
     /** The events socket; spectrum kinds are sent only when asked for. */
     fun events(kinds: List<String>, listener: WebSocketListener): WebSocket {
         val ws = url.replaceFirst("http", "ws") + "api/events?kinds=" + kinds.joinToString(",")

@@ -817,6 +817,42 @@ class EngineSession(
         scope.launch { control { client.set(JSONObject().put("wfmDeemphasis", us.toDouble())) } }
     }
 
+    /**
+     * Calibrate Radio's S-meter: the signal now (the server's 3 s average)
+     * is [dbm]. Control level, like any receive-side change; the server's
+     * answer, or its refusal in its own words, is the screen's toast line.
+     * [done] is the sentence to show when it takes.
+     */
+    fun calibrate(dbm: Double, done: String) {
+        if (kind != Kind.RADIO) return
+        scope.launch { if (calWrite { client.smeterCalibrate(dbm) }) _ui.update { it.copy(toast = done) } }
+    }
+
+    /** Clear the calibration for the dial's band and antenna (not the whole table). */
+    fun clearCalibration(done: String) {
+        if (kind != Kind.RADIO) return
+        scope.launch { if (calWrite { client.smeterClear() }) _ui.update { it.copy(toast = done) } }
+    }
+
+    /**
+     * A calibration request: a refusal is a sentence for the toast line
+     * (409 cannot_calibrate says why: AGC, between bands, clipping), not the
+     * screen's connection problem as [control] would make it; a level
+     * refusal also marks the screen view only.
+     */
+    private suspend fun calWrite(block: suspend () -> Unit): Boolean = try {
+        block()
+        true
+    } catch (e: kotlinx.coroutines.CancellationException) {
+        throw e
+    } catch (e: ShackException) {
+        _ui.update { it.copy(viewOnly = it.viewOnly || e.http == 403, toast = e.message.orEmpty().ifEmpty { e.code }) }
+        false
+    } catch (e: Exception) {
+        _ui.update { it.copy(toast = e.message.orEmpty()) }
+        false
+    }
+
     fun setAntenna(name: String) {
         if (AntennaChoice.of(_ui.value.state)?.chosen == name) return
         scope.launch { control { client.set(JSONObject().put("soapyAntenna", name)) } }

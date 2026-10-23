@@ -578,7 +578,7 @@ async def handle(r, w):
         await tone_reply(r, w, rest)
         return
     if app == "shack-radio" and ((DECODERS or LISTEN) and rest.split("?", 1)[0].startswith("/api/decoders")
-                                 or LISTEN and rest.split("?", 1)[0].startswith("/api/local")):
+                                 or LISTEN and rest.split("?", 1)[0].startswith(("/api/local", "/api/smeter"))):
         await decoders_reply(r, w, method, rest, hdr)
         return
     try:
