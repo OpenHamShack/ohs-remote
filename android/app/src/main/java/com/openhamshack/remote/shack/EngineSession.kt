@@ -81,6 +81,12 @@ data class EngineUi(
     val pressedBand: String? = null,
     /** DAB's station list, while the DAB area's panel is open (Radio only); null when it is closed. */
     val dab: DabUi? = null,
+    /** "Scan all blocks" while it runs; null otherwise. */
+    val dabScan: DabScanProgress? = null,
+    /** What the last scan found, kept for this opening of the app. */
+    val dabFound: List<DabFound> = emptyList(),
+    /** The bands pressed last on this device for this box, newest first (RecentBands). */
+    val recentBands: List<String> = emptyList(),
 ) {
     val dialHz: Double? get() = pendingDialHz ?: state.dialHz
 
@@ -187,9 +193,10 @@ class EngineSession(
             val (data, kept) = kotlinx.coroutines.withContext(Dispatchers.IO) {
                 planData.invoke() to (bandMemory?.load(boxKey) ?: emptyMap())
             }
+            val recent = kotlinx.coroutines.withContext(Dispatchers.IO) { bandMemory?.loadRecent(boxKey).orEmpty() }
             spots = kept
             spotsSaved = kept
-            _ui.update { it.copy(plan = data) }
+            _ui.update { it.copy(plan = data, recentBands = recent) }
             track(_ui.value.state)
         }
     }
@@ -511,6 +518,14 @@ class EngineSession(
     fun bandTo(b: BandButton) {
         val u = _ui.value
         val data = u.plan ?: return
+        val recent = RecentBands.push(u.recentBands, b.name)
+        if (recent != u.recentBands) {
+            _ui.update { it.copy(recentBands = recent) }
+            bandMemory?.let { m -> sendScope.launch(Dispatchers.IO) { m.saveRecent(boxKey, recent) } }
+        }
+        // The station list takes the scope's place now, so the bands stay in
+        // reach while it is up: leaving DAB for another band ends its session.
+        if (b.area?.id != ListenAreas.DAB && u.dab != null) closeDab()
         b.area?.let { area ->
             // A listening area: its spot, its mode (or the fallback when the
             // server has no such mode) and its step, every press - an area has
@@ -547,6 +562,9 @@ class EngineSession(
     fun openDab(block: DabBlock) {
         val old = _ui.value.dab?.session
         dabPoll?.cancel()
+        dabScanJob?.cancel()
+        dabScanJob = null
+        _ui.update { it.copy(dabScan = null) }
         _ui.update { it.copy(dab = DabUi(block), pressedBand = ListenAreas.DAB) }
         setDial(block.centreHz)
         dabPoll = scope.launch {
@@ -593,8 +611,82 @@ class EngineSession(
         val id = _ui.value.dab?.session
         dabPoll?.cancel()
         dabPoll = null
-        _ui.update { it.copy(dab = null) }
+        dabScanJob?.cancel()
+        dabScanJob = null
+        _ui.update { it.copy(dab = null, dabScan = null) }
         id?.let { scope.launch { runCatching { client.decoderStop(it) } } }
+    }
+
+    private var dabScanJob: Job? = null
+
+    /**
+     * "Scan all blocks" (DabScan): each Band III block in turn, one session
+     * at a time - the dial to its centre, a session, polled until it syncs,
+     * says there is nothing, or stays silent too long - and the ones with
+     * services kept. The list shows each block as it is tried. When it ends
+     * the list opens on the block it started from if that was found, else
+     * the first found. A refusal of the decoder itself (no dab decoder, too
+     * many sessions) stops the scan with the server's sentence; [dabScanStop]
+     * stops it where it is.
+     */
+    fun dabScan() {
+        val start = _ui.value.dab?.block ?: return
+        val old = _ui.value.dab?.session
+        dabPoll?.cancel()
+        dabPoll = null
+        dabScanJob?.cancel()
+        dabScanJob = scope.launch {
+            old?.let { id -> runCatching { client.decoderStop(id) } }
+            val found = mutableListOf<DabFound>()
+            val total = DabBlocks.ALL.size
+            for ((i, block) in DabBlocks.ALL.withIndex()) {
+                _ui.update { it.copy(dab = DabUi(block), dabScan = DabScanProgress(i, total, block, found.toList())) }
+                setDial(block.centreHz)
+                val id = try {
+                    client.decoderStart(DabFeed.start(block)).optString("id").ifEmpty { null }
+                } catch (e: ShackException) {
+                    // A block the receiver cannot hold (outside_span) is passed over; a decoder that will not run anywhere ends the scan.
+                    if (e.code !in SCAN_FATAL && e.http != 401 && e.http != 403) continue
+                    _ui.update { u -> u.copy(dabScan = null, dabFound = found.toList(), dab = DabUi(start, problem = e.message.orEmpty().ifEmpty { e.code })) }
+                    return@launch
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    continue
+                } ?: continue
+                _ui.update { u -> u.copy(dab = u.dab?.copy(session = id)) }
+                val began = System.currentTimeMillis()
+                try {
+                    while (isActive) {
+                        val d = _ui.value.dab ?: break
+                        when (DabScan.verdict(d, System.currentTimeMillis() - began)) {
+                            DabScan.Verdict.KEEP -> { found += DabScan.found(d); break }
+                            DabScan.Verdict.SKIP -> break
+                            DabScan.Verdict.WAIT -> {}
+                        }
+                        delay(DabScan.POLL_MS)
+                        runCatching { client.decoderPoll(id, d.since) }.onSuccess { p ->
+                            _ui.update { u -> u.copy(dab = u.dab?.let { x -> DabFeed.apply(x, p) }) }
+                        }
+                    }
+                } finally {
+                    // Stopped on the send scope: a Stop pressed mid-poll cancels this one.
+                    sendScope.launch { runCatching { client.decoderStop(id) } }
+                    _ui.update { u -> u.copy(dab = u.dab?.copy(session = null)) }
+                }
+            }
+            _ui.update { it.copy(dabFound = found.toList(), dabScan = null) }
+            openDab(DabScan.settle(start, found))
+        }
+    }
+
+    /** Stop a scan where it is: what it found so far is kept, and the list opens on the block it had reached. */
+    fun dabScanStop() {
+        val p = _ui.value.dabScan ?: return
+        dabScanJob?.cancel()
+        dabScanJob = null
+        _ui.update { it.copy(dabFound = p.found, dabScan = null) }
+        openDab(p.block)
     }
 
     /** The engine's dial and mode, remembered against the band they are in (RadioBands.remember). */
@@ -721,6 +813,9 @@ class EnginePttLink(private val client: EngineClient) : PttLink {
         const val NOT_ON_AIR = "\u0000not_on_air"
     }
 }
+
+/** Decoder refusals that end a DAB scan rather than skip one block. */
+private val SCAN_FATAL = setOf("decoder_unavailable", "too_many_sessions")
 
 /** The de-emphasis choices Radio's server takes (openhamshack-nb ohsradio/state.py DEEMPHASIS_US). */
 val WFM_DEEMPHASIS_US = listOf(50, 75)

@@ -97,3 +97,50 @@ object DabFeed {
     /** Whether choosing [sid] should go to the server: a service it listed and can play. */
     fun canPlay(ui: DabUi, sid: String): Boolean = ui.session != null && ui.services.any { it.sid == sid && it.playable }
 }
+
+/** A block a scan found something on: its multiplex's name and how many services it lists. */
+data class DabFound(val block: DabBlock, val ensemble: String, val services: Int)
+
+/** A scan under way: [at] of [total] blocks tried (the one at [block] now), what it has found so far. */
+data class DabScanProgress(val at: Int, val total: Int, val block: DabBlock, val found: List<DabFound>) {
+    val fraction: Float get() = if (total <= 0) 0f else at.toFloat() / total
+}
+
+/**
+ * "Scan all blocks" (RADIO-LISTEN-CONTRACT §3: no server scan, so Remote
+ * steps the blocks one session at a time and keeps the ones that sync).
+ * Each block gets one session, polled until the feed says what it is:
+ * a multiplex with services is kept; a refusal or a "nothing here" (a why)
+ * moves on at once; silence moves on after [WAIT_MS].
+ */
+object DabScan {
+    /**
+     * How long a silent block is given. The fake syncs in 2 s; a real
+     * decoder finds a strong multiplex in two to four (welle.io's own
+     * scan waits about as long), and 41 blocks at six seconds is a four
+     * minute scan at worst - long enough to be worth a progress bar and a
+     * Stop, short enough to sit through once.
+     */
+    const val WAIT_MS = 6_000L
+    /** Polled faster than an open list (1 s): most of a scan is waiting for a verdict. */
+    const val POLL_MS = 500L
+
+    enum class Verdict { WAIT, KEEP, SKIP }
+
+    fun verdict(d: DabUi, waitedMs: Long): Verdict = when {
+        d.sync && d.services.isNotEmpty() -> Verdict.KEEP
+        d.sync || d.problem.isNotEmpty() -> Verdict.SKIP
+        waitedMs >= WAIT_MS -> Verdict.SKIP
+        else -> Verdict.WAIT
+    }
+
+    fun found(d: DabUi): DabFound = DabFound(d.block, d.ensemble.ifEmpty { d.block.label }, d.services.size)
+
+    /**
+     * The block to open when a scan ends: the one it started from if that
+     * was found, else the first found, else the start (a scan that found
+     * nothing leaves the list where it was).
+     */
+    fun settle(start: DabBlock, found: List<DabFound>): DabBlock =
+        found.firstOrNull { it.block == start }?.block ?: found.firstOrNull()?.block ?: start
+}
