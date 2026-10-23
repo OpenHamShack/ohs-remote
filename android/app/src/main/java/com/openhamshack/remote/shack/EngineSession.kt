@@ -478,7 +478,7 @@ class EngineSession(
                     client.set(JSONObject().put("vfo", hz2))
                 } catch (e: Exception) {
                     // The receiver taken by a DAB session meanwhile: its sentence, not a lost connection.
-                    if (e is ShackException && e.code == RECEIVER_BUSY) _ui.update { it.copy(toast = e.message) } else fail(e)
+                    if (e is ShackException && e.code in SAID_REFUSALS) _ui.update { it.copy(toast = e.message) } else fail(e)
                     _ui.update { it.copy(pendingDialHz = null) }
                     target = null
                     break
@@ -1178,13 +1178,18 @@ class EnginePttLink(private val client: EngineClient) : PttLink {
 }
 
 /** Decoder refusals that end a DAB scan rather than skip one block (the receiver taken, on the air, too slow a rate). */
-private val SCAN_FATAL = setOf("decoder_unavailable", "too_many_sessions", "receiver_busy", "on_air", "rate_too_low")
+private val SCAN_FATAL = setOf("decoder_unavailable", "too_many_sessions", "receiver_busy", "span_pinned", "on_air", "rate_too_low")
 
 /** Radio's refusal while a DAB session holds the receiver (SERVER-API "DAB"). */
 const val RECEIVER_BUSY = "receiver_busy"
 
-/** Refusals about the radio rather than the link: said on the toast line in the server's words. */
-private val SAID_REFUSALS = setOf(RECEIVER_BUSY, "on_air", "rate_too_low", "out_of_range", "bad_params")
+/**
+ * Refusals about the radio rather than the link: said on the toast line in the server's words.
+ * span_pinned (Radio milestone 2, 23/10/2026): background decoder sessions hold the capture and the
+ * dial asked for is outside it - said, not a lost link, until the Decoders screen offers to stop them
+ * (`dropSessions`).
+ */
+private val SAID_REFUSALS = setOf(RECEIVER_BUSY, "span_pinned", "on_air", "rate_too_low", "out_of_range", "bad_params")
 
 /** The de-emphasis choices Radio's server takes (openhamshack-nb ohsradio/state.py DEEMPHASIS_US). */
 val WFM_DEEMPHASIS_US = listOf(50, 75)
