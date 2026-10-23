@@ -217,8 +217,26 @@
     <string name="shack_tv_mode_item">Mode · %1$s</string>
     <!-- %1$s the antenna input now. -->
     <string name="shack_tv_antenna_item">Antenna · %1$s</string>
-    <string name="shack_tv_hint_step">On Step, ◀ ▶ change the step</string>
-    <string name="shack_tv_hint_tune">Elsewhere, ◀ ▶ tune · CH ± band</string>
+    <!-- The TV row's key hint, two short lines (TvPolish): what Left and Right do where focus is now, and the channel keys. -->
+    <string name="shack_tv_keys_step">◀ ▶ change step</string>
+    <string name="shack_tv_keys_tune">◀ ▶ tune</string>
+    <string name="shack_tv_keys_move">◀ ▶ move along</string>
+    <string name="shack_tv_keys_band">CH ± band</string>
+    <!-- The TV polish (Brian's TvPolish mockups). Small spaced capitals over a panel. -->
+    <string name="shack_signal_heading">SIGNAL</string>
+    <string name="shack_radio_heading">RADIO</string>
+    <string name="shack_radio_dab_heading">RADIO · DAB</string>
+    <string name="shack_dab_now_heading">NOW PLAYING</string>
+    <!-- A band's edges: %1$s low, %2$s high, %3$s the unit ("87.5 – 108 MHz"). -->
+    <string name="shack_band_range">%1$s – %2$s %3$s</string>
+    <!-- A listening area's channel spacing in the band card: %1$s the step ("8.33 kHz"). -->
+    <string name="shack_band_channels">%1$s channels</string>
+    <string name="shack_band_rx_only">receive only</string>
+    <!-- The DAB row's block item: %1$s the block ("12B"); Left and Right change it. -->
+    <string name="shack_tv_block_item">Block · %1$s</string>
+    <!-- A DAB station's bitrate on the Now playing card: %1$d kbit/s. -->
+    <string name="shack_dab_bitrate">%1$d kbit/s</string>
+    <string name="shack_tv_block_keys">◀ ▶ change block</string>
     <!-- Wide FM's de-emphasis setting (50 µs in Europe, 75 µs in the Americas), shown only in wfm. -->
     <string name="shack_wfm_deemphasis">De-emphasis</string>
     <!-- %1$d: the time constant in microseconds, 50 or 75. -->
@@ -250,7 +268,6 @@
     <string name="shack_dab_ensemble">Multiplex: %1$s</string>
     <!-- A service's kind and bitrate. %1$s "DAB" or "DAB+", %2$d kbit/s -->
     <string name="shack_dab_service_rate">%1$s · %2$d kbit/s</string>
-    <string name="shack_dab_playing">Playing</string>
     <string name="shack_dab_view_only">Choosing a DAB block or station needs the Control level for this app.</string>
     <string name="shack_dab_rx_only">Receive only: the station plays through Radio\'s own audio.</string>
     <!-- The TV's key hints, shown a few at a time and joined with " · " -->

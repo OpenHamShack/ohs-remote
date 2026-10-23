@@ -400,6 +400,23 @@ internal fun reachEnd(hz: Double, tag: String): String {
 }
 
 /**
+ * A band's edges in one unit, each to as few decimals as it needs (no more
+ * than three): (87.5, 108, MHz) for broadcast FM, (118, 137, MHz) for
+ * airband, (148.5, 283.5, kHz) for LW. The unit is the upper edge's.
+ */
+internal fun rangeParts(loHz: Long, hiHz: Long, tag: String): Triple<String, String, String> {
+    val unit = when { hiHz >= 1_000_000_000L -> "GHz"; hiHz >= 1_000_000L -> "MHz"; hiHz >= 1_000L -> "kHz"; else -> "Hz" }
+    val scale = com.openhamshack.i18n.ShackFormat.UNITS.getValue(unit)
+    fun one(hz: Long): String {
+        var d = 0
+        var step = scale
+        while (d < 3 && hz % step != 0L) { d++; step /= 10 }
+        return com.openhamshack.i18n.ShackFormat.frequency(hz, tag, unit, d).substringBeforeLast('\u00a0')
+    }
+    return Triple(one(loHz), one(hiHz), unit)
+}
+
+/**
  * The band picker (Bands): the filter chips, then "LF · MF · HF" and "VHF
  * · UHF · Microwave", tiles in frequency order, the dial's band lit. A
  * phone's bottom sheet; [onPicked] closes it.

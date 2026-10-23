@@ -6,6 +6,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,6 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -294,7 +298,8 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
     // Focus always comes back somewhere when an overlay closes: with
     // nothing focused, the next key goes nowhere on a TV.
     LaunchedEffect(controls, settings, antennaPanel, dabOpen, covered, picker != null, keys.legend, bandsPanel) {
-        delay(80)
+        // Past the band picker's 150 ms slide out, which otherwise hands focus back to the Bands item after this has moved it.
+        delay(if (radio) 200 else 80)
         runCatching {
             when {
                 keys.legend -> {}
@@ -344,7 +349,13 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
         tx.plan()?.let { keys.armWith(it) }
     }
 
-    Box(Modifier.fillMaxSize().remoteKeys(keys)) {
+    // Radio's TV polish (TvPolish): the navy-to-amber waterfall while this screen is up; NB keeps its own.
+    DisposableEffect(radio) {
+        if (radio) e.scopeData.palette = com.openhamshack.remote.shack.Scope::polished
+        onDispose { e.scopeData.palette = com.openhamshack.remote.shack.Scope::colour }
+    }
+    Box(Modifier.fillMaxSize().then(if (radio) Modifier.polishVignette() else Modifier).remoteKeys(keys)) {
+      CompositionLocalProvider(LocalTvPolish provides radio) {
         CompositionLocalProvider(LocalTvInert provides inert) {
             Column(Modifier.fillMaxSize().padding(horizontal = TvSafeH, vertical = TvSafeV)) {
                 // Radio's readout (the Tv mockup): the frequency at the top left, the mode,
@@ -368,8 +379,8 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
                     Column(Modifier.weight(1f).fillMaxHeight()) {
                         val d = u.dab
                         // DAB's station list takes the scope's place (Radio).
-                        if (radio && d != null) TvDabList(e, u, d, firstDab, stringResource(R.string.shack_dab_view_only),
-                            Modifier.weight(1f).fillMaxWidth().background(RadioCard, RoundedCornerShape(16.dp)).padding(14.dp))
+                        if (radio && d != null) TvDabScreen(e, u, d, firstDab, stringResource(R.string.shack_dab_view_only),
+                            Modifier.weight(1f).fillMaxWidth())
                         else Box(
                             Modifier.weight(1f).fillMaxWidth()
                                 .focusRequester(tuner)
@@ -380,10 +391,16 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
                                 // No focus ring: the waterfall is where focus lives,
                                 // and a ring round it all evening was one more box.
                                 .focusable()
-                                .clip(RoundedCornerShape(6.dp)),
+                                // Radio's polish: a glass card with a soft shadow and a hairline edge.
+                                .then(if (radio) Modifier.glass(RoundedCornerShape(18.dp), 20.dp, Color(0xFF060A0F)) else Modifier.clip(RoundedCornerShape(6.dp))),
                         ) {
                             ScopeView(e, u.dialHz, Modifier.fillMaxSize(), marks = marks, named = named, labelSize = 16.sp,
-                                passband = ModeAudio.of(u.state), plan = rememberPlanStrip(e, u), stripHeight = 22.dp, stripText = 13.sp)
+                                passband = ModeAudio.of(u.state), plan = rememberPlanStrip(e, u), stripHeight = 22.dp, stripText = 13.sp,
+                                polished = radio, flag = if (radio) u.dialHz?.let { edgeText(it) } else null)
+                            if (radio) range?.let { (lo, hi) ->
+                                Text(edgeText(lo), color = PolishDim, fontSize = 13.sp, modifier = Modifier.align(Alignment.BottomStart).padding(12.dp, 8.dp))
+                                Text(edgeText(hi), color = PolishDim, fontSize = 13.sp, modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp, 8.dp))
+                            }
                         }
                         if (shown != DecoderPanel.NONE && !shown.beside && !(radio && dabOpen)) {
                             PanelFrame(shown, panelFocus, inert, onFocus = { panelFocused = it }, onFull = {}, onUp = { runCatching { tuner.requestFocus() } },
@@ -415,6 +432,7 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
                     },
                     onAntenna = { antennaPanel = true },
                     onUp = { runCatching { if (dabOpen) firstDab.requestFocus() else tuner.requestFocus() } },
+                    onSurface = keys.onSurface,
                     modifier = Modifier.fillMaxWidth().padding(top = 14.dp))
                 u.problem?.let { p ->
                     Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -620,8 +638,12 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
             }
         }
 
-        if (bandsPanel) TvBandsPanel(e, u, onClose = { bandsPanel = false },
-            modifier = Modifier.align(Alignment.Center).padding(horizontal = TvSafeH, vertical = TvSafeV).fillMaxWidth())
+        // The band picker slides in from the right over the dimmed screen (TvPolishBands).
+        if (bandsPanel) Box(Modifier.fillMaxSize().background(Color(0x99000000)))
+        AnimatedVisibility(bandsPanel, enter = slideInHorizontally(tween(200)) { it } + fadeIn(tween(200)),
+            exit = slideOutHorizontally(tween(150)) { it } + fadeOut(tween(150)), modifier = Modifier.align(Alignment.CenterEnd)) {
+            TvBandsPanel(e, u, onClose = { bandsPanel = false }, modifier = Modifier.fillMaxHeight().width(600.dp))
+        }
 
         // On the air: what the server says is going on, for the red overlay.
         val auto = u.status?.autoTx
@@ -633,6 +655,7 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
             (txState.choice as? TxChoice.Line)?.let { add(stringResource(R.string.shack_tx_line, it.text)) }
         }
         RemoteKeysHost(keys, face, onLines)
+      }
     }
     typing?.let { start ->
         FrequencyDialog(initial = start, onTune = { hz -> e.setDial(hz); typing = null; controls = false }, onDismiss = { typing = null })

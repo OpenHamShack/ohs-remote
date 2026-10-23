@@ -6,6 +6,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.draw.alpha
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,7 +42,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.openhamshack.core.tv.SettingRow
 import com.openhamshack.remote.R
 import com.openhamshack.remote.shack.DabService
 import com.openhamshack.remote.shack.DabUi
@@ -208,51 +210,76 @@ internal fun DabBlocksSheet(e: EngineSession, u: EngineUi, d: DabUi, onDone: () 
 }
 
 /**
- * The TV's station list, in the scope's place (Tv, with Dab's list): the
- * block as a stepping row (Left and Right change it, as the settings' Step
- * row), Scan all blocks (or, while it runs, its progress and Stop), then one
- * focusable row per service - Up and Down between them, OK plays - and the
- * blocks a scan found. It scrolls as focus moves down it. BACK closes DAB
- * and stops its session (the caller's).
+ * DAB on a TV (TvPolishDab), in the scope's place: the Now playing card at
+ * the left - the station's initials badge in its own colour, its name, the
+ * kind and bitrate - and the stations on this block as a grid of tiles at
+ * the right, each with its badge; the playing one lit, one the server
+ * cannot play dimmed with its why (still focusable, so the why can be read,
+ * but OK does nothing). While a scan runs its progress heads the grid;
+ * after one, the blocks it found follow the stations, OK opening one. The
+ * block itself and Scan are in the bottom row (TvRadioRow). Focus comes in
+ * on the playing station, else the first.
  */
 @Composable
-internal fun TvDabList(e: EngineSession, u: EngineUi, d: DabUi, first: FocusRequester, refused: String, modifier: Modifier) {
+internal fun TvDabScreen(e: EngineSession, u: EngineUi, d: DabUi, first: FocusRequester, refused: String, modifier: Modifier) {
     val viewOnly = u.viewOnly
-    Column(modifier.verticalScroll(rememberScrollState()).padding(end = 6.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SettingRow(stringResource(R.string.shack_dab_block, d.block.label), dialText(d.block.centreHz),
-            onPlus = { if (viewOnly) e.note(refused) else e.dabBlock(1) }, onMinus = { if (viewOnly) e.note(refused) else e.dabBlock(-1) },
-            focus = first)
-        if (u.dabScan == null) TvItem(onClick = { if (viewOnly) e.note(refused) else e.dabScan() }, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.shack_dab_scan), fontSize = 17.sp, color = Accent)
-        } else TvItem(onClick = { e.dabScanStop() }, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.shack_dab_scan_stop), fontSize = 17.sp)
-        }
-        u.dabScan?.let { scan ->
-            Text(stringResource(R.string.shack_dab_scanning, scan.block.label, scan.at + 1, scan.total), fontSize = 16.sp, color = Dim)
-            LinearProgressIndicator(progress = { scan.fraction }, modifier = Modifier.fillMaxWidth(), color = Accent, trackColor = RadioTrack)
-        }
-        val (line, colour) = dabStatus(d)
-        Text(line, fontSize = 16.sp, color = colour)
-        d.services.forEach { s ->
-            val on = s.sid == d.playing
-            // A service the server cannot play stays focusable, so its why can be read in turn, but OK does nothing.
-            TvItem(onClick = { if (viewOnly) e.note(refused) else e.dabPlay(s.sid) }, selected = on, compact = true, modifier = Modifier.fillMaxWidth()) {
-                Column(Modifier.weight(1f)) {
-                    Text(s.label, fontSize = 18.sp, color = if (s.playable) Color.Unspecified else Dim)
-                    Text(if (s.playable) dabDetail(s) else s.why, fontSize = 13.sp, color = Dim)
-                }
-                if (on) Text(stringResource(R.string.shack_dab_playing), color = Accent, fontSize = 14.sp)
+    val now = d.services.firstOrNull { it.sid == d.playing }
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(22.dp)) {
+        Column(Modifier.width(300.dp).fillMaxHeight().glass(RoundedCornerShape(22.dp)).padding(22.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            if (now != null) StationBadgeBox(now.label, now.sid, 104.dp, 26.dp, 46.sp)
+            PolishLabel(stringResource(R.string.shack_dab_now_heading))
+            Text(now?.label ?: stringResource(R.string.shack_dab_pick), fontSize = 30.sp, fontWeight = FontWeight.Medium, lineHeight = 32.sp,
+                color = if (now == null) PolishDim else PolishText, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            val (line, colour) = dabStatus(d)
+            Text(d.ensemble.ifEmpty { line }, fontSize = 15.sp, color = if (d.ensemble.isEmpty()) colour else Color(0xFFA7B3C0), maxLines = 2)
+            Spacer(Modifier.weight(1f))
+            if (now != null) FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                PolishChip(now.kind.uppercase())
+                now.bitrate?.let { PolishChip(stringResource(R.string.shack_dab_bitrate, it)) }
             }
         }
-        if (u.dabScan == null && u.dabFound.isNotEmpty()) {
-            SmallHeading(stringResource(R.string.shack_dab_found_title), Modifier.padding(top = 6.dp))
-            u.dabFound.forEach { f ->
-                TvItem(onClick = { if (viewOnly) e.note(refused) else e.openDab(f.block) }, selected = f.block == d.block, compact = true,
-                    modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.shack_dab_found_row, f.block.label, f.ensemble, foundServices(f.services)), fontSize = 17.sp)
+        Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            val scan = u.dabScan
+            if (scan != null) {
+                Text(stringResource(R.string.shack_dab_scanning, scan.block.label, scan.at + 1, scan.total), fontSize = 16.sp, color = PolishDim)
+                LinearProgressIndicator(progress = { scan.fraction }, modifier = Modifier.fillMaxWidth(), color = Accent, trackColor = RadioTrack)
+            } else PolishLabel(stringResource(R.string.shack_dab_stations_on, d.block.label))
+            if (d.services.isEmpty()) {
+                val (line, colour) = dabStatus(d)
+                Text(line, fontSize = 16.sp, color = colour)
+            }
+            val lead = d.services.indexOfFirst { it.sid == d.playing }.coerceAtLeast(0)
+            d.services.withIndex().chunked(2).forEach { pair ->
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    pair.forEach { (i, s) ->
+                        val on = s.sid == d.playing
+                        TvItem(onClick = { if (viewOnly) e.note(refused) else e.dabPlay(s.sid) }, selected = on, compact = true,
+                            focus = if (i == lead) first else null, modifier = Modifier.weight(1f).height(60.dp)) {
+                            Box(Modifier.alpha(if (s.playable) 1f else 0.55f)) { StationBadgeBox(s.label, s.sid, 40.dp, 11.dp, 16.sp) }
+                            Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                                Text(s.label, fontSize = 17.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                    color = if (s.playable) PolishText else PolishDim)
+                                Text(if (s.playable) dabDetail(s) else s.why, fontSize = 12.sp, color = PolishDim, maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis)
+                            }
+                            if (on) LevelBars()
+                        }
+                    }
+                    if (pair.size == 1) Spacer(Modifier.weight(1f))
                 }
             }
+            val found = scan?.found ?: u.dabFound
+            if (found.isNotEmpty()) {
+                PolishLabel(stringResource(R.string.shack_dab_found_title), modifier = Modifier.padding(top = 6.dp))
+                found.forEach { f ->
+                    TvItem(onClick = { if (viewOnly) e.note(refused) else if (scan == null) e.openDab(f.block) }, selected = f.block == d.block,
+                        compact = true, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.shack_dab_found_row, f.block.label, f.ensemble, foundServices(f.services)), fontSize = 16.sp)
+                    }
+                }
+            }
+            Text(stringResource(R.string.shack_dab_rx_only), fontSize = 13.sp, color = PolishQuiet)
         }
-        Text(stringResource(R.string.shack_dab_rx_only), fontSize = 14.sp, color = Dim)
     }
 }

@@ -94,6 +94,13 @@ internal fun ScopeView(
     marks: List<Bookmark> = emptyList(), named: Bookmark? = null, labelSize: TextUnit = 13.sp,
     passband: Passband? = null,
     plan: List<PlanStripSegment> = emptyList(), stripHeight: Dp = 16.dp, stripText: TextUnit = 10.sp,
+    /**
+     * Radio's TV polish (TvPolish mockup): the spectrum filled with a fading
+     * accent, faint level lines, the passband a glowing band with its edges,
+     * and the dial line glowing under [flag], the dial's frequency on a tab
+     * at its top. Off everywhere else.
+     */
+    polished: Boolean = false, flag: String? = null,
 ) {
     val version by e.scopeVersion.collectAsStateWithLifecycle()
     val sc = e.scopeData
@@ -114,6 +121,7 @@ internal fun ScopeView(
         }
         drawImage(image, dstOffset = IntOffset(0, lineH.toInt()),
             dstSize = IntSize(size.width.toInt(), (size.height - lineH).toInt()), srcSize = IntSize(sc.width, sc.height))
+        if (polished) for (k in 1..3) drawLine(Color.White.copy(alpha = 0.04f), Offset(0f, lineH * k / 4), Offset(size.width, lineH * k / 4))
         if (line.isNotEmpty()) {
             val p = Path()
             val top = floor + Scope.RANGE_DB
@@ -122,7 +130,12 @@ internal fun ScopeView(
                 val y = lineH * (1f - ((line[i] - floor + 5f) / (top - floor + 5f)).coerceIn(0f, 1f))
                 if (i == 0) p.moveTo(x, y) else p.lineTo(x, y)
             }
-            drawPath(p, Color(0xFF80DEEA), style = Stroke(width = 2f))
+            if (polished) {
+                val fill = Path().apply { addPath(p); lineTo(size.width, lineH); lineTo(0f, lineH); close() }
+                drawPath(fill, androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Accent.copy(alpha = 0.55f), Accent.copy(alpha = 0f)),
+                    startY = 0f, endY = lineH))
+                drawPath(p, Color(0xFF8FDCFA), style = Stroke(width = 2.dp.toPx()))
+            } else drawPath(p, Color(0xFF80DEEA), style = Stroke(width = 2f))
         }
         // The band plan, at the foot of the spectrum just above the waterfall.
         if (plan.isNotEmpty() && sc.endHz > sc.startHz) {
@@ -161,7 +174,8 @@ internal fun ScopeView(
             val gap = 6.dp.toPx()
             val side = if (x + gap + w <= size.width) x + gap + w / 2 else x - gap - w / 2
             val placed = ScopeLabels.place(listOf(ScopeLabels.Want(0, side, w)), size.width).first()
-            val y = tick * 2 + 2.dp.toPx()
+            // Under the polish's dial flag, which sits at the top of the dial line.
+            val y = tick * 2 + 2.dp.toPx() + if (polished && flag != null) 24.dp.toPx() else 0f
             drawRoundRect(Color(0xC0000000), Offset(placed.left, y), Size(w, label.size.height.toFloat()),
                 cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx()))
             drawText(label, topLeft = Offset(placed.left + pad, y))
@@ -174,13 +188,30 @@ internal fun ScopeView(
             if (x0 != null || x1 != null) {
                 val l = (x0 ?: 0f) * size.width
                 val r = (x1 ?: 1f) * size.width
-                drawRect(Color(0x26FFFFFF), Offset(l, 0f), Size((r - l).coerceAtLeast(2f), size.height))
+                if (polished) {
+                    drawRect(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Accent.copy(alpha = 0.22f), Accent.copy(alpha = 0.04f))),
+                        Offset(l, 0f), Size((r - l).coerceAtLeast(2f), size.height))
+                    if (x0 != null) drawLine(Accent.copy(alpha = 0.5f), Offset(l, 0f), Offset(l, size.height), strokeWidth = 1.dp.toPx())
+                    if (x1 != null) drawLine(Accent.copy(alpha = 0.5f), Offset(r, 0f), Offset(r, size.height), strokeWidth = 1.dp.toPx())
+                } else drawRect(Color(0x26FFFFFF), Offset(l, 0f), Size((r - l).coerceAtLeast(2f), size.height))
             }
         }
         dialHz?.let { sc.xOf(it) }?.let { fx ->
             val x = fx * size.width
             // White, not red: red on this screen means on the air.
-            drawLine(Color.White.copy(alpha = 0.8f), Offset(x, 0f), Offset(x, size.height), strokeWidth = 1.5.dp.toPx())
+            if (polished) drawLine(Color(0xFF8FDCFA).copy(alpha = 0.25f), Offset(x, 0f), Offset(x, size.height), strokeWidth = 8.dp.toPx())
+            drawLine(Color.White.copy(alpha = if (polished) 0.85f else 0.8f), Offset(x, 0f), Offset(x, size.height),
+                strokeWidth = if (polished) 2.dp.toPx() else 1.5.dp.toPx())
+            if (polished && flag != null) {
+                val t = measurer.measure(flag, FlagStyle)
+                val pad = 6.dp.toPx()
+                val w = t.size.width + 2 * pad
+                val left = (x - w / 2).coerceIn(0f, (size.width - w).coerceAtLeast(0f))
+                val y = 8.dp.toPx()
+                drawRoundRect(Color(0xFFEAF0F6), Offset(left, y), Size(w, t.size.height + 4.dp.toPx()),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(5.dp.toPx()))
+                drawText(t, topLeft = Offset(left + pad, y + 2.dp.toPx()))
+            }
         }
     }
 }

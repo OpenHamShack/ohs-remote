@@ -47,6 +47,10 @@ class FormatTest {
         assertEquals("1\u00a0kHz", reachEnd(1_000.0, "en-GB"))
         assertEquals("2\u00a0GHz", reachEnd(2e9, "en-GB"))
         assertEquals("6.1\u00a0GHz", reachEnd(6.1e9, "en-GB"))
+        // A band's edges for the TV's band card.
+        assertEquals(Triple("87.5", "108", "MHz"), rangeParts(87_500_000, 108_000_000, "en-GB"))
+        assertEquals(Triple("148.5", "283.5", "kHz"), rangeParts(148_500, 283_500, "en-GB"))
+        assertEquals(Triple("446.006", "446.194", "MHz"), rangeParts(446_006_250, 446_193_750, "en-GB"))
     }
 
     @Test

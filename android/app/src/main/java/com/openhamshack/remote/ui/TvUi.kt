@@ -48,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import com.openhamshack.core.tv.LocalTvInert
@@ -306,18 +307,27 @@ internal fun TvItem(
     content: @Composable RowScope.() -> Unit,
 ) {
     var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(if (compact) 8.dp else 12.dp)
+    // The TV polish (Radio's screen, Brian's TvPolish mockup 23/10/2026): a
+    // bigger lift, a glow under the ring and glassier cards, eased over
+    // 150 ms. Everywhere else the plain look, unchanged.
+    val polish = LocalTvPolish.current
+    val shape = RoundedCornerShape(if (compact) 8.dp else if (polish) 16.dp else 12.dp)
     // The family TV kit's flag (core-candidates TvKit, GUIDE 5): true under an
     // open overlay, so this screen's items stop taking focus as the kit's do.
     val inert = LocalTvInert.current
+    val lift by androidx.compose.animation.core.animateFloatAsState(
+        if (!focused) 1f else if (polish) 1.06f else 1.02f, androidx.compose.animation.core.tween(if (polish) 150 else 0), label = "lift")
     Row(
         modifier
             .focusProperties { if (inert) canFocus = false }
             .then(if (focus != null) Modifier.focusRequester(focus) else Modifier)
             .onFocusChanged { focused = it.isFocused }
-            .scale(if (focused) 1.02f else 1f)
+            .scale(lift)
+            .then(if (polish && focused) Modifier.shadow(18.dp, shape, ambientColor = TvFocus, spotColor = TvFocus) else Modifier)
             .clip(shape)
-            .background(if (focused) TvCardFocused else TvCard)
+            .then(if (!polish) Modifier.background(if (focused) TvCardFocused else TvCard)
+                else if (focused) Modifier.background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF17384A), Color(0xFF10283A))))
+                else Modifier.background(PolishCard).border(1.dp, PolishHairline, shape))
             .border(3.dp, if (focused) TvFocus else if (selected) LockGreen else Color.Transparent, shape)
             .clickable(onClick = onClick)
             .padding(horizontal = if (compact) 12.dp else 22.dp, vertical = if (compact) 5.dp else 14.dp),
