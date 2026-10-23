@@ -1,17 +1,16 @@
 package com.openhamshack.remote.shack
 
 import org.json.JSONObject
-import kotlin.math.floor
 
 // Radio's local frequencies (Brian approved TvPolishLocal, 23/10/2026):
 // what is on the air near the station - airports, area control, marine,
-// PMR · CB · LPD, HF beacons - and the operator's own, nearest first, OK
-// tuning with the mode and the step. RADIO-LISTEN-CONTRACT §5 has the shape
-// Remote expects; Radio's API is not out, so every field is read defensively
-// (a missing one leaves its part of the screen out, an unknown category is
-// still listed) and the names may change.
+// PMR · CB · LPD, the HF beacons - and the operator's own, nearest first,
+// OK tuning with the mode and the step. Radio serves it as
+// `api/local-frequencies` (openhamshack-nb SERVER-API "Local frequencies",
+// fb64699); every field is still read defensively, so a missing one leaves
+// its part of the screen out rather than the screen.
 
-/** One frequency: [id] is the server's (needed to change or remove one of the operator's own). */
+/** One frequency. [id] is the server's; "mine" ones need it to be changed or removed. */
 data class LocalEntry(
     val id: String?,
     val category: String,
@@ -23,128 +22,194 @@ data class LocalEntry(
     val distanceKm: Double?,
     val bearing: Double?,
     val source: String,
+    /** The operator's own grouping of one of theirs ("repeater"), and their notes. */
+    val userCategory: String = "",
+    val notes: String = "",
+    val locator: String = "",
 ) {
     val mine: Boolean get() = category == LocalFreqs.MINE
 }
 
-/** An NCDXF beacon band: its name ("20m") and the beacons' frequency there. */
-data class BeaconBand(val band: String, val freqHz: Double)
+/** A source's attribution, which the licences require shown wherever the list is: its words, licence and address as plain text. */
+data class LocalAttribution(val source: String, val text: String, val licence: String, val url: String)
 
-/** Who is on one band now. */
+/** One NCDXF beacon frequency (Hz). */
+data class BeaconBand(val freqHz: Double)
+
+/** Who is on one beacon frequency now. */
 data class BeaconNow(val band: BeaconBand, val call: String, val location: String)
 
-/** The NCDXF/IARU beacons as the server describes them: the bands, the 18 calls in schedule order, where each is. */
-data class Beacons(val bands: List<BeaconBand>, val schedule: List<String>, val locations: Map<String, String>, val now: List<BeaconNow>)
+/**
+ * The NCDXF/IARU beacons as Radio describes them (`ncdxf`): the five
+ * frequencies, the 18 beacons in slot order, who was on each frequency at
+ * [atMillis] (server time), and the project's credit. [skewMillis] is the
+ * server's clock less this device's when the list was read, so the card
+ * keeps time with the server between reads.
+ */
+data class Beacons(
+    val bands: List<BeaconBand>,
+    val schedule: List<Pair<String, String>>,
+    val now: List<BeaconNow>,
+    val atMillis: Long?,
+    val credit: String,
+    val skewMillis: Long = 0,
+)
 
 data class LocalList(
     val radiusKm: Double?,
     val locator: String,
-    val attributions: List<String>,
+    val attributions: List<LocalAttribution>,
     val entries: List<LocalEntry>,
     val beacons: Beacons?,
+    /** The server's sentence when it cannot list what is near (no locator in the station profile). */
+    val why: String = "",
 )
 
 /** Where OK on an entry goes: the dial, the mode (null: leave it) and the step (null: leave it). */
 data class LocalSpot(val hz: Double, val mode: String?, val stepHz: Int?)
 
+/** The screen's chips (TvPolishLocal), each one or more of Radio's categories; every chip shows, empty or not. */
+enum class LocalChip(val categories: Set<String>?) {
+    ALL(null),
+    AIRPORTS(setOf(LocalFreqs.AIRBAND)),
+    AREA(setOf(LocalFreqs.ENROUTE)),
+    MARINE(setOf(LocalFreqs.MARINE)),
+    PMR(setOf(LocalFreqs.PMR, LocalFreqs.CB, LocalFreqs.LPD)),
+    BEACONS(setOf(LocalFreqs.BEACON)),
+    MINE(setOf(LocalFreqs.MINE)),
+}
+
 object LocalFreqs {
-    const val AIRPORT = "airport"
-    const val AREA = "area-control"
+    const val AIRBAND = "airband"
+    const val ENROUTE = "enroute"
     const val MARINE = "marine"
     const val PMR = "pmr"
+    const val CB = "cb"
+    const val LPD = "lpd"
     const val BEACON = "beacon"
     const val MINE = "mine"
 
-    /** The chips' order (TvPolishLocal); any other category the server sends follows, in its own order. */
-    val ORDER = listOf(AIRPORT, AREA, MARINE, PMR, BEACON, MINE)
+    /** The radii the range chip offers, km; the server's setting is `localRadiusKm`, 100 by default. */
+    val RADII = listOf(25, 50, 100, 200, 400)
 
-    /** `GET api/local`, read defensively: an entry with no name or no usable frequency is dropped; the rest kept nearest first. */
-    fun parse(o: JSONObject): LocalList {
+    /** The next radius after [km] (wrapping), so OK on the TV's range chip walks them. */
+    fun nextRadius(km: Double?): Int = RADII.firstOrNull { it > (km ?: 0.0) + 0.5 } ?: RADII.first()
+
+    /**
+     * `GET api/local-frequencies`, read defensively: an entry with no name or
+     * no usable frequency is dropped; the rest kept in the server's order of
+     * categories, nearest first inside each. [localMillis] is this device's
+     * clock as the answer came, for the beacons' time.
+     */
+    fun parse(o: JSONObject, localMillis: Long = System.currentTimeMillis()): LocalList {
         val a = o.optJSONArray("entries")
         val entries = (0 until (a?.length() ?: 0)).mapNotNull { i ->
             val e = a!!.optJSONObject(i) ?: return@mapNotNull null
             val hz = e.num("freqHz")?.takeIf { it > 0 } ?: return@mapNotNull null
             val name = e.str("name") ?: return@mapNotNull null
             LocalEntry(e.str("id"), e.str("category") ?: "", name, e.str("sub").orEmpty(), hz, e.str("mode")?.lowercase(),
-                e.num("step")?.toInt()?.takeIf { it > 0 }, e.num("distanceKm")?.takeIf { it >= 0 }, e.num("bearing"), e.str("source").orEmpty())
+                e.num("step")?.toInt()?.takeIf { it > 0 }, e.num("distanceKm")?.takeIf { it >= 0 }, e.num("bearingDeg") ?: e.num("bearing"),
+                e.str("source").orEmpty(), e.str("userCategory").orEmpty(), e.str("notes").orEmpty(), e.str("locator").orEmpty())
         }
         val att = o.optJSONArray("attributions")
+        val attributions = (0 until (att?.length() ?: 0)).mapNotNull { i ->
+            val x = att!!.optJSONObject(i)
+            // An object as Radio sends it; a plain line as the first fake did. An empty one is no attribution.
+            if (x != null) LocalAttribution(x.str("source").orEmpty(), x.str("text").orEmpty(), x.str("licence").orEmpty(), x.str("url").orEmpty())
+                .takeIf { it.text.isNotEmpty() || it.source.isNotEmpty() }
+            else att.optString(i).trim().takeIf { it.isNotEmpty() }?.let { LocalAttribution("", it, "", "") }
+        }
         return LocalList(
             radiusKm = o.num("radiusKm")?.takeIf { it > 0 },
             locator = o.str("locator").orEmpty(),
-            attributions = (0 until (att?.length() ?: 0)).mapNotNull { att!!.optString(it).trim().ifEmpty { null } },
-            entries = nearestFirst(entries),
-            beacons = o.optJSONObject("ncdxf")?.let { beacons(it) },
+            attributions = attributions,
+            entries = byCategory(entries),
+            beacons = o.optJSONObject("ncdxf")?.let { beacons(it, localMillis) },
+            why = o.str("why").orEmpty(),
         )
     }
 
-    private fun beacons(n: JSONObject): Beacons? {
-        val b = n.optJSONArray("bands") ?: return null
-        val bands = (0 until b.length()).mapNotNull { i ->
-            val x = b.optJSONObject(i) ?: return@mapNotNull null
-            BeaconBand(x.str("band") ?: return@mapNotNull null, x.num("freqHz")?.takeIf { it > 0 } ?: return@mapNotNull null)
-        }
+    private fun beacons(n: JSONObject, localMillis: Long): Beacons? {
+        val f = n.optJSONArray("frequencies") ?: return null
+        val bands = (0 until f.length()).mapNotNull { i -> f.optDouble(i, Double.NaN).takeIf { it.isFinite() && it > 0 }?.let { BeaconBand(it) } }
         if (bands.isEmpty()) return null
         val s = n.optJSONArray("schedule")
-        val schedule = (0 until (s?.length() ?: 0)).mapNotNull { s!!.optString(it).trim().ifEmpty { null } }
-        val loc = n.optJSONObject("locations")
-        val locations = loc?.keys()?.asSequence()?.associateWith { loc.optString(it) }.orEmpty()
-        val nw = n.optJSONArray("now")
-        val now = (0 until (nw?.length() ?: 0)).mapNotNull { i ->
-            val x = nw!!.optJSONObject(i) ?: return@mapNotNull null
-            val band = bands.firstOrNull { it.band == x.str("band") } ?: return@mapNotNull null
-            val call = x.str("call") ?: return@mapNotNull null
-            BeaconNow(band, call, locations[call].orEmpty())
+        val schedule = (0 until (s?.length() ?: 0)).mapNotNull { i ->
+            s!!.optJSONObject(i)?.let { x -> x.str("call")?.let { it to x.str("location").orEmpty() } }
         }
-        return Beacons(bands, schedule, locations, now)
+        val nowObj = n.optJSONObject("now")
+        val now = bands.mapNotNull { b ->
+            val x = nowObj?.optJSONObject(Math.round(b.freqHz).toString()) ?: return@mapNotNull null
+            BeaconNow(b, x.str("call") ?: return@mapNotNull null, x.str("location").orEmpty())
+        }
+        val at = n.str("at")?.let { runCatching { java.time.Instant.parse(it).toEpochMilli() }.getOrNull() }
+        return Beacons(bands, schedule, now, at, n.str("credit").orEmpty(), at?.let { it - localMillis } ?: 0)
     }
 
-    /** By distance, nearest first; those with none (a nationwide channel) after them, in the server's order. */
-    fun nearestFirst(list: List<LocalEntry>): List<LocalEntry> = list.sortedWith(compareBy({ it.distanceKm == null }, { it.distanceKm ?: 0.0 }))
+    /** Radio's order of categories, then nearest first inside each, those with no position (the channel tables) after them. */
+    private val ORDER = listOf(AIRBAND, ENROUTE, MARINE, PMR, CB, LPD, BEACON, MINE)
 
-    /** The chips: the categories present, in [ORDER] then any others; "mine" always, so the first can be added. */
-    fun categories(list: LocalList): List<String> {
-        val present = list.entries.map { it.category }.filter { it.isNotEmpty() }.toSet() + MINE + (if (list.beacons != null) setOf(BEACON) else emptySet())
-        return ORDER.filter { it in present } + present.filter { it !in ORDER }.sorted()
+    fun byCategory(list: List<LocalEntry>): List<LocalEntry> = list.sortedWith(
+        compareBy({ ORDER.indexOf(it.category).let { i -> if (i < 0) ORDER.size else i } }, { it.distanceKm == null }, { it.distanceKm ?: 0.0 }))
+
+    /** The entries under [chip]; an unknown category is listed under All only. */
+    fun filter(list: LocalList, chip: LocalChip): List<LocalEntry> {
+        val cats = chip.categories ?: return list.entries
+        return list.entries.filter { it.category in cats }
     }
-
-    /** The entries under [category], or all of them for null. */
-    fun filter(list: LocalList, category: String?): List<LocalEntry> = if (category == null) list.entries else list.entries.filter { it.category == category }
 
     /**
-     * The NCDXF beacon on each band now, by the clock: the 18 beacons send
-     * in a fixed 3-minute cycle of 10 s slots, beacon i on band b in slot
-     * (i + b) mod 18, so who is on is known without asking the server again.
-     * The server's own `now` when there is no schedule to work from.
+     * The NCDXF beacon on each frequency at [deviceMillis], in server time
+     * (the device's clock plus the skew measured at the read): each beacon
+     * sends 10 s on a frequency and moves up one, so beacon i is on frequency
+     * k in slot (i + k) mod 18 of the 3-minute cycle - the card changes every
+     * 10 s without asking the server. The server's own `now` when there is no
+     * whole schedule to work from.
      */
-    fun beaconsNow(b: Beacons, utcMillis: Long): List<BeaconNow> {
+    fun beaconsNow(b: Beacons, deviceMillis: Long): List<BeaconNow> {
         if (b.schedule.size != NCDXF_SLOTS) return b.now
-        val slot = (floor((utcMillis / 1000.0) % 180.0 / 10.0).toInt()) % NCDXF_SLOTS
+        val t = deviceMillis + b.skewMillis
+        val slot = (Math.floorMod(t / 1000, 180L) / 10).toInt()
         return b.bands.mapIndexed { k, band ->
-            val call = b.schedule[Math.floorMod(slot - k, NCDXF_SLOTS)]
-            BeaconNow(band, call, b.locations[call].orEmpty())
+            val (call, location) = b.schedule[Math.floorMod(slot - k, NCDXF_SLOTS)]
+            BeaconNow(band, call, location)
         }
     }
 
-    /** Milliseconds until the next slot change: when the card must say who is on next. */
-    fun msToNextSlot(utcMillis: Long): Long = 10_000 - utcMillis % 10_000
+    /** Milliseconds until the next slot change, in server time: when the card must say who is on next. */
+    fun msToNextSlot(b: Beacons?, deviceMillis: Long): Long = 10_000 - Math.floorMod(deviceMillis + (b?.skewMillis ?: 0), 10_000L)
 
     private const val NCDXF_SLOTS = 18
 
     /**
      * Where OK on [e] goes, with the server's [modes] (the offered ones): its
-     * mode when the server offers it (or says nothing of its modes), else
-     * the mode is left alone; its step when it gives one.
+     * mode when the server offers it (or says nothing of its modes), else the
+     * mode is left alone; its step when Remote has that step.
      */
     fun target(e: LocalEntry, modes: List<String>): LocalSpot =
         LocalSpot(e.freqHz, e.mode?.takeIf { modes.isEmpty() || it in modes }, e.stepHz?.takeIf { it in Tuning.RADIO_STEPS })
 
-    /** A beacon is tuned in CW, on the 10 Hz grid. */
+    /** A beacon is tuned in CW. */
     fun target(b: BeaconBand, modes: List<String>): LocalSpot = LocalSpot(b.freqHz, "cw".takeIf { modes.isEmpty() || it in modes }, null)
 
-    /** `POST api/local/mine` (or `/{id}`)'s body. */
-    fun mineBody(name: String, hz: Double, mode: String, stepHz: Int?): JSONObject =
-        JSONObject().put("name", name.trim()).put("freqHz", Math.round(hz)).put("mode", mode).apply { stepHz?.let { put("step", it) } }
+    /**
+     * `POST api/local-frequencies/mine`'s body: only the fields Radio takes
+     * (name, freqHz, mode, and category, locator, sub, notes when given) -
+     * any other is refused 400 bad_field, so nothing more is ever sent.
+     */
+    fun mineBody(name: String, hz: Double, mode: String, category: String? = null, locator: String? = null, sub: String? = null,
+                 notes: String? = null): JSONObject = JSONObject().put("name", name.trim()).put("freqHz", Math.round(hz)).put("mode", mode).apply {
+        category?.trim()?.takeIf { it.isNotEmpty() }?.let { put("category", it) }
+        locator?.trim()?.takeIf { it.isNotEmpty() }?.let { put("locator", it) }
+        sub?.trim()?.takeIf { it.isNotEmpty() }?.let { put("sub", it) }
+        notes?.trim()?.takeIf { it.isNotEmpty() }?.let { put("notes", it) }
+    }
+
+    /** `PUT api/local-frequencies/mine/{id}`'s body: only what changed from [was]. */
+    fun mineChanges(was: LocalEntry, name: String, hz: Double): JSONObject = JSONObject().apply {
+        if (name.trim() != was.name) put("name", name.trim())
+        if (Math.round(hz) != Math.round(was.freqHz)) put("freqHz", Math.round(hz))
+    }
 
     /** One of eight compass points for a bearing in degrees ("N", "NE", ... "NW"); null without one. */
     fun compass(bearing: Double?): Compass? {

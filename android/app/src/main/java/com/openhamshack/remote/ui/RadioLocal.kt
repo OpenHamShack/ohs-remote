@@ -57,6 +57,7 @@ import com.openhamshack.remote.shack.Compass
 import com.openhamshack.remote.shack.EngineSession
 import com.openhamshack.remote.shack.EngineUi
 import com.openhamshack.remote.shack.LocalEntry
+import com.openhamshack.remote.shack.LocalChip
 import com.openhamshack.remote.shack.LocalFreqs
 import com.openhamshack.remote.shack.LocalList
 
@@ -69,23 +70,24 @@ import com.openhamshack.remote.shack.LocalList
 // fakeshack (RADIO-LISTEN-CONTRACT §5): Radio's API for it is not out.
 
 @Composable
-internal fun localCategory(c: String?): String = when (c) {
-    null -> stringResource(R.string.shack_local_all)
-    LocalFreqs.AIRPORT -> stringResource(R.string.shack_local_cat_airport)
-    LocalFreqs.AREA -> stringResource(R.string.shack_local_cat_area)
-    LocalFreqs.MARINE -> stringResource(R.string.shack_local_cat_marine)
-    LocalFreqs.PMR -> stringResource(R.string.shack_local_cat_pmr)
-    LocalFreqs.BEACON -> stringResource(R.string.shack_local_cat_beacon)
-    LocalFreqs.MINE -> stringResource(R.string.shack_local_cat_mine)
-    else -> c.replaceFirstChar { it.uppercase() }
-}
+internal fun localChip(c: LocalChip): String = stringResource(when (c) {
+    LocalChip.ALL -> R.string.shack_local_all
+    LocalChip.AIRPORTS -> R.string.shack_local_cat_airport
+    LocalChip.AREA -> R.string.shack_local_cat_area
+    LocalChip.MARINE -> R.string.shack_local_cat_marine
+    LocalChip.PMR -> R.string.shack_local_cat_pmr
+    LocalChip.BEACONS -> R.string.shack_local_cat_beacon
+    LocalChip.MINE -> R.string.shack_local_cat_mine
+})
 
 @Composable
 private fun localBadge(c: String): String = when (c) {
-    LocalFreqs.AIRPORT -> stringResource(R.string.shack_local_badge_airport)
-    LocalFreqs.AREA -> stringResource(R.string.shack_local_badge_area)
+    LocalFreqs.AIRBAND -> stringResource(R.string.shack_local_badge_airport)
+    LocalFreqs.ENROUTE -> stringResource(R.string.shack_local_badge_area)
     LocalFreqs.MARINE -> stringResource(R.string.shack_local_badge_marine)
     LocalFreqs.PMR -> stringResource(R.string.shack_local_badge_pmr)
+    LocalFreqs.CB -> stringResource(R.string.shack_local_badge_cb)
+    LocalFreqs.LPD -> stringResource(R.string.shack_local_badge_lpd)
     LocalFreqs.BEACON -> stringResource(R.string.shack_local_badge_beacon)
     LocalFreqs.MINE -> stringResource(R.string.shack_local_badge_mine)
     else -> stringResource(R.string.shack_local_badge_other)
@@ -93,10 +95,10 @@ private fun localBadge(c: String): String = when (c) {
 
 /** Each category's badge colour: deep tones that read apart on the dark cards. */
 private fun badgeColour(c: String): Color = when (c) {
-    LocalFreqs.AIRPORT -> Color(0xFF2A6F8F)
-    LocalFreqs.AREA -> Color(0xFF5B3F8F)
+    LocalFreqs.AIRBAND -> Color(0xFF2A6F8F)
+    LocalFreqs.ENROUTE -> Color(0xFF5B3F8F)
     LocalFreqs.MARINE -> Color(0xFF2F7F7A)
-    LocalFreqs.PMR -> Color(0xFF7A5A1E)
+    LocalFreqs.PMR, LocalFreqs.CB, LocalFreqs.LPD -> Color(0xFF7A5A1E)
     LocalFreqs.BEACON -> Color(0xFF8F4F2A)
     LocalFreqs.MINE -> Color(0xFF3F7F4A)
     else -> Color(0xFF4A5A7A)
@@ -114,10 +116,10 @@ private fun compassWord(c: Compass): String = stringResource(when (c) {
     Compass.NW -> R.string.shack_compass_nw
 })
 
-/** "12 km W", "4.2 km N"; empty without a distance. */
+/** "12 km W", "4.2 km N"; a dash for a channel table with no position (PMR, CB, the ITU marine channels), never 0 km. */
 @Composable
 private fun distanceText(e: LocalEntry): String {
-    val km = e.distanceKm ?: return ""
+    val km = e.distanceKm ?: return stringResource(R.string.shack_local_no_distance)
     val n = com.openhamshack.i18n.ShackFormat.number(km, localeTag(), if (km < 10) 1 else 0)
     return LocalFreqs.compass(e.bearing)?.let { stringResource(R.string.shack_local_km_bearing, n, compassWord(it)) }
         ?: stringResource(R.string.shack_local_km, n)
@@ -134,11 +136,11 @@ private fun withinText(l: LocalList): String {
 
 /** The beacons on now, refreshed at each 10 s slot change (LocalFreqs.beaconsNow works it out from the clock). */
 @Composable
-private fun rememberUtcNow(): Long {
+private fun rememberUtcNow(b: Beacons?): Long {
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(b) {
         while (true) {
-            delay(LocalFreqs.msToNextSlot(System.currentTimeMillis()) + 50)
+            delay(LocalFreqs.msToNextSlot(b, System.currentTimeMillis()) + 50)
             now = System.currentTimeMillis()
         }
     }
@@ -165,7 +167,7 @@ private fun CategoryBadge(c: String, size: androidx.compose.ui.unit.Dp) {
 @Composable
 internal fun LocalSheet(e: EngineSession, u: EngineUi, onDone: () -> Unit) {
     val local = u.local ?: return
-    var cat by remember { mutableStateOf<String?>(null) }
+    var cat by remember { mutableStateOf(LocalChip.ALL) }
     var editing by remember { mutableStateOf<LocalEntry?>(null) }
     var adding by remember { mutableStateOf(false) }
     val l = local.list
@@ -178,17 +180,27 @@ internal fun LocalSheet(e: EngineSession, u: EngineUi, onDone: () -> Unit) {
         else if (local.problem.isNotEmpty()) Text(local.problem, color = Amber)
         if (l != null) {
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                (listOf<String?>(null) + LocalFreqs.categories(l)).forEach { c ->
-                    FilterChip(selected = c == cat, onClick = { cat = c }, label = { Text(localCategory(c)) },
-                        modifier = Modifier.testTag("localCat-${c ?: "all"}"))
+                LocalChip.entries.forEach { c ->
+                    FilterChip(selected = c == cat, onClick = { cat = c }, label = { Text(localChip(c)) },
+                        modifier = Modifier.testTag("localCat-${c.name.lowercase()}"))
+                }
+            }
+            // The radius the list covers: Radio's own setting (localRadiusKm), changed at Control level.
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.shack_local_range), color = Dim, fontSize = 13.sp)
+                LocalFreqs.RADII.forEach { km ->
+                    FilterChip(selected = l.radiusKm?.let { Math.round(it).toInt() } == km, onClick = { e.setLocalRadius(km) }, enabled = !u.viewOnly,
+                        label = { Text(stringResource(R.string.shack_local_km, com.openhamshack.i18n.ShackFormat.number(km, localeTag(), 0))) }, modifier = Modifier.testTag("radius-$km"))
                 }
             }
             // The beacon card heads HF beacons; under All it follows the list, which is what most come for.
-            if (cat == LocalFreqs.BEACON) l.beacons?.let { BeaconCardPhone(e, u, it, onDone) }
-            if (cat == LocalFreqs.MINE) FilledTonalButton(onClick = { adding = true }, enabled = !u.viewOnly && u.dialHz != null,
+            if (l.why.isNotEmpty()) Text(l.why, color = Amber, fontSize = 13.sp)
+            if (cat == LocalChip.BEACONS) l.beacons?.let { BeaconCardPhone(e, u, it, onDone) }
+            if (cat == LocalChip.MINE) FilledTonalButton(onClick = { adding = true }, enabled = !u.viewOnly && u.dialHz != null,
                 modifier = Modifier.testTag("localAdd")) { Text(stringResource(R.string.shack_local_add)) }
             val list = LocalFreqs.filter(l, cat)
-            if (list.isEmpty() && cat != LocalFreqs.BEACON) Text(stringResource(R.string.shack_local_empty), color = Dim)
+            if (list.isEmpty()) Text(stringResource(R.string.shack_local_empty), color = Dim)
             list.forEach { x ->
                 Row(
                     Modifier.fillMaxWidth().heightIn(min = 56.dp).clip(RoundedCornerShape(14.dp)).background(RadioCard)
@@ -209,18 +221,17 @@ internal fun LocalSheet(e: EngineSession, u: EngineUi, onDone: () -> Unit) {
                     }
                 }
             }
-            if (cat == null) l.beacons?.let { BeaconCardPhone(e, u, it, onDone) }
-            if (u.viewOnly && cat == LocalFreqs.MINE) Text(stringResource(R.string.shack_local_view_only), color = Amber, fontSize = 13.sp)
-            if (l.attributions.isNotEmpty()) Text(stringResource(R.string.shack_local_about, l.attributions.joinToString(" · ")), fontSize = 12.sp,
-                color = Dim, lineHeight = 17.sp)
+            if (cat == LocalChip.ALL) l.beacons?.let { BeaconCardPhone(e, u, it, onDone) }
+            if (u.viewOnly && cat == LocalChip.MINE) Text(stringResource(R.string.shack_local_view_only), color = Amber, fontSize = 13.sp)
+            AboutData(l, Dim, 12.sp)
         }
     }
     if (adding) MineDialog(null, u, onDismiss = { adding = false }) { name, hz -> adding = false
-        e.saveMine(null, name, hz, u.state.mode, u.stepHz) }
+        e.addMine(name, hz, u.state.mode) }
     editing?.let { x ->
         MineDialog(x, u, onDismiss = { editing = null }, onDelete = { editing = null; x.id?.let { e.deleteMine(it) } }) { name, hz ->
             editing = null
-            e.saveMine(x.id, name, hz, x.mode ?: u.state.mode, x.stepHz)
+            e.editMine(x, name, hz)
         }
     }
 }
@@ -259,7 +270,7 @@ private fun MineDialog(x: LocalEntry?, u: EngineUi, onDismiss: () -> Unit, onDel
 /** The phone's beacon card: who is on 20 m now, where, and each band as a chip that tunes to its beacon. */
 @Composable
 private fun BeaconCardPhone(e: EngineSession, u: EngineUi, b: Beacons, onDone: () -> Unit) {
-    val now = LocalFreqs.beaconsNow(b, rememberUtcNow())
+    val now = LocalFreqs.beaconsNow(b, rememberUtcNow(b))
     val first = now.firstOrNull() ?: return
     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(RadioCard).padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         SmallHeading(stringResource(R.string.shack_local_beacons_heading))
@@ -268,7 +279,7 @@ private fun BeaconCardPhone(e: EngineSession, u: EngineUi, b: Beacons, onDone: (
         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             now.forEach { n ->
                 FilterChip(selected = false, onClick = { e.tuneLocal(LocalFreqs.target(n.band, u.offered)); onDone() },
-                    label = { Text(stringResource(R.string.shack_band_segment, n.band.band, n.call)) })
+                    label = { Text(stringResource(R.string.shack_band_segment, channelText(n.band.freqHz), n.call)) })
             }
         }
         Text(stringResource(R.string.shack_local_beacon_note), fontSize = 12.sp, color = Dim)
@@ -289,7 +300,7 @@ private fun BeaconCardPhone(e: EngineSession, u: EngineUi, b: Beacons, onDone: (
 @Composable
 internal fun TvLocalScreen(e: EngineSession, u: EngineUi, first: FocusRequester, onClose: () -> Unit, modifier: Modifier) {
     val local = u.local ?: return
-    var cat by remember { mutableStateOf<String?>(null) }
+    var cat by remember { mutableStateOf(LocalChip.ALL) }
     var naming by remember { mutableStateOf(false) }
     val refused = stringResource(R.string.shack_local_view_only)
     val l = local.list
@@ -300,19 +311,28 @@ internal fun TvLocalScreen(e: EngineSession, u: EngineUi, first: FocusRequester,
             Box(Modifier.size(4.dp).clip(RoundedCornerShape(2.dp)).background(Color(0xFF3A4654)))
             Text(l?.let { withinText(it) } ?: if (local.loading) stringResource(R.string.shack_local_loading) else "", fontSize = 15.sp, color = Color(0xFFA7B3C0),
                 maxLines = 1, modifier = Modifier.weight(1f))
+            // The range chip (TvPolishLocal): OK walks 25, 50, 100, 200, 400 km - Radio's localRadiusKm, at Control level.
+            l?.let { list ->
+                Text(stringResource(R.string.shack_local_range), fontSize = 14.sp, color = PolishDim)
+                TvItem(onClick = { if (u.viewOnly) e.note(refused) else e.setLocalRadius(LocalFreqs.nextRadius(list.radiusKm)) }, compact = true) {
+                    Text(list.radiusKm?.let { stringResource(R.string.shack_local_km, com.openhamshack.i18n.ShackFormat.number(it, localeTag(), 0)) }
+                        ?: stringResource(R.string.shack_local_no_distance), fontSize = 15.sp)
+                }
+            }
         }
+        l?.why?.takeIf { it.isNotEmpty() }?.let { Text(it, fontSize = 16.sp, color = Amber) }
         if (local.missing) Text(stringResource(R.string.shack_local_missing), fontSize = 18.sp, color = PolishDim)
         else if (local.problem.isNotEmpty()) Text(local.problem, fontSize = 16.sp, color = Amber)
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            (listOf<String?>(null) + (l?.let { LocalFreqs.categories(it) } ?: listOf(LocalFreqs.MINE))).forEachIndexed { i, c ->
+            LocalChip.entries.forEachIndexed { i, c ->
                 TvItem(onClick = { cat = c }, selected = c == cat, compact = true, focus = if (i == 0) first else null) {
-                    Text(localCategory(c), fontSize = 15.sp, color = if (c == cat) Accent else Color.Unspecified)
+                    Text(localChip(c), fontSize = 15.sp, color = if (c == cat) Accent else Color.Unspecified)
                 }
             }
         }
         Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(22.dp)) {
             Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (cat == LocalFreqs.MINE) TvItem(onClick = { if (u.viewOnly) e.note(refused) else naming = true }, compact = true,
+                if (cat == LocalChip.MINE) TvItem(onClick = { if (u.viewOnly) e.note(refused) else naming = true }, compact = true,
                     modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.shack_local_add), fontSize = 17.sp, color = Accent) }
                 val list = l?.let { LocalFreqs.filter(it, cat) }.orEmpty()
                 if (l != null && list.isEmpty()) Text(stringResource(R.string.shack_local_empty), fontSize = 16.sp, color = PolishDim)
@@ -340,7 +360,7 @@ internal fun TvLocalScreen(e: EngineSession, u: EngineUi, first: FocusRequester,
             }
             Column(Modifier.width(300.dp).fillMaxHeight().glass(RoundedCornerShape(20.dp)).padding(18.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 l?.beacons?.let { b ->
-                    val now = LocalFreqs.beaconsNow(b, rememberUtcNow())
+                    val now = LocalFreqs.beaconsNow(b, rememberUtcNow(b))
                     now.firstOrNull()?.let { n ->
                         PolishLabel(stringResource(R.string.shack_local_beacons_heading))
                         Text(n.call, fontSize = 24.sp, fontWeight = FontWeight.Medium, color = PolishText)
@@ -351,20 +371,19 @@ internal fun TvLocalScreen(e: EngineSession, u: EngineUi, first: FocusRequester,
                         verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         now.forEach { x ->
                             TvItem(onClick = { e.tuneLocal(LocalFreqs.target(x.band, u.offered)); onClose() }, compact = true) {
-                                Text(x.band.band, fontSize = 14.sp, maxLines = 1, softWrap = false)
+                                Text(channelText(x.band.freqHz), fontSize = 14.sp, maxLines = 1, softWrap = false)
                             }
                         }
                     }
                     Text(stringResource(R.string.shack_local_beacon_note), fontSize = 12.sp, color = PolishDim, lineHeight = 16.sp)
                 }
                 Spacer(Modifier.height(6.dp))
-                if (l != null && l.attributions.isNotEmpty()) Text(stringResource(R.string.shack_local_about, l.attributions.joinToString(" · ")),
-                    fontSize = 11.sp, color = Color(0xFF6F7C8A), lineHeight = 15.sp)
+                if (l != null) AboutData(l, Color(0xFF6F7C8A), 11.sp)
             }
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             TvItem(onClick = onClose) { Text(stringResource(R.string.shack_tv_bands), fontSize = 17.sp) }
-            TvItem(onClick = { cat = LocalFreqs.MINE }) { Text(stringResource(R.string.shack_local_cat_mine), fontSize = 17.sp) }
+            TvItem(onClick = { cat = LocalChip.MINE }) { Text(stringResource(R.string.shack_local_cat_mine), fontSize = 17.sp) }
             TvItem(onClick = { e.mute(!u.muted) }) {
                 Text(stringResource(if (u.muted) R.string.shack_unmute else R.string.shack_mute), fontSize = 17.sp)
             }
@@ -381,7 +400,20 @@ internal fun TvLocalScreen(e: EngineSession, u: EngineUi, first: FocusRequester,
         TvTextDialog(stringResource(R.string.shack_local_add_title), where, KeyboardType.Text, onDismiss = { naming = false }) { text, _ ->
             naming = false
             val hz = u.dialHz
-            if (text.isNotBlank() && hz != null) e.saveMine(null, text, hz, u.state.mode, u.stepHz)
+            if (text.isNotBlank() && hz != null) e.addMine(text, hz, u.state.mode)
         }
     }
+}
+
+/**
+ * "About this data": each source's own words, licence and address as plain
+ * text (some licences require it shown wherever the list is), and the
+ * beacon project's credit.
+ */
+@Composable
+private fun AboutData(l: LocalList, colour: Color, size: androidx.compose.ui.unit.TextUnit) {
+    val lines = l.attributions.map { a -> listOf(a.text.ifEmpty { a.source }, a.licence, a.url).filter { it.isNotEmpty() }.joinToString(" · ") } +
+        listOfNotNull(l.beacons?.credit?.takeIf { it.isNotEmpty() && l.attributions.none { a -> a.text.contains(it) } })
+    if (lines.isEmpty()) return
+    Text(stringResource(R.string.shack_local_about, lines.joinToString("\n")), fontSize = size, color = colour, lineHeight = size * 1.4f)
 }

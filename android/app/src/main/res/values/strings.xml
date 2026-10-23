@@ -272,6 +272,12 @@
     <string name="shack_local_badge_beacon">BCN</string>
     <string name="shack_local_badge_mine">ME</string>
     <string name="shack_local_badge_other">·</string>
+    <string name="shack_local_badge_cb">CB</string>
+    <string name="shack_local_badge_lpd">LPD</string>
+    <!-- Where a channel table has no distance (PMR, CB, the ITU marine channels). -->
+    <string name="shack_local_no_distance">—</string>
+    <!-- Before the radius chips: how far the list reaches. -->
+    <string name="shack_local_range">Range</string>
     <string name="shack_local_beacons_heading">HF BEACONS · ON AIR NOW</string>
     <!-- The beacon on air now: %1$s where it is, %2$s its frequency. -->
     <string name="shack_local_beacon_line">%1$s · %2$s MHz CW</string>

@@ -175,17 +175,24 @@ class EngineClient(val url: String, private val controller: ShackController) {
     }
 
     /**
-     * Radio's local frequencies (RADIO-LISTEN-CONTRACT §5, the shape Remote
-     * expects until Radio's API is out): the list, and the operator's own
-     * added, changed and removed (Control level). A refusal is a
-     * [ShackException] with the server's sentence.
+     * Radio's local frequencies (SERVER-API "Local frequencies"): the list at
+     * the server's own radius (`localRadiusKm`), and the operator's own
+     * added, changed (PUT, only what changed) and removed at Control level.
+     * A refusal is a [ShackException] with the server's sentence.
      */
-    suspend fun local(): JSONObject = get("api/local")
-    suspend fun localAdd(body: JSONObject): JSONObject = postJson("api/local/mine", body)
-    suspend fun localEdit(id: String, body: JSONObject): JSONObject = postJson("api/local/mine/$id", body)
-    suspend fun localDelete(id: String) {
-        withContext(Dispatchers.IO) { shackHttp.newCall(req("api/local/mine/$id").delete().build()).execute().use { r -> answer(r) } }
+    suspend fun local(): JSONObject = get("api/local-frequencies")
+    suspend fun localAdd(body: JSONObject): JSONObject = postJson("api/local-frequencies/mine", body)
+    suspend fun localEdit(id: String, body: JSONObject): JSONObject = withContext(Dispatchers.IO) {
+        shackHttp.newCall(req("api/local-frequencies/mine/${encodeId(id)}").put(body.toString().toRequestBody(JSON)).build()).execute().use { r -> answer(r) }
     }
+    suspend fun localDelete(id: String) {
+        withContext(Dispatchers.IO) {
+            shackHttp.newCall(req("api/local-frequencies/mine/${encodeId(id)}").delete().build()).execute().use { r -> answer(r) }
+        }
+    }
+
+    /** An entry's id as one path segment ("mine:m3f2a9c1d" keeps its colon; anything that would break the path is escaped). */
+    private fun encodeId(id: String): String = java.net.URLEncoder.encode(id, "UTF-8").replace("%3A", ":").replace("+", "%20")
 
     /**
      * Radio's S-meter calibration (SERVER-API `api/smeter/calibrate`, Radio

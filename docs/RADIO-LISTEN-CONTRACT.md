@@ -98,38 +98,16 @@ Blocks and centres are the ETSI EN 300 401 Band III table; Remote carries it.
 - The listening areas join the band list, tagged RX, filtered by `rxRange`
   as the amateur bands already are.
 
-## 5. Local frequencies (what Remote builds against; the server's names may change)
+## 5. Local frequencies
 
-Brian approved a "Local frequencies" screen (TvPolishLocal, 23/10/2026):
-airports, area control, marine, PMR · CB · LPD, HF beacons and the
-operator's own, nearest first, OK tuning with the mode and the step. Radio's
-API for it is not out yet; Remote builds against this shape behind
-`FAKESHACK_RADIO_LISTEN=1` and parses defensively (a missing field leaves
-its part of the screen out, an unknown category is still listed):
-
-- `GET api/local` (View level):
-
-  ```json
-  {"radiusKm": 100, "locator": "IO85", "attributions": ["Airports: OurAirports (public domain)", "..."],
-   "entries": [{"id": "e1", "category": "airport", "name": "Edinburgh Tower", "sub": "EGPH",
-                "freqHz": 118700000, "mode": "am", "step": 8333, "distanceKm": 12.4, "bearing": 285,
-                "source": "OurAirports"}, ...],
-   "ncdxf": {"bands": [{"band": "20m", "freqHz": 14100000}, ...],
-             "schedule": ["4U1UN", "VE8AT", "W6WX", "KH6RS", "ZL6B", "VK6RBP", "JA2IGY", "RR9O", "VR2B",
-                          "4S7B", "ZS6DN", "5Z4B", "4X6TU", "OH2B", "CS3B", "LU4AA", "OA4B", "YV5B"],
-             "locations": {"4U1UN": "New York", ...},
-             "now": [{"band": "20m", "freqHz": 14100000, "call": "4U1UN"}, ...]}}
-  ```
-
-  Categories: `airport`, `area-control`, `marine`, `pmr` (PMR446, CB and
-  LPD channels), `beacon`, `mine`. `step` is optional (the step OK sets);
-  `mode` is the server's mode name. Entries come nearest first; Remote sorts
-  again by `distanceKm` (none last) so the order holds whatever the server
-  does. The NCDXF beacons transmit in a fixed 3-minute cycle of 10 s slots
-  (beacon *i* is on band *b* in slot *i + b* mod 18), so Remote works out who
-  is on now from `schedule` and the clock when `now` is stale or absent.
-- `POST api/local/mine {"name", "freqHz", "mode", "step"?}` adds one of the
-  operator's own (Control level); `POST api/local/mine/{id}` with the same
-  fields changes it; `DELETE api/local/mine/{id}` removes it. Each answers
-  the entry (or `{"deleted": true}`); a refusal is the usual
-  `{"error", "code"}` with 403 `level_too_low` below Control.
+Brian approved a "Local frequencies" screen (TvPolishLocal, 23/10/2026).
+Radio serves it as `GET api/local-frequencies?radiusKm=&category=`, with
+the operator's own at `api/local-frequencies/mine` (POST; PUT and DELETE
+`/{id}`) and the radius as the `localRadiusKm` setting: openhamshack-nb
+SERVER-API "Local frequencies" (fb64699) is the contract; Remote follows
+it (`shack/LocalFreqs.kt`) and fakeshack answers the same shape behind
+`FAKESHACK_RADIO_LISTEN=1`. Remote maps its chips to Radio's categories:
+Airports `airband`, Area control `enroute`, Marine `marine`, PMR · CB ·
+LPD `pmr`+`cb`+`lpd`, HF beacons `beacon`, My frequencies `mine`; it sends
+only the fields Radio takes for the operator's own; and it does not offer
+`refresh`, which is the controller administrator's.

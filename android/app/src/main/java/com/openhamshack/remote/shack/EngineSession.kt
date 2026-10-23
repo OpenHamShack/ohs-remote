@@ -740,7 +740,7 @@ class EngineSession(
 
     private suspend fun readLocal() {
         try {
-            val l = LocalFreqs.parse(client.local())
+            val l = LocalFreqs.parse(client.local(), System.currentTimeMillis())
             _ui.update { u -> u.copy(local = u.local?.copy(list = l, loading = false, problem = "")) }
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
@@ -764,12 +764,23 @@ class EngineSession(
         if (u.dab != null) closeDab(go) else go()
     }
 
-    /** One of the operator's own, added ([id] null) or changed; the list read again after. A refusal is the screen's line. */
-    fun saveMine(id: String?, name: String, hz: Double, mode: String, stepHz: Int?) {
-        val body = LocalFreqs.mineBody(name, hz, mode, stepHz)
-        scope.launch {
-            if (localWrite { if (id == null) client.localAdd(body) else client.localEdit(id, body) }) readLocal()
-        }
+    /** One of the operator's own added (Radio takes name, frequency and mode; the step is the channel's own); the list read again after. */
+    fun addMine(name: String, hz: Double, mode: String) {
+        val body = LocalFreqs.mineBody(name, hz, mode)
+        scope.launch { if (localWrite { client.localAdd(body) }) readLocal() }
+    }
+
+    /** One of the operator's own changed: only what changed is sent (PUT). */
+    fun editMine(was: LocalEntry, name: String, hz: Double) {
+        val id = was.id ?: return
+        val body = LocalFreqs.mineChanges(was, name, hz)
+        if (body.length() == 0) return
+        scope.launch { if (localWrite { client.localEdit(id, body) }) readLocal() }
+    }
+
+    /** The radius the list covers (Radio's `localRadiusKm`, Control level), then the list read again at it. */
+    fun setLocalRadius(km: Int) {
+        scope.launch { if (control { client.set(JSONObject().put("localRadiusKm", km)) }) readLocal() }
     }
 
     fun deleteMine(id: String) {
