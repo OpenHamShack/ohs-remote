@@ -432,7 +432,18 @@ class EngineSession(
         val u = _ui.value
         val from = u.dialHz ?: return
         if (held()) return
-        sendDial(Tuning.stepped(from, u.stepHz, by, u.dialMin, u.dialMax, ListenAreas.origin(from, u.stepHz)))
+        dialOrChannel(Tuning.stepped(from, u.stepHz, by, u.dialMin, u.dialMax, ListenAreas.origin(from, u.stepHz)))
+    }
+
+    /** This device's own tuning to [hz]: into a band's FM channels, FM, a 12.5 kHz step and the channel (FmChannels). */
+    private fun dialOrChannel(hz: Double) {
+        val u = _ui.value
+        val data = u.plan
+        val entry = if (kind == Kind.RADIO && data != null)
+            FmChannels.entering(data, u.state.planInUse.ifEmpty { null }, u.dialHz, hz, u.state.mode, u.offered) else null
+        if (entry == null) { sendDial(hz); return }
+        _ui.update { it.copy(stepHz = FmChannels.STEP_HZ) }
+        if (entry.mode != null) goTo(entry.hz, entry.mode) else sendDial(entry.hz)
     }
 
     /**
@@ -449,7 +460,7 @@ class EngineSession(
 
     fun setDial(hz: Double) {
         if (held()) return
-        sendDial(hz)
+        dialOrChannel(hz)
     }
 
     private fun sendDial(hz: Double) {
