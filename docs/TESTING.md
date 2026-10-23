@@ -185,6 +185,26 @@ desktop app runs on the same account (they keep a station store).
   last reported dial (S9 = -93 dBm above 30 MHz, -73 dBm below, 6 dB an
   S-unit, "S9+N" above). `FAKESHACK_RADIO_LISTEN_SMETER=uncalibrated` sends
   a `why` sentence instead, for the screens' uncalibrated path.
+- **Radio's 48 kHz audio and stereo** (openhamshack-nb 78ec61f, SERVER-API
+  "Receive audio"): with `FAKESHACK_RADIO_TONE=1` fakeshack answers
+  Radio's `api/audio/rx` itself with a test tone at 48 kHz, whatever
+  server is behind it: left 440 Hz beeping (half a second on, half off),
+  right 660 Hz steady, -12 dBFS. `?channels=2` is interleaved L R, no
+  query or `?channels=1` is (L+R)/2, anything else is 400 `bad_channels`,
+  with the server's `Content-Type` and `X-Audio-Format` headers. Radio's
+  `api/status` `audio` becomes the new shape (`stereo: true`). Remote
+  asks Radio for `?channels=2` only when that status has `stereo` (an
+  older server's `audio` already had `channels`), never NB, and falls
+  back to mono for the session on a 400. NB stays 12 kHz mono. On a
+  device, `adb shell dumpsys media.audio_flinger` lists the app's active
+  track (its pid in the Client column): `Chn mask` 00000003 and `SRate`
+  48000 for stereo, 00000001 for mono; `Server` is the frames played, so
+  two readings a few seconds apart (with `date +%s.%N` in the same adb
+  shell) give the real playback rate, and `Underruns` (frames) should
+  stay put after the first moments. Verified 23/10/2026 on `ohsr-tv`
+  (debug) and `ohsr` (fast, R8) against fakeshack and openhamshack-nb
+  78ec61f's simulators: Radio stereo at 48.0 kHz with the tone and
+  through the real server, NB mono at 12 kHz.
 - **Band Activity (FT8 with countries):** the NB simulator's FT8 at
   10489.540 MHz has stations in eight countries (G4XYZ, DL1ABC, EA4QRP,
   F5KLM, PA3QOS, OH8ZZ, SV1QO, ON4BB). An NB from openhamshack-nb with the
