@@ -68,6 +68,31 @@ object Tuning {
         return out
     }
 
+    /** The channel of [step] nearest [hz], counted from [origin] as [stepped] counts (8.33 kHz in thirds of 25 kHz, whole Hz). */
+    fun nearest(hz: Double, step: Int, origin: Double = 0.0): Double {
+        val unit = if (step == AIRBAND_833) AIRBAND_UNIT else step.toDouble()
+        val out = origin + Math.round((hz - origin) / unit) * unit
+        return if (step == AIRBAND_833) out.roundToLong().toDouble() else out
+    }
+
+    /**
+     * A drag along the scope: [fromHz] (the dial when the finger went down)
+     * moved by [dxFraction] of the scope's width, which shows [spanHz], and
+     * landed on the step's nearest channel. [grab] is the zoomed scope,
+     * which recentres on the dial: there the finger drags the spectrum, as
+     * a waterfall is dragged in any SDR program, so a drag to the right
+     * tunes down. On the wide scope the spectrum stays put and the finger
+     * carries the dial line, so a drag to the right tunes up.
+     */
+    fun dragged(fromHz: Double, dxFraction: Double, spanHz: Double, step: Int, grab: Boolean, origin: Double = 0.0,
+                min: Double? = null, max: Double? = null): Double {
+        val moved = fromHz + (if (grab) -1 else 1) * dxFraction * spanHz
+        var out = nearest(moved, step, origin)
+        if (min != null && out < min) out = min
+        if (max != null && out > max) out = max
+        return out
+    }
+
     /** The next mode in [choices] after [current], wrapping; [current] if there are none. */
     fun nextMode(choices: List<String>, current: String, by: Int): String {
         if (choices.isEmpty()) return current

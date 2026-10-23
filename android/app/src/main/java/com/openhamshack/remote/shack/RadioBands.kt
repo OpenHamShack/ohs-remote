@@ -239,4 +239,7 @@ object RadioBands {
 interface BandMemory {
     fun load(key: String): Map<String, BandSpot>
     fun save(key: String, spots: Map<String, BandSpot>)
+    /** The bands pressed last on this box (RecentBands), newest first; none by default. */
+    fun loadRecent(key: String): List<String> = emptyList()
+    fun saveRecent(key: String, names: List<String>) {}
 }

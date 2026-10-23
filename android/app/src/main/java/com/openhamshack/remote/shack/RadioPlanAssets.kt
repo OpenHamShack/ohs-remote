@@ -35,4 +35,8 @@ class BandMemoryPrefs(context: Context) : BandMemory {
     override fun load(key: String): Map<String, BandSpot> = RadioBands.decode(prefs.getString(key, null))
 
     override fun save(key: String, spots: Map<String, BandSpot>) { prefs.edit().putString(key, RadioBands.encode(spots)).apply() }
+
+    override fun loadRecent(key: String): List<String> = RecentBands.decode(prefs.getString("$key|recent", null))
+
+    override fun saveRecent(key: String, names: List<String>) { prefs.edit().putString("$key|recent", RecentBands.encode(names)).apply() }
 }
