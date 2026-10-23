@@ -365,14 +365,25 @@ FM_STATIONS = [
     ("C8F6", "BBC R2  ", 11, "Rock music", None, 89_100_000, -36.0, True, [90_200_000]),
     (None, None, None, None, None, 97_700_000, -46.0, True, []),
 ]
+#: FAKESHACK_RADIO_LISTEN_STATIONS=many: twenty stations, nine without RDS, the PS padded as real stations
+#: send it ("BBC R3  "), and Radio 3's EON traffic flags as the real one sends them (ta true, tp false).
+FM_MANY = FM_STATIONS + [
+    ("C203", "BBC R3  ", 14, "Serious classical", None, 90_300_000, -40.0, True, []),
+    ("C204", "BBC R4  ", 2, "Current affairs", None, 92_500_000, -41.0, False, []),
+    ("C2F1", " FORTH 1", 10, "Pop music", None, 97_300_000, -44.0, True, []),
+    ("C2A2", "RADIO X ", 11, "Rock music", "Radio X: the best new music", 105_800_000, -46.0, True, []),
+] + [(None, None, None, None, None, hz, -50.0, False, []) for hz in
+     (87_700_000, 94_100_000, 95_800_000, 98_800_000, 99_500_000, 100_300_000, 103_300_000, 107_600_000)]
+TA_EON = {"C203"}
+
 #: The blocks the made-up DAB scan finds an ensemble on.
 DAB_SCAN_BLOCKS = ["11D", "12B", "12C"]
 SCAN_SECONDS = {"fm": 10.0, "dab": 10.0}
 SCAN_HOLD = "Radio is scanning {what} for its station list: it is yours again the moment you use it"
 
 
-def _fm_station_at(hz: float):
-    for st in FM_STATIONS:
+def _fm_station_at(hz: float, table=None):
+    for st in table or FM_STATIONS:
         if any(abs(f - hz) < 50_000 for f in [st[5]] + st[8]):
             return st
     return None
@@ -399,6 +410,7 @@ class Listen:
         self.rds_since: float | None = None
         self.rds: dict | None = None
         never = os.environ.get("FAKESHACK_RADIO_LISTEN_STATIONS", "") == "never"
+        self.fm_table = FM_MANY if os.environ.get("FAKESHACK_RADIO_LISTEN_STATIONS", "") == "many" else FM_STATIONS
         made = None if never else time.time() - 3 * 86400
         self.lists = {b: {"status": "never" if never else "ok", "statusText": "" if not never else "Not scanned yet",
                           "scannedAt": made} for b in ("fm", "dab")}
@@ -562,7 +574,7 @@ class Listen:
         """The made-up station at the dial in wfm, with the receiver the operator's; None otherwise."""
         if self.mode != "wfm" or self.owner or self.scan:
             return None
-        return _fm_station_at(self.dial)
+        return _fm_station_at(self.dial, self.fm_table)
 
     def stereo_now(self) -> bool:
         st = self.station_now()
@@ -572,7 +584,7 @@ class Listen:
         pi, ps, pty, name, rt, *_ = st
         if pi is None:
             return None
-        return {"pi": pi, "ps": ps, "rt": rt, "pty": pty, "ptyName": name, "ta": False, "tp": pi == "C5C3",
+        return {"pi": pi, "ps": ps, "rt": rt, "pty": pty, "ptyName": name, "ta": pi in TA_EON, "tp": pi == "C5C3",
                 "ct": None, "af": st[8], "stereo": st[7], "ts": round(time.time(), 1)}
 
     def stations_at(self) -> dict:
@@ -608,7 +620,7 @@ class Listen:
             out["stations"] = [{"pi": pi, "ps": ps, "pty": pty, "ptyName": name, "rt": rt if pi != "C3A1" else None,
                                 "best": {"hz": hz, "level": lvl, "stereo": stereo},
                                 "alts": [{"hz": a, "level": lvl - 9, "stereo": stereo} for a in alts]}
-                               for pi, ps, pty, name, rt, hz, lvl, stereo, alts in sorted(FM_STATIONS, key=lambda x: x[5])]
+                               for pi, ps, pty, name, rt, hz, lvl, stereo, alts in sorted(self.fm_table, key=lambda x: x[5])]
         return out
 
     def dab_list(self) -> dict:
@@ -662,7 +674,7 @@ class Listen:
             return
         now = time.time()
         self.lists[band].update(status="ok", statusText="", scannedAt=now)
-        count = len(FM_STATIONS) if band == "fm" else len(DAB_SCAN_BLOCKS)
+        count = len(self.fm_table) if band == "fm" else len(DAB_SCAN_BLOCKS)
         self._state({"stationsAt": self.stations_at()})
         for q in list(self.state_listeners):
             q.put_nowait(json.dumps({"kind": "stations", "band": band, "scannedAt": _iso(now), "count": count, "t": round(now, 2)}))

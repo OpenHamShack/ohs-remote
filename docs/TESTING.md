@@ -201,7 +201,9 @@ desktop app runs on the same account (they keep a station store).
   "Wide FM") are faked over the simulator, which has neither shack-sdr nor
   a scanned list: api/fm/stations and api/dab/stations answer a made-up
   scan (`FAKESHACK_RADIO_LISTEN_STATIONS=never`: never scanned, so the DAB
-  picker falls back to Remote's own block scan); POST api/scan runs about
+  picker falls back to Remote's own block scan; `=many`: twenty FM stations,
+  nine without a PS, the PS padded as real stations send it, Radio 3's EON
+  ta-without-tp); POST api/scan runs about
   10 s a band with `bandScan` progress and `rxOwner` by "scan", any api/set
   aborting it, and ends with a `stations` event; in wfm on 88.6, 89.1,
   93.4, 97.1, 101.2, 102.5, 104.5 or 106.2 MHz `rds` appears about 2 s after
