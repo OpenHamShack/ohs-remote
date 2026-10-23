@@ -436,6 +436,15 @@ class EngineState(initial: JSONObject = JSONObject()) {
     /** Which radio the engine drives (`device`: sim, pluto, hl2, sdrplay...); "" when it does not say. */
     val device: String get() = o.optString("device")
 
+    /** The wide FM station's RDS (`rds`); null until a PI is heard, outside wfm, while the receiver is held, after a retune. */
+    val rds: Rds? get() = if (o.isNull("rds")) null else Rds.parse(o.optJSONObject("rds"))
+
+    /** A band scan under way (`bandScan`), null when none runs. */
+    val bandScan: BandScan? get() = BandScan.parse(o.optJSONObject("bandScan"))
+
+    /** When each band's station list was last made (`stationsAt`): "fm" and "dab" to an ISO time or null. */
+    val stationsAt: Map<String, String?> get() = Stations.stationsAt(o.optJSONObject("stationsAt"))
+
     /** Who holds the receiver when the operator does not (`rxOwner`: a DAB session); null while the operator has it. */
     val rxOwner: RxOwner? get() = o.optJSONObject("rxOwner")?.let { RxOwner.parse(it) }
 
