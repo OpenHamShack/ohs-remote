@@ -157,6 +157,29 @@ desktop app runs on the same account (they keep a station store).
   the rest, so the set stays all or nothing. The gate makes `api/set`
   Control as ever. Remote's antenna line and picker (Radio's screen, the
   TV's controls row) need this to show at all against a simulator.
+- **Radio's listening bands, wide FM and DAB** (RADIO-LISTEN-CONTRACT.md):
+  the simulator has none of them, so with `FAKESHACK_RADIO_LISTEN=1`
+  fakeshack makes Radio look like the RSPdx on ohs-box
+  (`tools/fakelisten.py`). `api/status` carries `rxRange: [1000,
+  2000000000]` (`FAKESHACK_RADIO_RXRANGE` still wins), `api/spec`'s dial
+  maximum is 2 GHz and its modes include `wfm`. A set to `wfm` goes on to
+  the simulator as `fm`, and while it is in force the fm the server reports
+  (`api/state`, the set's `changed`, events `state` messages) reads `wfm`.
+  The audio is the simulator's FM. The simulator's own 100 kHz floor
+  stays, below LW. `api/decoders` lists a `dab` decoder (with
+  `FAKESHACK_DECODERS=1`, after fakedecoders' own). A session on a block
+  (`{"decoder":"dab","freqHz":222064000,"params":{"block":"11D"}}`,
+  `rfHz` taken too) reports `sync:false` at once and, about 2 s later,
+  `sync:true`, a made-up ensemble ("Fake Mux 11D") and five to eight
+  services, the same for a block every time. They alternate `dab`
+  (playable) and `dab+` (with a `why`: no faad2, as on ohs-box until it
+  arrives). Block 5A never syncs and says why. `POST .../sessions/{id}
+  {"params":{"service":sid}}` sets `playing` on a dab service and is 409
+  `decoder_unavailable` on a dab+ one. Results go to the `?since=` poll
+  and to events sockets that asked for `decoder`. With
+  `FAKESHACK_RADIO_LISTEN_DAB=missing` the decoder is listed unavailable,
+  and starting it is 409 `decoder_unavailable` with `needs: ["faad2"]` and
+  the server's sentence. Nothing is decoded; no station audio plays.
 - **Band Activity (FT8 with countries):** the NB simulator's FT8 at
   10489.540 MHz has stations in eight countries (G4XYZ, DL1ABC, EA4QRP,
   F5KLM, PA3QOS, OH8ZZ, SV1QO, ON4BB). An NB from openhamshack-nb with the

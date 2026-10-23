@@ -105,6 +105,16 @@ What it does, and nothing more:
     are applied only if the server takes the rest (all or nothing still).
     The gate makes api/set Control as ever. Unset, all of it passes.
 
+  * Radio's listening bands, wide FM and DAB (RADIO-LISTEN-CONTRACT.md),
+    which the simulator does not have: with FAKESHACK_RADIO_LISTEN=1
+    (tools/fakelisten.py) Radio reports an RSPdx-like rxRange of 1 kHz to
+    2 GHz and a 2 GHz dial maximum, offers `wfm` (sent on to the simulator
+    as fm and reported back as wfm while it is in force), and has a `dab`
+    decoder whose sessions sync about 2 s after they start and list five to
+    eight made-up services, the dab+ ones unplayable with a why (no
+    faad2). FAKESHACK_RADIO_LISTEN_DAB=missing makes the decoder itself
+    refuse with decoder_unavailable. Unset, all of it passes.
+
 Bytes are piped after the head is rewritten, so the PCM stream, the TS
 stream and the websocket pass through untouched (the handshake is the
 client's own: no Sec-WebSocket-* rewriting, GUIDE section 5).
@@ -127,6 +137,7 @@ from urllib.parse import parse_qs
 
 from fakeantennas import Antennas
 from fakedecoders import Decoders
+from fakelisten import Listen
 
 PORT = int(os.environ.get("FAKESHACK_PORT", "18600"))
 SECRET = os.environ.get("FAKESHACK_SECRET", "fakeshack")
@@ -198,6 +209,8 @@ DECODERS = Decoders(os.environ.get("FAKESHACK_CALLSIGN", "M0TST")) \
     if os.environ.get("FAKESHACK_DECODERS", "") == "1" else None
 
 ANTENNAS = Antennas() if os.environ.get("FAKESHACK_RADIO_ANTENNAS", "") == "1" else None
+LISTEN = Listen(dab_missing=os.environ.get("FAKESHACK_RADIO_LISTEN_DAB", "") == "missing", rx_range=RADIO_RXRANGE) \
+    if os.environ.get("FAKESHACK_RADIO_LISTEN", "") == "1" else None
 #: The simulator's last deviceStatus as it went by, for the antenna fixture to lay its keys over.
 radio_device: dict = {}
 
@@ -506,7 +519,7 @@ async def handle(r, w):
     if code != 200:
         await reply(w, code, refusal)
         return
-    if app == "shack-radio" and DECODERS and rest.split("?", 1)[0].startswith("/api/decoders"):
+    if app == "shack-radio" and (DECODERS or LISTEN) and rest.split("?", 1)[0].startswith("/api/decoders"):
         await decoders_reply(r, w, method, rest, hdr)
         return
     try:
@@ -519,7 +532,7 @@ async def handle(r, w):
         "authorization", "connection", "x-forwarded-prefix") and not k.strip().lower().startswith("x-openhamshack-")]
     keep += [("Connection", "Upgrade" if upgrade else "close"), ("X-Forwarded-Prefix", "/" + app),
              ("X-OpenHamShack-Proxy-Secret", SECRET), *identity.items()]
-    if app == "shack-radio" and ANTENNAS and method == "POST" and rest.split("?", 1)[0] == "/api/set":
+    if app == "shack-radio" and (ANTENNAS or LISTEN) and method == "POST" and rest.split("?", 1)[0] == "/api/set":
         await antenna_set(r, w, ur, uw, f"{method} {rest} {version}", keep, hdr)
         return
     uw.write((f"{method} {rest} {version}\r\n" + "".join(f"{k.strip()}: {v.strip()}\r\n" for k, v in keep)
@@ -528,29 +541,31 @@ async def handle(r, w):
     query = target.split("?", 1)[1] if "?" in target else ""
     kinds = ",".join(parse_qs(query).get("kinds", [])).split(",")
     sstv = SSTV_EVERY > 0 and "events" in query
-    decoders = app == "shack-radio" and DECODERS is not None and "decoder" in kinds
+    decoders = app == "shack-radio" and (DECODERS or LISTEN) is not None and "decoder" in kinds
     # The engine's default feeds include state when a socket names none.
-    antennas = app == "shack-radio" and ANTENNAS is not None and ("state" in kinds or kinds == [""])
+    antennas = app == "shack-radio" and (ANTENNAS or LISTEN) is not None and ("state" in kinds or kinds == [""])
     if upgrade and app in ENGINES and rest.split("?", 1)[0] == "/api/events" and (sstv or decoders or antennas):
         inject: asyncio.Queue = asyncio.Queue()
         mode = {"mode": None, "changed": asyncio.Event()}
         feeds = [asyncio.ensure_future(sstv_feed(inject, mode))] if sstv else []
-        if decoders:
-            feeds.append(asyncio.ensure_future(listener_feed(inject, DECODERS.listeners)))
-        if antennas:
-            feeds.append(asyncio.ensure_future(listener_feed(inject, ANTENNAS.listeners)))
+        for fx, want in ((DECODERS, decoders), (LISTEN, decoders), (ANTENNAS, antennas)):
+            if fx is not None and want:
+                feeds.append(asyncio.ensure_future(listener_feed(inject, fx.listeners)))
         try:
-            await asyncio.gather(pipe(r, uw), server_frames(ur, w, inject, mode, antenna_frame if antennas else None))
+            await asyncio.gather(pipe(r, uw), server_frames(ur, w, inject, mode, state_frame if antennas else None))
         finally:
             for f in feeds:
                 f.cancel()
         return
-    if app == "shack-radio" and (RADIO_RXRANGE or DECODERS) and method == "GET" \
+    if app == "shack-radio" and (RADIO_RXRANGE or DECODERS or LISTEN) and method == "GET" \
             and rest.split("?", 1)[0] == "/api/status":
         await json_with_extras(ur, w, status_extras)
         return
-    if app == "shack-radio" and ANTENNAS and method == "GET" and rest.split("?", 1)[0] == "/api/state":
+    if app == "shack-radio" and (ANTENNAS or LISTEN) and method == "GET" and rest.split("?", 1)[0] == "/api/state":
         await json_with_extras(ur, w, state_extras)
+        return
+    if app == "shack-radio" and LISTEN and method == "GET" and rest.split("?", 1)[0] == "/api/spec":
+        await json_with_extras(ur, w, LISTEN.spec)
         return
     await asyncio.gather(pipe(r, uw), pipe(ur, w))
 
@@ -568,7 +583,17 @@ async def decoders_reply(r, w, method: str, rest: str, hdr: dict):
     except ValueError:
         body = None
     path, _, query = rest.partition("?")
-    got = DECODERS.answer(method, path, parse_qs(query), body if isinstance(body, dict) else {})
+    b = body if isinstance(body, dict) else {}
+    # The listening fixture's dab sessions first, then fakedecoders' own; the
+    # catalogue is both together (or the dab decoder alone).
+    got = LISTEN.answer(method, path, parse_qs(query), b) if LISTEN else None
+    if got is None and DECODERS:
+        got = DECODERS.answer(method, path, parse_qs(query), b)
+    if LISTEN and path == "/api/decoders" and method == "GET":
+        code, cat = got if got else (200, {"decoders": [], "sessions": []})
+        cat = dict(cat, decoders=list(cat.get("decoders", [])) + [LISTEN.catalogue()],
+                   sessions=list(cat.get("sessions", [])) + [s.view() for s in LISTEN.sessions.values()])
+        got = code, cat
     if got is None:
         got = 404, {"error": "Not found.", "code": "not_found"}
     await reply(w, *got)
@@ -591,6 +616,8 @@ def status_extras(obj: dict) -> dict:
         obj["rxRange"] = RADIO_RXRANGE
     if DECODERS:
         obj["decoders"] = DECODERS.status()
+    if LISTEN:
+        LISTEN.status(obj)
     return obj
 
 
@@ -599,7 +626,19 @@ def state_extras(obj: dict) -> dict:
     global radio_device
     if isinstance(obj.get("deviceStatus"), dict):
         radio_device = obj["deviceStatus"]
-    return ANTENNAS.state(obj)
+    if LISTEN:
+        obj = LISTEN.state(obj)
+    return ANTENNAS.state(obj) if ANTENNAS else obj
+
+
+def state_frame(payload: bytes) -> str | None:
+    """A state message rewritten by whichever fixtures are on: the antenna
+    keys laid over it, then fm reported as wfm; None when neither touched it."""
+    text = antenna_frame(payload) if ANTENNAS else None
+    if LISTEN:
+        again = LISTEN.frame(text.encode() if text is not None else payload)
+        text = again if again is not None else text
+    return text
 
 
 def antenna_frame(payload: bytes) -> str | None:
@@ -626,7 +665,9 @@ async def antenna_set(r, w, ur, uw, request_line: str, keep: list, hdr: dict):
     to the server, keeping the server's all or nothing: a bad antenna value
     refuses the whole set before the server sees any of it, and the antenna
     keys are applied only once the server has taken the rest (or there was
-    no rest). The gate has already made this Control."""
+    no rest). The gate has already made this Control. With the listening
+    fixture on, a mode of wfm goes on as fm (fakelisten), whether or not the
+    antenna fixture is on too."""
     n = int(hdr.get("content-length", "0") or 0)
     raw = await r.readexactly(n) if n else b""
     try:
@@ -638,10 +679,23 @@ async def antenna_set(r, w, ur, uw, request_line: str, keep: list, hdr: dict):
         await reply(w, 400, {"error": "The request must be a JSON object", "code": "bad_request"})
         return
     wrapped = isinstance(body.get("changes"), dict)
-    mine, rest = Antennas.split(body["changes"] if wrapped else body)
-    if not mine:
+    changes = body["changes"] if wrapped else body
+    if LISTEN:
+        changes = LISTEN.take(changes)
+    mine, rest = Antennas.split(changes) if ANTENNAS else ({}, changes)
+    if not mine and not LISTEN:
         # Nothing of ours: the request as it came.
         await forward(ur, uw, w, request_line, keep, raw)
+        return
+    if not mine:
+        out = json.dumps({"changes": rest} if wrapped else rest).encode()
+        code, obj, data = await forward(ur, uw, None, request_line, keep, out)
+        if isinstance(obj, dict):
+            await reply(w, code, LISTEN.changed(obj))
+        else:
+            w.write(data)
+            await w.drain()
+            w.close()
         return
     bad = Antennas.check(mine)
     if bad:
@@ -656,7 +710,7 @@ async def antenna_set(r, w, ur, uw, request_line: str, keep: list, hdr: dict):
     code, obj, data = await forward(ur, uw, None, request_line, keep, out)
     if 200 <= code < 300 and isinstance(obj, dict):
         obj["changed"] = dict(obj.get("changed") or {}, **ANTENNAS.apply(mine, radio_device))
-        await reply(w, code, obj)
+        await reply(w, code, LISTEN.changed(obj) if LISTEN else obj)
     else:
         w.write(data)
         await w.drain()
@@ -717,10 +771,13 @@ async def main():
             f.write(str(os.getpid()))
     print(f"fakeshack on :{PORT} (auto-approve {'on' if AUTO else 'off'}; anonymous view: "
           f"{', '.join(sorted(ANONYMOUS)) or 'none'}; Radio's decoders {'faked' if DECODERS else 'passed'}; "
-          f"Radio's antennas {'faked' if ANTENNAS else 'passed'})",
+          f"Radio's antennas {'faked' if ANTENNAS else 'passed'}; "
+          f"Radio's listening bands {'faked' if LISTEN else 'passed'})",
           flush=True)
     if DECODERS:
         asyncio.ensure_future(DECODERS.run())
+    if LISTEN:
+        asyncio.ensure_future(LISTEN.run())
     async with srv:
         await srv.serve_forever()
 
