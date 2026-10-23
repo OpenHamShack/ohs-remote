@@ -90,6 +90,9 @@ data class TxSlot(val ptt: Boolean, val why: RxOnlyWhy? = null, val sentence: St
         fun of(canTransmit: Boolean, lit: BandButton?, state: EngineState): TxSlot {
             val area = lit?.takeIf { it.rxTag }
             return when {
+                // A DAB session holds the receiver: it is receive only whatever the radio or the mode, and the
+                // strip names where the listening is (DAB) rather than the mode left behind.
+                state.rxOwner != null -> TxSlot(false, RxOnlyWhy.AREA, area = area)
                 state.receiveOnlyRadio -> TxSlot(false, RxOnlyWhy.RADIO, state.txBlocked, area)
                 state.mode == "wfm" -> TxSlot(false, RxOnlyWhy.MODE, state.txBlocked, area)
                 area != null -> TxSlot(false, RxOnlyWhy.AREA, area = area)

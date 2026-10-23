@@ -96,6 +96,12 @@ class RadioScreenTest {
         assertEquals("WFM is for listening only: nothing is ever transmitted in it", wfm.sentence)
     }
 
+    @Test fun aDabSessionHoldingTheReceiverNamesDabNotTheModeLeftBehind() {
+        val held = state("""{"mode": "wfm", "txBlocked": "WFM is for listening only", "rxOwner": {"by": "dab", "session": "s1", "block": "11D",
+            "text": "The receiver is playing DAB from block 11D"}}""")
+        assertEquals(TxSlot(false, RxOnlyWhy.AREA, area = button("dab")), TxSlot.of(true, button("dab"), held))
+    }
+
     @Test fun aDeviceThatCannotTransmitShowsTheStripEverywhere() {
         val slot = TxSlot.of(canTransmit = false, lit = button("20m"), state = state("""{"mode": "usb"}"""))
         assertEquals(TxSlot(false, RxOnlyWhy.DEVICE), slot)
