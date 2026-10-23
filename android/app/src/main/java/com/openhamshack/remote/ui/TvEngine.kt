@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -162,15 +164,20 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
     // What the armed plan will send, once confirmed.
     var choice by remember { mutableStateOf<TxChoice?>(null) }
     val covered = typing != null || logOpen || full || askLine
-    // DAB's station list: open while the DAB area is (Ch± or Band ◀ ▶ onto it opens it).
+    // DAB's station list: open while the DAB area is (Ch± or Bands onto it opens it). Radio's
+    // since the overhaul is in the scope's place, not over it, so it is not an overlay.
     val dabOpen = u.dab != null
-    val inert = controls || settings || antennaPanel || dabOpen || covered || picker != null
+    val radio = e.kind == Kind.RADIO
+    // Radio's band picker (its bottom row's Bands), over the screen.
+    var bandsPanel by remember { mutableStateOf(false) }
+    val inert = controls || settings || antennaPanel || bandsPanel || covered || picker != null
 
     val tuner = remember { FocusRequester() }
     val firstControl = remember { FocusRequester() }
     val firstSetting = remember { FocusRequester() }
     val firstAntenna = remember { FocusRequester() }
     val firstDab = remember { FocusRequester() }
+    val rowFirst = remember { FocusRequester() }
     val pickerFocus = remember { FocusRequester() }
     val panelFocus = remember { FocusRequester() }
     var panelFocused by remember { mutableStateOf(false) }
@@ -214,7 +221,8 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
             RemoteAction.TUNE_DOWN, RemoteAction.TUNE_UP, RemoteAction.STEP_DOWN, RemoteAction.STEP_UP,
             RemoteAction.CONTROLS, RemoteAction.FREQUENCY, RemoteAction.SETTINGS, RemoteAction.MUTE -> true
             RemoteAction.CHOOSE -> marks.isNotEmpty() || u.offered.isNotEmpty()
-            RemoteAction.FOCUS_DOWN -> shown != DecoderPanel.NONE
+            // Radio has its bottom row to go down to whether or not a decoder panel is docked.
+            RemoteAction.FOCUS_DOWN -> shown != DecoderPanel.NONE || radio
             RemoteAction.BAND_PREV, RemoteAction.BAND_NEXT -> e.kind == Kind.RADIO || u.bookmarks.isNotEmpty()
             // Offered in every mode: in a voice mode the plan says why not, rather than the key doing nothing.
             RemoteAction.TRANSMIT -> true
@@ -230,7 +238,7 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
                     picker = PickerFocus.open(marks, u.offered, u.dialHz, u.state.mode, SystemClock.uptimeMillis())
                     lastMark = picker?.takeIf { it.row == PickerRow.MARKS }?.index ?: -1
                 }
-                RemoteAction.FOCUS_DOWN -> runCatching { panelFocus.requestFocus() }
+                RemoteAction.FOCUS_DOWN -> runCatching { if (shown != DecoderPanel.NONE && !(radio && dabOpen)) panelFocus.requestFocus() else rowFirst.requestFocus() }
                 RemoteAction.CONTROLS -> controls = true
                 RemoteAction.FREQUENCY -> typing = f.digit?.toString().orEmpty()
                 RemoteAction.SETTINGS -> settings = true
@@ -257,10 +265,14 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
         onFired = { hints = hints.pressed(it.action, SystemClock.uptimeMillis()) },
         onBack = onBack,
     )
+    // DAB's list is in the scope's place on Radio: BACK from it ends DAB (its session
+    // stopped) and returns to the scope, before BACK would leave the screen.
+    BackHandler(enabled = radio && dabOpen && !inert && !keys.anyOverlay) { e.closeDab() }
     // The face's own overlays close before the keys' stack and before leaving: registered after it, so innermost.
-    BackHandler(enabled = picker != null || controls) {
+    BackHandler(enabled = picker != null || controls || bandsPanel) {
         when {
             picker != null -> picker = null
+            bandsPanel -> bandsPanel = false
             else -> controls = false
         }
     }
@@ -281,11 +293,13 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
 
     // Focus always comes back somewhere when an overlay closes: with
     // nothing focused, the next key goes nowhere on a TV.
-    LaunchedEffect(controls, settings, antennaPanel, dabOpen, covered, picker != null, keys.legend) {
+    LaunchedEffect(controls, settings, antennaPanel, dabOpen, covered, picker != null, keys.legend, bandsPanel) {
         delay(80)
         runCatching {
             when {
                 keys.legend -> {}
+                // The band picker puts focus on the lit band itself.
+                bandsPanel -> {}
                 picker != null -> pickerFocus.requestFocus()
                 settings -> firstSetting.requestFocus()
                 antennaPanel -> firstAntenna.requestFocus()
@@ -295,6 +309,9 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
             }
         }
     }
+    // In DAB the list has focus, not the scope's surface: the D-pad is the list's
+    // (Left and Right step the block), the accelerators (Ch±, mute) still act.
+    LaunchedEffect(dabOpen) { if (dabOpen) keys.onSurface = false }
     LaunchedEffect(shown) {
         // The decoder stopped: its full-screen view and the focus in its panel go with it.
         if (shown == DecoderPanel.NONE) {
@@ -330,12 +347,13 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
     Box(Modifier.fillMaxSize().remoteKeys(keys)) {
         CompositionLocalProvider(LocalTvInert provides inert) {
             Column(Modifier.fillMaxSize().padding(horizontal = TvSafeH, vertical = TvSafeV)) {
-                Header(e, u)
-                // Radio's bands, the dial's lit: where the channel keys go next.
-                if (e.kind == Kind.RADIO) TvBandStrip(u, Modifier.padding(top = 8.dp))
-                // The quiet subtitle: where on the band the dial is, the step
+                // Radio's readout (the Tv mockup): the frequency at the top left, the mode,
+                // the band or area and the meter at the right. NB keeps its header line.
+                if (radio) TvRadioReadout(e, u)
+                else Header(e, u)
+                // NB's quiet subtitle: where on the band the dial is, the step
                 // for a moment after it changes, and the engine's last word.
-                Row(Modifier.padding(top = 2.dp, bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                if (!radio) Row(Modifier.padding(top = 2.dp, bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                     if (u.state.segment.isNotBlank()) Text(u.state.segment, fontSize = 16.sp, color = Dim, maxLines = 1,
                         overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                     if (stepShown) Text(stringResource(R.string.shack_step, stepText(u.stepHz)), fontSize = 16.sp, color = Dim, maxLines = 1)
@@ -345,9 +363,14 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
                         overflow = TextOverflow.Ellipsis) }
                     u.toast?.let { Text(it, color = Dim, fontSize = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
                 }
+                if (radio) Spacer(Modifier.height(14.dp))
                 Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                     Column(Modifier.weight(1f).fillMaxHeight()) {
-                        Box(
+                        val d = u.dab
+                        // DAB's station list takes the scope's place (Radio).
+                        if (radio && d != null) TvDabList(e, u, d, firstDab, stringResource(R.string.shack_dab_view_only),
+                            Modifier.weight(1f).fillMaxWidth().background(RadioCard, RoundedCornerShape(16.dp)).padding(14.dp))
+                        else Box(
                             Modifier.weight(1f).fillMaxWidth()
                                 .focusRequester(tuner)
                                 .focusProperties { canFocus = !inert }
@@ -362,16 +385,19 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
                             ScopeView(e, u.dialHz, Modifier.fillMaxSize(), marks = marks, named = named, labelSize = 16.sp,
                                 passband = ModeAudio.of(u.state), plan = rememberPlanStrip(e, u), stripHeight = 22.dp, stripText = 13.sp)
                         }
-                        if (shown != DecoderPanel.NONE && !shown.beside) {
+                        if (shown != DecoderPanel.NONE && !shown.beside && !(radio && dabOpen)) {
                             PanelFrame(shown, panelFocus, inert, onFocus = { panelFocused = it }, onFull = {}, onUp = { runCatching { tuner.requestFocus() } },
+                                onDown = if (radio) ({ runCatching { rowFirst.requestFocus() } }) else null,
                                 modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) {
                                 DecoderPanelBody(e, u, big = true, listHeight = 0.dp)
                             }
                         }
                     }
-                    if (shown.beside) {
+                    // DAB is a station list, not the mode's decoder: its panel waits until DAB is left.
+                    if (shown.beside && !(radio && dabOpen)) {
                         PanelFrame(shown, panelFocus, inert, onFocus = { panelFocused = it }, onFull = { full = true },
                             onUp = { runCatching { tuner.requestFocus() } },
+                            onDown = if (radio) ({ runCatching { rowFirst.requestFocus() } }) else null,
                             // The list needs the room for its messages; SSTV's 5:4
                             // picture fills a narrower panel's width at the same height.
                             modifier = Modifier.weight(if (shown == DecoderPanel.SLOTS) 0.85f else 0.75f).fillMaxHeight()) {
@@ -381,6 +407,15 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
                         }
                     }
                 }
+                if (radio) TvRadioRow(e, u, antenna, rowFirst,
+                    onBands = { bandsPanel = true },
+                    onMode = {
+                        picker = PickerFocus.openOnModes(marks, u.offered, u.state.mode, SystemClock.uptimeMillis())
+                        lastMark = -1
+                    },
+                    onAntenna = { antennaPanel = true },
+                    onUp = { runCatching { if (dabOpen) firstDab.requestFocus() else tuner.requestFocus() } },
+                    modifier = Modifier.fillMaxWidth().padding(top = 14.dp))
                 u.problem?.let { p ->
                     Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(problemText(p), color = OnAirRed, fontSize = 16.sp, modifier = Modifier.weight(1f))
@@ -406,7 +441,8 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
         AnimatedVisibility(
             visible = !inert && !keys.anyOverlay && keys.txPhase == TxPhase.IDLE && hints.visible(now, available),
             enter = fadeIn(), exit = fadeOut(tween(800)),
-            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = TvSafeV + 12.dp),
+            // Over the foot of the waterfall: on Radio that is above its bottom row.
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = TvSafeV + if (radio) 84.dp else 12.dp),
         ) {
             Text(hints.pending(available).mapNotNull { hintText(it) }.joinToString("   ·   "), color = Color.White.copy(alpha = 0.85f), fontSize = 16.sp,
                 modifier = Modifier.background(Color(0xD0000000), RoundedCornerShape(20.dp)).padding(horizontal = 18.dp, vertical = 8.dp))
@@ -584,15 +620,8 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
             }
         }
 
-        u.dab?.let { d ->
-            // Opaque for the same reason as the antenna panel. Nothing here keys:
-            // a service plays through Radio's own receive audio.
-            val refused = stringResource(R.string.shack_dab_view_only)
-            SidePanel(stringResource(R.string.shack_area_dab), onClose = { e.closeDab() },
-                modifier = Modifier.align(Alignment.CenterEnd).background(Color(0xFF101418))) {
-                TvDabRows(e, d, u.viewOnly, firstDab, refused)
-            }
-        }
+        if (bandsPanel) TvBandsPanel(e, u, onClose = { bandsPanel = false },
+            modifier = Modifier.align(Alignment.Center).padding(horizontal = TvSafeH, vertical = TvSafeV).fillMaxWidth())
 
         // On the air: what the server says is going on, for the red overlay.
         val auto = u.status?.autoTx
@@ -633,8 +662,8 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
 }
 
 /**
- * The one header line: the dial, the mode, and only what matters - NB's
- * beacon lock as a dot and a word, Radio's band, the simulator and the
+ * NB's one header line (Radio has TvRadioReadout since its overhaul): the
+ * dial, the mode, and only what matters - the beacon lock as a dot and a word, the simulator and the
  * warnings only when they are true, the meter. The station's name, the
  * audio rate, the SNR and the dBFS figure all went (Brian, 10/10/2026):
  * none is something to act on from a sofa.
@@ -656,8 +685,6 @@ private fun Header(e: EngineSession, u: EngineUi) {
         if (u.muted) Text(stringResource(R.string.shack_muted), color = Dim, fontSize = small, maxLines = 1)
         else if (u.audioRate <= 0 && u.connected) Text(stringResource(R.string.shack_no_audio), color = Dim, fontSize = small, maxLines = 1)
         if (e.kind == Kind.QO100NB) LockDot(u.state.beaconLock, small)
-        if (e.kind == Kind.RADIO) Text(if (u.state.band.isBlank()) stringResource(R.string.shack_band_none) else stringResource(R.string.shack_band, u.state.band),
-            color = Dim, fontSize = small, maxLines = 1)
         // 110 dp: with the longest mode (HSMODEM) and Simulator showing, 140 ran into "Locked".
         SignalMeter(u.rxDb, 110.dp, big = true, s = u.sMeter.reading, sSize = 30.sp)
     }
@@ -761,6 +788,8 @@ private fun PickerRowView(count: Int, highlight: Int, active: Boolean, selected:
 private fun PanelFrame(
     shown: DecoderPanel, focus: FocusRequester, inert: Boolean,
     onFocus: (Boolean) -> Unit, onFull: () -> Unit, onUp: () -> Unit, modifier: Modifier,
+    /** Down out of the panel (Radio: to its bottom row); null keeps the key here, as NB's has no row below. */
+    onDown: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     var focused by remember { mutableStateOf(false) }
@@ -773,7 +802,8 @@ private fun PanelFrame(
                 if (inert) return@onPreviewKeyEvent false
                 when (k.key) {
                     Key.DirectionUp -> { if (k.type == KeyEventType.KeyDown) onUp(); true }
-                    Key.DirectionDown, Key.DirectionLeft, Key.DirectionRight -> true
+                    Key.DirectionDown -> { if (k.type == KeyEventType.KeyDown) onDown?.invoke(); true }
+                    Key.DirectionLeft, Key.DirectionRight -> true
                     Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> { if (k.type == KeyEventType.KeyUp) onFull(); true }
                     else -> false
                 }

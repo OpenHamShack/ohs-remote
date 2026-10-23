@@ -36,6 +36,20 @@ class FormatTest {
     }
 
     @Test
+    fun theReadoutSetsTheNumberAndItsUnitApart() {
+        assertEquals("118.70000" to "MHz", dialParts(118_700_000.0, "en-GB"))
+        assertEquals("118,70000" to "MHz", dialParts(118_700_000.0, "de-DE"))
+        assertEquals("909.00" to "kHz", dialParts(909_000.0, "en-GB"))
+        assertEquals("—" to "", dialParts(null, "en-GB"))
+        assertEquals("118.650", edgeText(118_650_000.0, "en-GB"))
+        assertEquals("7100", edgeText(7_100_000.0, "en-GB"))
+        // The band picker's reach, short: an RSPdx's 1 kHz to 2 GHz.
+        assertEquals("1\u00a0kHz", reachEnd(1_000.0, "en-GB"))
+        assertEquals("2\u00a0GHz", reachEnd(2e9, "en-GB"))
+        assertEquals("6.1\u00a0GHz", reachEnd(6.1e9, "en-GB"))
+    }
+
+    @Test
     fun stepsReadAsARadioNamesThem() {
         // The airband step is 25 kHz / 3; every airband radio calls it 8.33 kHz.
         assertEquals("8.33\u00a0kHz", stepText(8_333, "en-GB"))

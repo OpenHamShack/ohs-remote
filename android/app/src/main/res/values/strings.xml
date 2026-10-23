@@ -152,6 +152,73 @@
     <string name="shack_band_none">Between bands</string>
     <!-- Why the meter shows no S reading, in the server's words. %1$s that sentence -->
     <string name="shack_smeter_why">S-meter: %1$s</string>
+    <!-- Radio's overhauled screen (Brian's mockups, 23/10/2026). -->
+    <!-- The header's second line: %1$s the controller's name, %2$s the receiver ("GM4BRI · SDRplay"). -->
+    <string name="shack_header_box_rx">%1$s · %2$s</string>
+    <string name="shack_rx_simulator">Simulator</string>
+    <string name="shack_rx_pluto" translatable="false">Pluto</string>
+    <string name="shack_rx_libresdr" translatable="false">LibreSDR</string>
+    <string name="shack_rx_hl2" translatable="false">Hermes-Lite 2</string>
+    <string name="shack_rx_rtlsdr" translatable="false">RTL-SDR</string>
+    <string name="shack_rx_sdrplay" translatable="false">SDRplay</string>
+    <string name="shack_rx_soapy" translatable="false">SoapySDR</string>
+    <string name="shack_more">More</string>
+    <!-- A readout chip that opens a choice: %1$s is what it shows now ("AM", "Antenna C"). -->
+    <string name="shack_chip_open">%1$s ▾</string>
+    <!-- The band chip with the band plan's segment: %1$s the band, %2$s the segment ("2 · FM calling"). -->
+    <string name="shack_band_segment">%1$s · %2$s</string>
+    <string name="shack_mode_wfm">Wide FM</string>
+    <!-- The letter before the S-meter's bar. -->
+    <string name="shack_smeter_letter">S</string>
+    <string name="shack_scope_drag">drag to tune</string>
+    <string name="shack_tune_down_desc">Tune down one step</string>
+    <string name="shack_tune_up_desc">Tune up one step</string>
+    <string name="shack_step_smaller_desc">Smaller step</string>
+    <string name="shack_step_bigger_desc">Bigger step</string>
+    <!-- Over the step's size in the tuning row. -->
+    <string name="shack_step_label">STEP</string>
+    <string name="shack_bands_open">Bands ▾</string>
+    <string name="shack_bands_title">Bands and areas</string>
+    <!-- What the receiver tunes: %1$s and %2$s are its lowest and highest frequencies. -->
+    <string name="shack_bands_range">%1$s–%2$s</string>
+    <string name="shack_bands_all">All</string>
+    <string name="shack_bands_amateur">Amateur</string>
+    <string name="shack_bands_listen">Listen</string>
+    <string name="shack_bands_low">LF · MF · HF</string>
+    <string name="shack_bands_high">VHF · UHF · MICROWAVE</string>
+    <string name="shack_bands_heading">BANDS AND AREAS</string>
+    <!-- After the amber RX tag, in the tablet's band grid. -->
+    <string name="shack_bands_legend">receive only</string>
+    <string name="shack_bands_note">In frequency order. RX areas are receive only. A band the receiver cannot reach is not shown. Press a band again to go to its next place: FT8, SSB, CW.</string>
+    <!-- Where the transmit button would be: %1$s the listening area ("Airband"). -->
+    <string name="shack_rx_only_area">Receive only · %1$s</string>
+    <string name="shack_rx_only">Receive only</string>
+    <string name="shack_dab_now">Now playing</string>
+    <string name="shack_dab_pick">Choose a station</string>
+    <!-- DAB's block chip: %1$s the block ("12B"), %2$s its centre frequency. -->
+    <string name="shack_dab_block_chip">Block %1$s · %2$s ▾</string>
+    <!-- Over the station list: %1$s the block. -->
+    <string name="shack_dab_stations_on">STATIONS ON %1$s</string>
+    <string name="shack_dab_scan">Scan all blocks</string>
+    <!-- While scanning: %1$s the block being tried, %2$d how many tried, %3$d how many there are. -->
+    <string name="shack_dab_scanning">Scanning %1$s · %2$d of %3$d</string>
+    <string name="shack_dab_scan_stop">Stop</string>
+    <string name="shack_dab_found_title">FOUND BY THE SCAN</string>
+    <!-- One block a scan found: %1$s the block, %2$s its multiplex, %3$s how many stations. -->
+    <string name="shack_dab_found_row">%1$s · %2$s · %3$s</string>
+    <plurals name="shack_dab_found_services">
+        <item quantity="one">%d station</item>
+        <item quantity="other">%d stations</item>
+    </plurals>
+    <string name="shack_dab_blocks_title">DAB blocks</string>
+    <!-- The TV's bottom row. -->
+    <string name="shack_tv_bands">Bands</string>
+    <!-- %1$s the mode now ("WFM"). -->
+    <string name="shack_tv_mode_item">Mode · %1$s</string>
+    <!-- %1$s the antenna input now. -->
+    <string name="shack_tv_antenna_item">Antenna · %1$s</string>
+    <string name="shack_tv_hint_step">On Step, ◀ ▶ change the step</string>
+    <string name="shack_tv_hint_tune">Elsewhere, ◀ ▶ tune · CH ± band</string>
     <!-- Wide FM's de-emphasis setting (50 µs in Europe, 75 µs in the Americas), shown only in wfm. -->
     <string name="shack_wfm_deemphasis">De-emphasis</string>
     <!-- %1$d: the time constant in microseconds, 50 or 75. -->
@@ -174,8 +241,6 @@
     <string name="shack_area_rx">RX</string>
     <!-- DAB's station list. %1$s a block label such as 11D, %2$s its centre frequency with its unit -->
     <string name="shack_dab_title">DAB block %1$s · %2$s</string>
-    <string name="shack_dab_block_down">◀ Block</string>
-    <string name="shack_dab_block_up">Block ▶</string>
     <!-- The TV's block row (its Left and Right change the block, and it draws the arrows itself). %1$s a block label such as 11D -->
     <string name="shack_dab_block">Block %1$s</string>
     <string name="shack_dab_starting">Starting the DAB decoder…</string>
@@ -186,7 +251,6 @@
     <!-- A service's kind and bitrate. %1$s "DAB" or "DAB+", %2$d kbit/s -->
     <string name="shack_dab_service_rate">%1$s · %2$d kbit/s</string>
     <string name="shack_dab_playing">Playing</string>
-    <string name="shack_dab_close">Close</string>
     <string name="shack_dab_view_only">Choosing a DAB block or station needs the Control level for this app.</string>
     <string name="shack_dab_rx_only">Receive only: the station plays through Radio\'s own audio.</string>
     <!-- The TV's key hints, shown a few at a time and joined with " · " -->

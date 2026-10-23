@@ -111,6 +111,15 @@ class CalmScreenTest {
         assertEquals(p.index, up.index)
     }
 
+    @Test fun radiosModeItemOpensOnTheModeInUseWithTheBookmarksAbove() {
+        val p = PickerFocus.openOnModes(nb, nbModes, "usb", 0)!!
+        assertEquals(PickerRow.MODES, p.row)
+        assertEquals("usb", nbModes[p.index])
+        // Up reaches the bookmarks, which are still there.
+        assertEquals(PickerRow.MARKS, (p.key(PickerKey.UP, 1) as PickerStep.Move).to.row)
+        assertNull(PickerFocus.openOnModes(nb, emptyList(), "usb", 0))
+    }
+
     @Test fun anEngineWithNoBookmarksOpensOnItsModes() {
         val p = PickerFocus.open(emptyList(), nbModes, 1.0, "cw", 0)!!
         assertEquals(PickerRow.MODES, p.row)

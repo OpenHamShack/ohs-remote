@@ -508,7 +508,7 @@ internal fun scopeRange(e: EngineSession): Pair<Double, Double>? {
  * everything again at key-up and its refusal is shown as it says it.
  */
 @Composable
-internal fun EnginePtt(e: EngineSession) {
+internal fun EnginePtt(e: EngineSession, height: androidx.compose.ui.unit.Dp = 64.dp) {
     val ptt = e.ptt ?: return
     val st by ptt.state.collectAsStateWithLifecycle()
     val u by e.ui.collectAsStateWithLifecycle()
@@ -545,7 +545,7 @@ internal fun EnginePtt(e: EngineSession) {
         }, color = Amber)
     }
     Box(
-        Modifier.fillMaxWidth().height(64.dp).clip(RoundedCornerShape(12.dp)).background(if (progress > 0f) Color(0xFF6D4C41) else colour)
+        Modifier.fillMaxWidth().height(height).clip(RoundedCornerShape(12.dp)).background(if (progress > 0f) Color(0xFF6D4C41) else colour)
             .testTag("ptt")
             .pointerInput(mine, onAir, cannot) {
                 detectTapGestures(onPress = {
@@ -578,7 +578,10 @@ internal fun EnginePtt(e: EngineSession) {
         contentAlignment = Alignment.Center,
     ) {
         if (progress > 0f) Box(Modifier.align(Alignment.CenterStart).fillMaxHeight().fillMaxWidth(progress).background(OnAirRed))
-        Text(label, color = Color.White, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, modifier = Modifier.padding(8.dp))
+        // Radio's bottom row is 52 dp beside Mute: a refusal's sentence there is two smaller lines, cut rather than clipped mid-line.
+        if (height < 64.dp) Text(label, color = Color.White, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, fontSize = 13.sp,
+            lineHeight = 16.sp, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = 8.dp))
+        else Text(label, color = Color.White, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, modifier = Modifier.padding(8.dp))
     }
 }
 

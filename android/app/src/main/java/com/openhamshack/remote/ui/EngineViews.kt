@@ -296,47 +296,6 @@ internal fun rememberPlanStrip(e: EngineSession, u: EngineUi): List<PlanStripSeg
     }
 }
 
-/**
- * Radio's band buttons: one big button per band, the band the dial is in
- * lit, a press going to this device's last spot there ([EngineSession.bandTo]).
- * One row that scrolls sideways where it does not fit (a phone, a tablet
- * held upright). Disabled once the controller has refused this person a
- * receive-side change, as the other controls are.
- */
-@Composable
-internal fun BandButtons(e: EngineSession, u: EngineUi, height: Dp, textSize: TextUnit, modifier: Modifier = Modifier) {
-    val buttons = u.bandButtons
-    if (buttons.isEmpty()) return
-    val lit = u.currentBand
-    val list = androidx.compose.foundation.lazy.rememberLazyListState()
-    // The lit band in sight, with one before it: on a phone 2 m sat off the
-    // right-hand end, and a row whose lit button cannot be seen says nothing.
-    val at = buttons.indexOf(lit)
-    androidx.compose.runtime.LaunchedEffect(at, buttons.size) { if (at >= 0) list.animateScrollToItem((at - 1).coerceAtLeast(0)) }
-    androidx.compose.foundation.lazy.LazyRow(modifier, state = list, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        items(buttons.size) { i ->
-            val b = buttons[i]
-            val on = b == lit
-            Box(
-                Modifier.height(height).widthIn(min = height * 1.3f).clip(RoundedCornerShape(8.dp))
-                    .background(if (on) Accent else Color(0xFF262626))
-                    .clickable(enabled = !u.viewOnly) { e.bandTo(b) }
-                    .padding(horizontal = 12.dp)
-                    .testTag("band-${b.name}"),
-                contentAlignment = Alignment.Center,
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(bandLabel(b), fontSize = textSize, fontWeight = FontWeight.Bold, maxLines = 1,
-                        color = if (on) Color.Black else if (u.viewOnly) Dim else Color.White)
-                    // A listening area says it is receive only, under its name.
-                    if (b.rxTag) Text(stringResource(R.string.shack_area_rx), fontSize = textSize * 0.5f, maxLines = 1,
-                        color = if (on) Color.Black else Dim)
-                }
-            }
-        }
-    }
-}
-
 /** A button's word: the band's own ("20", "70cm"), or a listening area's from the catalog ("Air", "PMR"). */
 @Composable
 internal fun bandLabel(b: BandButton): String = when (b.area?.id) {
@@ -352,38 +311,4 @@ internal fun bandLabel(b: BandButton): String = when (b.area?.id) {
     "lpd433" -> stringResource(R.string.shack_area_lpd)
     "pmr446" -> stringResource(R.string.shack_area_pmr)
     else -> b.name
-}
-
-/**
- * The TV's band strip: the same bands as a quiet line under the header, the
- * dial's lit, for the channel keys to move along (REMOTE-KEYS §4: Ch± is
- * band ± on Radio). Not focusable: on a TV Up and Down already mean the
- * picker and the decoder panel, and a row of focus stops between them
- * would cost every operator a key press. With the listening areas and the
- * microwave bands (23/10/2026) the row no longer fits a screen, so it
- * scrolls itself to keep the lit one in sight with two before it; it is
- * never scrolled by hand or focused.
- */
-@Composable
-internal fun TvBandStrip(u: EngineUi, modifier: Modifier = Modifier) {
-    val buttons = u.bandButtons
-    if (buttons.isEmpty()) return
-    val lit = u.currentBand
-    val list = androidx.compose.foundation.lazy.rememberLazyListState()
-    val at = buttons.indexOf(lit)
-    androidx.compose.runtime.LaunchedEffect(at, buttons.size) { if (at >= 0) list.animateScrollToItem((at - 2).coerceAtLeast(0)) }
-    androidx.compose.foundation.lazy.LazyRow(modifier.focusProperties { canFocus = false }, state = list, userScrollEnabled = false,
-        horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-        items(buttons.size) { i ->
-            val b = buttons[i]
-            val on = b == lit
-            Row(Modifier.clip(RoundedCornerShape(6.dp)).background(if (on) Accent else Color(0xFF1A1A1A))
-                .padding(horizontal = 10.dp, vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(bandLabel(b), fontSize = 17.sp, fontWeight = if (on) FontWeight.Bold else FontWeight.Normal, maxLines = 1,
-                    color = if (on) Color.Black else Dim)
-                if (b.rxTag) Text(stringResource(R.string.shack_area_rx), fontSize = 11.sp, maxLines = 1,
-                    color = if (on) Color.Black else Dim, modifier = Modifier.padding(start = 4.dp))
-            }
-        }
-    }
 }

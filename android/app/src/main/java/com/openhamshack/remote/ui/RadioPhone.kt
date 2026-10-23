@@ -1,6 +1,10 @@
 package com.openhamshack.remote.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -65,22 +69,34 @@ import com.openhamshack.remote.shack.Span
 import com.openhamshack.remote.shack.WFM_DEEMPHASIS_US
 
 /**
- * Radio on a phone or tablet, arranged as Flex's screen (Brian, 13/10/2026:
- * "Can we make the radio app look more like the flex app?"): a header row
- * of status chips with Scope, Controls and Back at its right; the frequency
- * big, its mode and band under it, the meter beside it; the waterfall the
- * whole width, Radio's band plan between its spectrum and its waterfall; and
- * at the foot the band buttons and one compact row - tune and step at the
- * left, mute at the right. Everything else is in the Scope and Controls
- * sheets, where the column of buttons beside the scope used to narrow it.
+ * Radio on a phone or tablet, as Brian's mockups (approved 23/10/2026:
+ * "Mockups are good"; Main, Bands, Dab and Tablet). Before it the screen
+ * was Flex's arrangement (13/10/2026): chips and three buttons in the
+ * header, the dial with a meter beside it, a long scrolling strip of band
+ * buttons and one row of six small tuning buttons. Now, top to bottom:
  *
- * The arrangement is copied, not shared: FlexPhone belongs to another
- * session's work and must not move under it. NB keeps its own screen
- * (PhoneEngine), whose 50/50 Band Activity was made for it; Radio keeps that
- * split too while a slotted decoder runs on a tablet held sideways.
+ * - the header: Back, the app over the box and its receiver, the unusual
+ *   states, and ⋮ (Scope, Controls) - on a tablet held sideways, Scope and
+ *   Controls themselves;
+ * - one readout block: the frequency big, the mode (▾ the modes), the band
+ *   or area the dial is in (RX on a receive-only area; a tap opens the
+ *   picker), the antenna (its picker), and the S-meter line;
+ * - the scope, passband shaded, tap or drag to tune;
+ * - the tuning row: ◀ ▶ that only tune, the step between them with its own
+ *   − and +;
+ * - "Bands ▾" (a bottom sheet of every band and area in two sections, with
+ *   All / Amateur / Listen) and the last three bands used;
+ * - Mute and "Hold to transmit", or the amber "Receive only" strip
+ *   wherever nothing could be sent (TxSlot).
  *
- * Receive is what this screen adds; the transmit pieces (Enable TX, the
- * PTT hold) are PhoneEngine's own, unchanged, and the band buttons never key.
+ * DAB puts its station list where the scope is, and the station's name in
+ * the readout. A tablet held sideways (840 dp and wider) keeps the scope and
+ * readout on the left and gives tuning, the full band grid and transmit a
+ * 380 dp column on the right; upright it is the phone's layout, larger.
+ *
+ * NB keeps its own screen (PhoneEngine). Receive is what this screen adds;
+ * the transmit pieces (Enable TX, the PTT hold) are PhoneEngine's own,
+ * unchanged, and no band press ever keys.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,11 +109,14 @@ internal fun RadioPhone(e: EngineSession, onBack: () -> Unit, onRepair: () -> Un
     var scopeSheet by remember { mutableStateOf(false) }
     var controlsSheet by remember { mutableStateOf(false) }
     var antennaSheet by remember { mutableStateOf(false) }
+    var modeSheet by remember { mutableStateOf(false) }
+    var bandSheet by remember { mutableStateOf(false) }
+    var blockSheet by remember { mutableStateOf(false) }
     val config = LocalConfiguration.current
-    val wide = config.screenWidthDp >= 840
     val landscape = config.screenWidthDp > config.screenHeightDp
-    // Bigger buttons and plan words on a tablet, read at arm's length or across a table.
+    // Bigger everything on a tablet, read at arm's length or across a table.
     val tablet = config.smallestScreenWidthDp >= 600
+    val sideways = config.screenWidthDp >= 840 && landscape
     val tx = rememberPhoneEnableTx(e)
     val range = scopeRange(e)
     val marks = remember(u.bookmarks, range, u.state.dialHz == null) {
@@ -105,6 +124,8 @@ internal fun RadioPhone(e: EngineSession, onBack: () -> Unit, onRepair: () -> Un
     }
     val named = marks.getOrNull(ScopeLabels.named(marks, u.dialHz, null, range?.first, range?.second))
     val plan = rememberPlanStrip(e, u)
+    val antenna = AntennaChoice.of(u.state)
+    val dab = u.dab
 
     if (scopeSheet) ModalBottomSheet(onDismissRequest = { scopeSheet = false }) {
         RadioScopeSheet(e, u, marks, onDone = { scopeSheet = false })
@@ -113,85 +134,94 @@ internal fun RadioPhone(e: EngineSession, onBack: () -> Unit, onRepair: () -> Un
         RadioControlsSheet(e, u, onType = { controlsSheet = false; typing = true }, onLog = { controlsSheet = false; logOpen = true },
             onDone = { controlsSheet = false })
     }
-    // DAB's station list, while the DAB area is open (its button opened it); put away, its session stops.
-    u.dab?.let { d -> ModalBottomSheet(onDismissRequest = { e.closeDab() }) { RadioDabSheet(e, d, u.viewOnly) } }
-    val antenna = AntennaChoice.of(u.state)
+    if (modeSheet) ModalBottomSheet(onDismissRequest = { modeSheet = false }) {
+        Column(Modifier.navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            ModeChips(e, u, onDone = { modeSheet = false })
+            Spacer(Modifier.height(16.dp))
+        }
+    }
+    if (bandSheet) ModalBottomSheet(onDismissRequest = { bandSheet = false }, containerColor = RadioCard) {
+        Column(Modifier.navigationBarsPadding().padding(horizontal = 16.dp).padding(bottom = 16.dp).verticalScroll(rememberScrollState())) {
+            BandPicker(e, u, columns = if (tablet) 6 else 4, onPicked = { bandSheet = false })
+        }
+    }
+    if (blockSheet && dab != null) ModalBottomSheet(onDismissRequest = { blockSheet = false }) {
+        DabBlocksSheet(e, u, dab, onDone = { blockSheet = false })
+    }
     // The inputs went (the radio is no longer an SDR, or the app was replaced by an older one): nothing to pick from.
     if (antennaSheet && antenna != null) ModalBottomSheet(onDismissRequest = { antennaSheet = false }) {
         RadioAntennaSheet(e, u, antenna, onDone = { antennaSheet = false })
     }
 
-    Box(Modifier.fillMaxSize().remoteKeys(tx.keys)) {
-        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    val readout = @Composable { row: Boolean ->
+        if (dab != null) DabReadout(dab, onBlocks = { blockSheet = true }, modifier = Modifier.fillMaxWidth())
+        else RadioReadout(u, antenna, row = row, digits = if (row) 56.sp else if (tablet) 52.sp else 40.sp,
+            unit = if (row || tablet) 20.sp else 18.sp, onType = { typing = true }, onMode = { modeSheet = true },
+            onBands = { bandSheet = true }, onAntenna = { antennaSheet = true }, modifier = Modifier.fillMaxWidth())
+    }
+    val notes = @Composable {
+        u.problem?.let { p ->
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.weight(1f)) { RadioChips(e, u) }
-                TextButton(onClick = { scopeSheet = true }, modifier = Modifier.testTag("scopeSheet")) {
-                    Text(stringResource(R.string.shack_scope_sheet), softWrap = false)
-                }
-                TextButton(onClick = { controlsSheet = true }, modifier = Modifier.testTag("controlsSheet")) {
-                    Text(stringResource(R.string.shack_controls_sheet), softWrap = false)
-                }
-                TextButton(onClick = onBack, modifier = Modifier.testTag("back")) { Text(stringResource(R.string.shack_back), softWrap = false) }
+                Text(problemText(p), color = OnAirRed, modifier = Modifier.weight(1f))
+                if (p.http == 401) TextButton(onClick = onRepair) { Text(stringResource(R.string.shack_signin_go)) }
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioDial(u, Modifier.weight(1f), maxSize = if (tablet) 56 else 44, onType = { typing = true }, onMode = { controlsSheet = true },
-                    antenna = antenna, onAntenna = { antennaSheet = true })
-                SignalMeter(u.rxDb, if (tablet) 160.dp else 100.dp, big = tablet, s = u.sMeter.reading, sSize = if (tablet) 26.sp else 18.sp)
-            }
-            u.problem?.let { p ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(problemText(p), color = OnAirRed, modifier = Modifier.weight(1f))
-                    if (p.http == 401) TextButton(onClick = onRepair) { Text(stringResource(R.string.shack_signin_go)) }
-                }
-            }
-            u.toast?.let { Text(it, color = Dim, maxLines = 1) }
-            val scopeBox = @Composable { m: Modifier ->
-                Box(m.clip(RoundedCornerShape(6.dp)).pointerInput(Unit) {
-                    detectTapGestures(onLongPress = { scopeSheet = true }) { pos ->
-                        val sc = e.scopeData
-                        if (sc.endHz > sc.startHz) {
-                            val hz = sc.startHz + (sc.endHz - sc.startHz) * (pos.x / size.width)
-                            // A tap is on a signal: the dial goes where the mode hears it (ModeAudio).
-                            e.setDial(ModeAudio.dialFor(hz, ModeAudio.of(e.ui.value.state)))
-                        }
-                    }
-                }.testTag("scope")) {
-                    ScopeView(e, u.dialHz, Modifier.fillMaxSize(), marks = marks, named = named, passband = ModeAudio.of(u.state),
-                        labelSize = if (tablet) 16.sp else 13.sp,
-                        plan = plan, stripHeight = if (tablet) 22.dp else 16.dp, stripText = if (tablet) 13.sp else 10.sp)
-                }
-            }
-            val bandActivity = wide && u.panel.shown == DecoderPanel.SLOTS
-            when {
-                bandActivity && landscape -> Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    scopeBox(Modifier.weight(1f).fillMaxHeight())
-                    PhonePanel(e, onPick = tx.onPick, fill = true, modifier = Modifier.weight(1.15f).fillMaxHeight())
-                }
-                bandActivity -> {
-                    scopeBox(Modifier.weight(0.8f).fillMaxWidth())
+        }
+        u.toast?.let { Text(it, color = Dim, maxLines = 1) }
+    }
+    // The scope, or DAB's list in its place, with the decoder's panel: beside
+    // or under it as before (a slotted decoder's Band Activity gets half a
+    // tablet), docked under it on a phone.
+    val middle = @Composable { m: Modifier, big: Boolean, split: Boolean ->
+        if (dab != null) DabStations(e, u, dab, m)
+        else {
+            val scope = @Composable { sm: Modifier -> RadioScope(e, u, marks, named, plan, big, onLong = { scopeSheet = true }, modifier = sm) }
+            val activity = split && u.panel.shown == DecoderPanel.SLOTS
+            Column(m, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (activity) {
+                    scope(Modifier.weight(0.8f).fillMaxWidth())
                     PhonePanel(e, onPick = tx.onPick, fill = true, modifier = Modifier.weight(1.2f).fillMaxWidth())
-                }
-                else -> {
-                    scopeBox(Modifier.weight(1f).heightIn(min = 140.dp).fillMaxWidth())
+                } else {
+                    scope(Modifier.weight(1f).heightIn(min = 140.dp).fillMaxWidth())
                     PhonePanel(e, onPick = tx.onPick)
                 }
             }
-            BandButtons(e, u, height = if (tablet) 56.dp else 48.dp, textSize = if (tablet) 22.sp else 18.sp, modifier = Modifier.fillMaxWidth())
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp), itemVerticalAlignment = Alignment.CenterVertically) {
-                OutlinedButton(onClick = { e.tune(-1) }, modifier = Modifier.testTag("tuneDown")) { Text("◀") }
-                // The step had one button, which only ever went up: down was
-                // unreachable (Brian, Tab S9, 13/10/2026). Down and up either
-                // side of what the step is now.
-                OutlinedButton(onClick = { e.step(-1) }, modifier = Modifier.testTag("stepDown")) { Text("\u2212") }
-                Text(stringResource(R.string.shack_step, stepText(u.stepHz)), maxLines = 1, modifier = Modifier.testTag("step"))
-                OutlinedButton(onClick = { e.step(1) }, modifier = Modifier.testTag("stepUp")) { Text("+") }
-                OutlinedButton(onClick = { e.tune(1) }, modifier = Modifier.testTag("tuneUp")) { Text("▶") }
-                OutlinedButton(onClick = { e.mute(!u.muted) }, modifier = Modifier.testTag("mute")) {
-                    Text(stringResource(if (u.muted) R.string.shack_unmute else R.string.shack_mute))
+        }
+    }
+
+    Box(Modifier.fillMaxSize().remoteKeys(tx.keys)) {
+        if (sideways) {
+            Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                RadioHeader(e, u, onBack, inline = true) {
+                    HeaderButton(stringResource(R.string.shack_scope_sheet), "scopeSheet") { scopeSheet = true }
+                    HeaderButton(stringResource(R.string.shack_controls_sheet), "controlsSheet") { controlsSheet = true }
+                }
+                Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                    Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        readout(true)
+                        notes()
+                        middle(Modifier.weight(1f).fillMaxWidth(), true, true)
+                    }
+                    Column(Modifier.width(380.dp).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        if (dab == null) TuningRow(e, u, 72.dp, Modifier.fillMaxWidth())
+                        BandGridCard(e, u, Modifier.weight(1f).fillMaxWidth())
+                        PhoneEnableTx(e, tx)
+                        RadioBottomRow(e, u, 64.dp, Modifier.fillMaxWidth())
+                    }
                 }
             }
-            PhoneEnableTx(e, tx)
-            if (e.ptt != null) EnginePtt(e)
+        } else {
+            Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                RadioHeader(e, u, onBack, inline = false) {
+                    MoreMenu(onScope = { scopeSheet = true }, onControls = { controlsSheet = true })
+                }
+                readout(false)
+                notes()
+                middle(Modifier.weight(1f).fillMaxWidth(), tablet, tablet && config.screenWidthDp >= 600)
+                if (dab == null) TuningRow(e, u, if (tablet) 72.dp else 64.dp, Modifier.fillMaxWidth())
+                RecentBandsRow(e, u, onOpen = { bandSheet = true }, modifier = Modifier.fillMaxWidth())
+                PhoneEnableTx(e, tx)
+                RadioBottomRow(e, u, if (tablet) 64.dp else 52.dp, Modifier.fillMaxWidth())
+            }
         }
         RemoteKeysHost(tx.keys, tx.face, tx.onLines())
     }
@@ -199,53 +229,50 @@ internal fun RadioPhone(e: EngineSession, onBack: () -> Unit, onRepair: () -> Un
     if (logOpen) PhoneLog(e, onClose = { logOpen = false })
 }
 
-/** Only what is unusual, as Flex's header: on the air, NR on, muted, no audio, the simulator, reconnecting. */
+/** A tablet header's Scope or Controls: an outlined pill, as the Tablet mockup's Controls. */
 @Composable
-private fun RadioChips(e: EngineSession, u: EngineUi) {
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp),
-        itemVerticalAlignment = Alignment.CenterVertically) {
-        if (u.status?.onAir == true) Chip(stringResource(R.string.shack_on_air_short), OnAirRed)
-        if (!u.connected) Chip(stringResource(if (u.state.dialHz == null) R.string.shack_connecting else R.string.shack_reconnecting), Amber)
-        if (u.state.nr == true) Chip(stringResource(R.string.shack_nr_chip), Accent)
-        if (u.muted) Chip(stringResource(R.string.shack_muted), Amber)
-        else if (u.audioRate <= 0 && u.connected) Chip(stringResource(R.string.shack_no_audio), Dim)
-        if (u.status?.simulator == true) Chip(stringResource(R.string.shack_simulator), Amber)
+private fun HeaderButton(text: String, tag: String, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(20.dp)
+    Box(Modifier.height(40.dp).clip(shape).border(1.dp, RadioLine, shape).clickable(onClick = onClick).padding(horizontal = 16.dp).testTag(tag),
+        contentAlignment = Alignment.Center) { Text(text, fontSize = 14.sp, maxLines = 1) }
+}
+
+/** The phone header's ⋮: the Scope and Controls sheets, which had a button each in the old header. */
+@Composable
+private fun MoreMenu(onScope: () -> Unit, onControls: () -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        RadioKey({ open = true }, Modifier.size(44.dp), "more", stringResource(R.string.shack_more), colour = Color.Transparent, radius = 22.dp) {
+            androidx.compose.foundation.Canvas(Modifier.size(22.dp)) {
+                val k = size.width / 24f
+                for (y in listOf(5f, 12f, 19f)) drawCircle(Color.White, 2 * k, androidx.compose.ui.geometry.Offset(12 * k, y * k))
+            }
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(text = { Text(stringResource(R.string.shack_scope_sheet)) }, onClick = { open = false; onScope() },
+                modifier = Modifier.testTag("scopeSheet"))
+            DropdownMenuItem(text = { Text(stringResource(R.string.shack_controls_sheet)) }, onClick = { open = false; onControls() },
+                modifier = Modifier.testTag("controlsSheet"))
+        }
     }
 }
 
 /**
- * The frequency, as big as fits (a tap types one); the mode (a tap opens
- * the modes), the band and the plan's segment under it. Accent while a tune
- * is on its way, as on the NB screen.
+ * The modes as chips, from the mode chip's ▾ and in Controls: the server's
+ * list, the one in use selected; a mode this receiver cannot do (wide FM on
+ * an HL2) disabled, with the server's sentence under the row.
  */
 @Composable
-private fun RadioDial(u: EngineUi, modifier: Modifier, maxSize: Int, onType: () -> Unit, onMode: () -> Unit,
-                      antenna: AntennaChoice?, onAntenna: () -> Unit) {
-    Column(modifier) {
-        BasicText(
-            dialText(u.dialHz),
-            style = TextStyle(fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace,
-                color = if (u.pendingDialHz != null) Accent else Color.White),
-            maxLines = 1, softWrap = false,
-            autoSize = TextAutoSize.StepBased(minFontSize = 24.sp, maxFontSize = maxSize.sp, stepSize = 2.sp),
-            modifier = Modifier.clickable(onClick = onType).testTag("dial"),
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(u.state.mode.uppercase().ifEmpty { "–" }, fontSize = (maxSize / 3).sp, fontWeight = FontWeight.Bold, color = Accent,
-                modifier = Modifier.clickable(onClick = onMode).padding(end = 4.dp).testTag("mode"))
-            Text(if (u.state.band.isBlank()) stringResource(R.string.shack_band_none) else stringResource(R.string.shack_band, u.state.band),
-                fontSize = (maxSize / 4).sp, color = Dim, maxLines = 1)
-            if (u.state.segment.isNotBlank()) Text(u.state.segment, fontSize = (maxSize / 4).sp, color = Dim, maxLines = 1,
-                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+internal fun ModeChips(e: EngineSession, u: EngineUi, onDone: () -> Unit) {
+    if (u.modes.isEmpty()) return
+    Text(stringResource(R.string.shack_modes), color = Dim)
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        u.modes.forEach { m ->
+            FilterChip(selected = m == u.state.mode, onClick = { e.setMode(m); onDone() }, label = { Text(modeWord(m)) },
+                enabled = !u.viewOnly && m in u.offered, modifier = Modifier.testTag("mode-$m"))
         }
-        // Under the band, where the operator looks to see what they are
-        // hearing: which socket it comes in on matters as much as the band on
-        // an RSPdx with an HF wire on one input and a VHF antenna on another.
-        // A tap opens the inputs, as a tap on the mode opens the modes.
-        if (antenna != null) Text(stringResource(R.string.shack_antenna_summary, antennaNow(antenna)), fontSize = (maxSize / 4).sp,
-            color = Dim, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-            modifier = Modifier.clickable(onClick = onAntenna).testTag("antenna"))
     }
+    u.modes.forEach { m -> u.state.modeMissing(m)?.takeIf { it.isNotEmpty() }?.let { Text(it, color = Dim, fontSize = 13.sp) } }
 }
 
 /**
@@ -299,17 +326,7 @@ private fun RadioScopeSheet(e: EngineSession, u: EngineUi, marks: List<com.openh
 private fun RadioControlsSheet(e: EngineSession, u: EngineUi, onType: () -> Unit, onLog: () -> Unit, onDone: () -> Unit) {
     val context = LocalContext.current
     Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        if (u.modes.isNotEmpty()) {
-            Text(stringResource(R.string.shack_modes), color = Dim)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                u.modes.forEach { m ->
-                    // A mode this receiver cannot do (wide FM on an HL2) is shown, disabled, with the server's why under the row.
-                    FilterChip(selected = m == u.state.mode, onClick = { e.setMode(m); onDone() }, label = { Text(m.uppercase()) },
-                        enabled = !u.viewOnly && m in u.offered, modifier = Modifier.testTag("mode-$m"))
-                }
-            }
-            u.modes.forEach { m -> u.state.modeMissing(m)?.takeIf { it.isNotEmpty() }?.let { Text(it, color = Dim, fontSize = 13.sp) } }
-        }
+        ModeChips(e, u, onDone)
         // Wide FM's de-emphasis, only in wfm and only from a server that has the setting.
         val deemph = u.state.wfmDeemphasis
         if (u.state.mode == "wfm" && deemph != null) {

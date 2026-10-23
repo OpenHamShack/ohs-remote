@@ -209,6 +209,33 @@ internal fun dialText(hz: Double?, tag: String): String {
     else com.openhamshack.i18n.ShackFormat.frequency(n, tag, "kHz", 2)
 }
 
+/**
+ * The dial as the readout sets it: the number big and its unit small beside
+ * it ("118.70000", "MHz"), split from [dialText] at the space the shared
+ * formatter puts before the unit, so the locale's digits are its own.
+ * No unit when there is no frequency.
+ */
+internal fun dialParts(hz: Double?, tag: String): Pair<String, String> {
+    val t = dialText(hz, tag)
+    val at = t.lastIndexOf('\u00a0')
+    return if (at < 0) t to "" else t.substring(0, at) to t.substring(at + 1)
+}
+
+@Composable
+internal fun dialParts(hz: Double?): Pair<String, String> = dialParts(hz, localeTag())
+
+/** A scope edge's frequency, small under the waterfall: "118.650" (MHz from 30 MHz up), "7100" (kHz below), with no unit. */
+internal fun edgeText(hz: Double, tag: String): String {
+    if (hz.isNaN() || hz < 0) return ""
+    val n = Math.round(hz)
+    val t = if (n >= 30_000_000L) com.openhamshack.i18n.ShackFormat.frequency(n, tag, "MHz", 3)
+        else com.openhamshack.i18n.ShackFormat.frequency(n, tag, "kHz", 0)
+    return t.substringBeforeLast('\u00a0')
+}
+
+@Composable
+internal fun edgeText(hz: Double): String = edgeText(hz, localeTag())
+
 @Composable
 internal fun stepText(hz: Int): String = stepText(hz, localeTag())
 

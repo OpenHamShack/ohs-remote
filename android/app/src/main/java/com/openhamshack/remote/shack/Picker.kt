@@ -43,6 +43,13 @@ data class PickerFocus(val marks: Int, val modes: Int, val row: PickerRow, val i
             modes.isNotEmpty() -> PickerFocus(0, modes.size, PickerRow.MODES, modes.indexOf(mode).coerceAtLeast(0), nowMs)
             else -> null
         }
+
+        /**
+         * Opened from Radio's TV Mode item (the bottom row): on the modes row,
+         * at the mode in use, with the bookmarks still a row above it.
+         */
+        fun openOnModes(marks: List<Bookmark>, modes: List<String>, mode: String, nowMs: Long): PickerFocus? =
+            if (modes.isEmpty()) null else PickerFocus(marks.size, modes.size, PickerRow.MODES, modes.indexOf(mode).coerceAtLeast(0), nowMs)
     }
 
     /**
