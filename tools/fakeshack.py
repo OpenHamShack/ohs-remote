@@ -113,7 +113,9 @@ What it does, and nothing more:
     decoder whose sessions sync about 2 s after they start and list five to
     eight made-up services, the dab+ ones unplayable with a why (no
     faad2). FAKESHACK_RADIO_LISTEN_DAB=missing makes the decoder itself
-    refuse with decoder_unavailable. Unset, all of it passes.
+    refuse with decoder_unavailable. Each meter item gains a calibrated
+    `dbm` and `s` (FAKESHACK_RADIO_LISTEN_SMETER=uncalibrated: a `why`
+    instead). Unset, all of it passes.
 
 Bytes are piped after the head is rewritten, so the PCM stream, the TS
 stream and the websocket pass through untouched (the handshake is the
@@ -209,7 +211,8 @@ DECODERS = Decoders(os.environ.get("FAKESHACK_CALLSIGN", "M0TST")) \
     if os.environ.get("FAKESHACK_DECODERS", "") == "1" else None
 
 ANTENNAS = Antennas() if os.environ.get("FAKESHACK_RADIO_ANTENNAS", "") == "1" else None
-LISTEN = Listen(dab_missing=os.environ.get("FAKESHACK_RADIO_LISTEN_DAB", "") == "missing", rx_range=RADIO_RXRANGE) \
+LISTEN = Listen(dab_missing=os.environ.get("FAKESHACK_RADIO_LISTEN_DAB", "") == "missing", rx_range=RADIO_RXRANGE,
+                calibrated=os.environ.get("FAKESHACK_RADIO_LISTEN_SMETER", "") != "uncalibrated") \
     if os.environ.get("FAKESHACK_RADIO_LISTEN", "") == "1" else None
 #: The simulator's last deviceStatus as it went by, for the antenna fixture to lay its keys over.
 radio_device: dict = {}

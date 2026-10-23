@@ -30,6 +30,14 @@ What it makes Radio look like (FAKESHACK_RADIO_LISTEN=1):
     available, and starting it is 409 decoder_unavailable with `needs`
     and the server's sentence, as `dabplus` is today.
 
+  * a calibrated S-meter (Radio's server-side calibration, 23/10/2026): each
+    `meter` item on the events socket gains `dbm` (the simulator's `rx`
+    less 50.4 dB, a made-up calibration) and `s`, by the IARU rule - S9 is
+    -93 dBm above 30 MHz and -73 dBm below, 6 dB an S-unit, "S9+N" (dB)
+    above S9, S0 at the bottom - judged at the dial the server last
+    reported. With FAKESHACK_RADIO_LISTEN_SMETER=uncalibrated it gains
+    only a `why` sentence instead, to see the uncalibrated path.
+
 The feed's results carry `type: "dab"`, `sync`, `ensemble`, `services` and
 `playing`, polled with `?since=` or sent to an events socket that asked
 for "decoder", as fakedecoders' sessions are. Field names follow the
@@ -45,6 +53,9 @@ import random
 import time
 
 RX_RANGE = [1_000.0, 2_000_000_000.0]
+#: The made-up calibration: dBm at the antenna from the simulator's dBFS.
+DBM_OFFSET = -50.4
+UNCALIBRATED = "This receiver has not been calibrated yet (Radio › Settings › S-meter)."
 SYNC_AFTER = 2.0
 MAX_SESSIONS = 4
 #: Blocks with nothing on them, to see the "nothing here" sentence.
@@ -80,6 +91,15 @@ def _services(block: str) -> tuple[dict, list[dict]]:
     return ens, out
 
 
+def s_units(dbm: float, dial_hz: float) -> str:
+    """IARU Region 1's S-meter: S9 is -73 dBm below 30 MHz and -93 dBm above,
+    6 dB an S-unit; above S9 the excess in whole dB ("S9+12")."""
+    s9 = -93.0 if dial_hz >= 30e6 else -73.0
+    if dbm > s9 + 0.5:
+        return f"S9+{round(dbm - s9)}"
+    return f"S{max(0, min(9, 9 + round((dbm - s9) / 6)))}"
+
+
 class Session:
     def __init__(self, sid: str, freq: float, block: str):
         self.id, self.freq, self.block = sid, freq, block
@@ -107,8 +127,10 @@ class Session:
 
 
 class Listen:
-    def __init__(self, dab_missing: bool = False, rx_range: list[float] | None = None):
+    def __init__(self, dab_missing: bool = False, rx_range: list[float] | None = None, calibrated: bool = True):
         self.wfm = False
+        self.calibrated = calibrated
+        self.dial = 145_500_000.0
         self.rx_range = rx_range or RX_RANGE
         self.dab_missing = dab_missing
         self.sessions: dict[str, Session] = {}
@@ -136,6 +158,8 @@ class Listen:
         return obj
 
     def state(self, obj: dict) -> dict:
+        if isinstance(obj.get("vfo"), (int, float)) and not isinstance(obj.get("vfo"), bool):
+            self.dial = float(obj["vfo"])
         if self.wfm and obj.get("mode") == "fm":
             obj["mode"] = "wfm"
         return obj
@@ -154,18 +178,35 @@ class Listen:
         return obj
 
     def frame(self, payload: bytes) -> str | None:
-        """A state message whose mode is fm, reported as wfm while it is in force; None for anything else."""
-        if not self.wfm or len(payload) > 65536 or b'"mode"' not in payload:
+        """A meter item with the S-meter added, or a state message whose mode
+        is fm reported as wfm while it is in force; None for anything else
+        (spectra, the bulk of the traffic, are not parsed)."""
+        if len(payload) > 65536 or not (b'"meter"' in payload or b'"vfo"' in payload or (self.wfm and b'"mode"' in payload)):
             return None
         try:
             o = json.loads(payload)
         except ValueError:
             return None
+        if o.get("kind") == "meter":
+            return json.dumps(self.meter(o))
         ch = o.get("changes") if o.get("kind") == "state" else None
-        if not isinstance(ch, dict) or ch.get("mode") != "fm":
+        if not isinstance(ch, dict):
+            return None
+        if isinstance(ch.get("vfo"), (int, float)) and not isinstance(ch.get("vfo"), bool):
+            self.dial = float(ch["vfo"])
+        if not self.wfm or ch.get("mode") != "fm":
             return None
         ch["mode"] = "wfm"
         return json.dumps(o)
+
+    def meter(self, o: dict) -> dict:
+        rx = o.get("rx")
+        if not self.calibrated:
+            return dict(o, why=UNCALIBRATED)
+        if isinstance(rx, bool) or not isinstance(rx, (int, float)):
+            return o
+        dbm = round(rx + DBM_OFFSET, 1)
+        return dict(o, dbm=dbm, s=s_units(dbm, self.dial))
 
     # --- the dab decoder ----------------------------------------------------
 

@@ -180,6 +180,11 @@ desktop app runs on the same account (they keep a station store).
   `FAKESHACK_RADIO_LISTEN_DAB=missing` the decoder is listed unavailable,
   and starting it is 409 `decoder_unavailable` with `needs: ["faad2"]` and
   the server's sentence. Nothing is decoded; no station audio plays.
+  The same switch gives Radio a calibrated S-meter: each events `meter`
+  item gains `dbm` (`rx` less 50.4 dB) and `s` by the IARU rule at the
+  last reported dial (S9 = -93 dBm above 30 MHz, -73 dBm below, 6 dB an
+  S-unit, "S9+N" above). `FAKESHACK_RADIO_LISTEN_SMETER=uncalibrated` sends
+  a `why` sentence instead, for the screens' uncalibrated path.
 - **Band Activity (FT8 with countries):** the NB simulator's FT8 at
   10489.540 MHz has stations in eight countries (G4XYZ, DL1ABC, EA4QRP,
   F5KLM, PA3QOS, OH8ZZ, SV1QO, ON4BB). An NB from openhamshack-nb with the
