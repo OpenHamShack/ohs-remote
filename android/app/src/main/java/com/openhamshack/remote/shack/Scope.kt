@@ -27,6 +27,12 @@ class Scope(val width: Int = 480, val height: Int = 150) {
         private set
     /** ARGB, newest row at the top. */
     val pixels: IntArray = IntArray(width * height) { BACKGROUND }
+    /**
+     * The waterfall's colours, 0 (the floor) to 1 (45 dB over it). [colour]
+     * by default; Radio's TV screen sets [polished] (the polish pass Brian
+     * approved, 23/10/2026). Rows already drawn keep theirs.
+     */
+    @Volatile var palette: (Float) -> Int = ::colour
     /** Bumped on each frame, so a UI knows to redraw. */
     var version: Int = 0
         private set
@@ -47,7 +53,8 @@ class Scope(val width: Int = 480, val height: Int = 150) {
         line = fold(f.db, width)
         floorDb = percentile(line, 0.2f)
         System.arraycopy(pixels, 0, pixels, width, width * (height - 1))
-        for (x in 0 until width) pixels[x] = colour((line[x] - floorDb) / RANGE_DB)
+        val p = palette
+        for (x in 0 until width) pixels[x] = p((line[x] - floorDb) / RANGE_DB)
         version++
     }
 
@@ -78,6 +85,25 @@ class Scope(val width: Int = 480, val height: Int = 150) {
             if (v.isEmpty()) return -120f
             val s = v.copyOf().also { it.sort() }
             return s[((s.size - 1) * p).toInt()]
+        }
+
+        /** The polished palette's stops, floor to top: night navy, deep blue, teal, sea green, amber (TvPolish mockup). */
+        private val POLISHED = arrayOf(intArrayOf(6, 10, 18), intArrayOf(16, 58, 92), intArrayOf(32, 140, 170), intArrayOf(120, 200, 190),
+            intArrayOf(244, 192, 99))
+
+        /**
+         * The TV polish's waterfall: navy at the floor through teal to amber
+         * at the top, evenly between its stops. Calmer than [colour]'s red
+         * and yellow from a sofa, and the amber still says "strong".
+         */
+        fun polished(t: Float): Int {
+            val x = t.coerceIn(0f, 0.999f) * (POLISHED.size - 1)
+            val i = x.toInt()
+            val f = x - i
+            val a = POLISHED[i]
+            val b = POLISHED[i + 1]
+            fun ch(k: Int) = Math.round(a[k] + (b[k] - a[k]) * f)
+            return (0xFF shl 24) or (ch(0) shl 16) or (ch(1) shl 8) or ch(2)
         }
 
         /** 0 floor (dark blue) through cyan and yellow to red at 1 and over. */
