@@ -218,4 +218,10 @@ class ListenAreasTest {
             poll("""{"rev":4,"type":"dab","sync":false,"why":"no_signal","whyText":"No signal on 5A."}"""))
         assertEquals("No signal on 5A.", coded.problem)
     }
+
+    @Test fun everyAreaIsTaggedReceiveOnlyButLpd433InsideSeventyCentimetres() {
+        val buttons = all()
+        assertEquals(listOf("lpd433"), buttons.filter { it.area != null && !it.rxTag }.map { it.name })
+        assertEquals(ListenAreas.ALL.size - 1, buttons.count { it.rxTag })
+    }
 }

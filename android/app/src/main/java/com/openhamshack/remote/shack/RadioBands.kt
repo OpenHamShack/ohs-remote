@@ -27,6 +27,8 @@ data class BandSpot(val hz: Double, val mode: String)
  */
 data class BandButton(val band: PlanBand, val label: String, val area: ListenArea? = null) {
     val name: String get() = band.name
+    /** Shown with the RX tag: a listening area nobody transmits in (not LPD433, inside 70 cm). */
+    val rxTag: Boolean get() = area?.receiveOnly == true
 }
 
 object RadioBands {

@@ -47,7 +47,7 @@ RSPdx:
 | Airband | 118–137 MHz | am | 8.33 kHz |
 | Marine VHF | 156–162.025 MHz | fm | 25 kHz |
 | DAB (Band III) | 174–240 MHz | dab | block |
-| LPD433 | 433.075–434.775 MHz | fm | 25 kHz |
+| LPD433 (inside UK 70 cm: listed, not RX-tagged) | 433.075–434.775 MHz | fm | 25 kHz |
 | PMR446 | 446.00625–446.19375 MHz | fm | 12.5 kHz |
 
 Two server asks follow from the table:

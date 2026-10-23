@@ -329,7 +329,7 @@ internal fun BandButtons(e: EngineSession, u: EngineUi, height: Dp, textSize: Te
                     Text(bandLabel(b), fontSize = textSize, fontWeight = FontWeight.Bold, maxLines = 1,
                         color = if (on) Color.Black else if (u.viewOnly) Dim else Color.White)
                     // A listening area says it is receive only, under its name.
-                    if (b.area != null) Text(stringResource(R.string.shack_area_rx), fontSize = textSize * 0.5f, maxLines = 1,
+                    if (b.rxTag) Text(stringResource(R.string.shack_area_rx), fontSize = textSize * 0.5f, maxLines = 1,
                         color = if (on) Color.Black else Dim)
                 }
             }
@@ -381,7 +381,7 @@ internal fun TvBandStrip(u: EngineUi, modifier: Modifier = Modifier) {
                 .padding(horizontal = 10.dp, vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(bandLabel(b), fontSize = 17.sp, fontWeight = if (on) FontWeight.Bold else FontWeight.Normal, maxLines = 1,
                     color = if (on) Color.Black else Dim)
-                if (b.area != null) Text(stringResource(R.string.shack_area_rx), fontSize = 11.sp, maxLines = 1,
+                if (b.rxTag) Text(stringResource(R.string.shack_area_rx), fontSize = 11.sp, maxLines = 1,
                     color = if (on) Color.Black else Dim, modifier = Modifier.padding(start = 4.dp))
             }
         }

@@ -35,6 +35,13 @@ data class ListenArea(
     /** The area's first channel: steps of [stepHz] are counted from here. */
     val originHz: Double = 0.0,
     val fallback: String? = null,
+    /**
+     * Tagged RX and never transmitted in. Not LPD433 (the Radio session,
+     * 23/10/2026): 433.075-434.775 MHz is inside the UK 70 cm amateur band,
+     * so a licensed operator may transmit there; it stays a listening area
+     * (its raster, its spot, the Listen filter) without the tag.
+     */
+    val receiveOnly: Boolean = true,
 ) {
     operator fun contains(hz: Double) = hz >= loHz && hz <= hiHz
     val band: PlanBand get() = PlanBand(id, loHz, hiHz)
@@ -64,7 +71,7 @@ object ListenAreas {
         ListenArea("airband", 118_000_000, 137_000_000, "am", Tuning.AIRBAND_833, 121_500_000.0),
         ListenArea("marine", 156_000_000, 162_025_000, "fm", 25_000, 156_800_000.0),
         ListenArea(DAB, 174_000_000, 240_000_000, null, 100_000, DabBlocks.DEFAULT.centreHz),
-        ListenArea("lpd433", 433_075_000, 434_775_000, "fm", 25_000, 433_075_000.0, originHz = 433_075_000.0),
+        ListenArea("lpd433", 433_075_000, 434_775_000, "fm", 25_000, 433_075_000.0, originHz = 433_075_000.0, receiveOnly = false),
         ListenArea("pmr446", 446_006_250, 446_193_750, "fm", 12_500, 446_006_250.0, originHz = 446_006_250.0),
     )
 
