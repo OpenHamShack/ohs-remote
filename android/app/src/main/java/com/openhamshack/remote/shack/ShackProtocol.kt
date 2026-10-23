@@ -150,6 +150,8 @@ data class EngineStatus(
      * publish it); fakeshack can (FAKESHACK_RADIO_RXRANGE). Null: unknown.
      */
     val rxRange: Pair<Double, Double>? = null,
+    /** `audio`: the receive audio as the server describes it; null from a server that does not. */
+    val audio: EngineAudio? = null,
 ) {
     companion object {
         fun parse(o: JSONObject): EngineStatus {
@@ -172,6 +174,7 @@ data class EngineStatus(
                     val hi = a.optDouble(1, Double.NaN)
                     if (lo.isFinite() && hi.isFinite() && hi > lo && lo >= 0) lo to hi else null
                 },
+                audio = o.optJSONObject("audio")?.let { EngineAudio.parse(it) },
             )
         }
     }
@@ -203,6 +206,55 @@ class SpectrumFrame(val kind: String, val startHz: Double, val binHz: Double, va
         }
     }
 }
+
+/**
+ * `api/status` `audio` (openhamshack-nb SERVER-API, from 78ec61f): what
+ * `api/audio/rx` sends a listener that asks for nothing, and whether the
+ * mode is making stereo now. Only a description: the stream's own headers
+ * say what it actually carries ([PcmFormat]), and they win.
+ */
+data class EngineAudio(
+    val rate: Int,
+    val channels: Int,
+    /** The wide-FM stereo pilot is locked: the audio has two different sides now. For a stereo badge. */
+    val stereo: Boolean,
+    /**
+     * The status has the 48 kHz-era shape, which is how a client knows
+     * `?channels=2` is understood. `stereo` is the tell, not `channels`:
+     * servers before 78ec61f already sent `{"encoding", "rate": 12000,
+     * "channels": 1, "listeners"}` here and ignored any query.
+     */
+    val channelsKnown: Boolean,
+) {
+    companion object {
+        fun parse(o: JSONObject) = EngineAudio(
+            rate = o.optInt("rate", 0),
+            channels = o.optInt("channels", 1),
+            stereo = o.optBoolean("stereo", false),
+            channelsKnown = o.has("stereo"),
+        )
+    }
+}
+
+/**
+ * How many channels to ask `api/audio/rx` for: 2, or null to ask nothing
+ * (the request every server has always taken). Pure, for the tests.
+ *
+ * - **Only Radio.** Radio is the one with wide FM; NB runs the same server
+ *   code and would honour `?channels=2`, but its audio is SSB and CW, and a
+ *   stereo copy of it is twice the bytes over a TV's Wi-Fi for nothing.
+ * - **Only a server that says it understands.** An older Radio, or anything
+ *   else at that address, gets today's request exactly: a server that
+ *   ignored the query would be fine, one that refused it would be silent.
+ *   Always asked for, not only while [EngineAudio.stereo] is true: the
+ *   format is fixed for the life of a response, so asking only in stereo
+ *   would mean a reconnect - a gap - every time the pilot came and went.
+ * - **Not after a refusal.** A server that answered 400 bad_channels is
+ *   asked mono for the rest of the session ([refused]), so a server that
+ *   advertises what it then refuses costs one round trip, not a loop.
+ */
+fun audioChannelsToRequest(kind: Kind, audio: EngineAudio?, refused: Boolean): Int? =
+    if (kind == Kind.RADIO && audio?.channelsKnown == true && !refused) 2 else null
 
 /** Receive audio's format, from the headers it is announced in before the first sample. */
 data class PcmFormat(val rate: Int, val channels: Int) {

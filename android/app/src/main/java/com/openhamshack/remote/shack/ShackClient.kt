@@ -175,16 +175,37 @@ class EngineClient(val url: String, private val controller: ShackController) {
         return shackHttp.newWebSocket(r, listener)
     }
 
-    /** The receive PCM, open: the caller reads the body and closes it. Blocking; call on IO. */
-    fun openAudio(): Response {
+    /**
+     * The receive PCM, open: the caller reads the body and closes it.
+     * Blocking; call on IO. [channels] null asks nothing, as every server
+     * has always been asked; 2 asks `?channels=2` ([audioChannelsToRequest]
+     * decides). Either way the response's headers, not this argument, say
+     * what came back. A server that will not give it answers 400
+     * bad_channels, thrown here as a [ShackException].
+     */
+    fun openAudio(channels: Int? = null): Response {
+        val path = if (channels == null) "api/audio/rx" else "api/audio/rx?channels=$channels"
         val r = shackHttp.newBuilder().readTimeout(5, TimeUnit.SECONDS).build()
-            .newCall(req("api/audio/rx").build()).execute()
+            .newCall(req(path).build()).execute()
         if (!r.isSuccessful) {
             val body = r.body?.string().orEmpty()
             r.close()
             throw failure(r.code, body)
         }
         return r
+    }
+
+    /**
+     * [openAudio] with [channels], and if the server refuses that with 400
+     * bad_channels, once more asking nothing, telling [refused] so the
+     * caller stops asking. Any other failure is thrown as it came.
+     */
+    fun openAudioOrMono(channels: Int?, refused: () -> Unit): Response = try {
+        openAudio(channels)
+    } catch (e: ShackException) {
+        if (channels == null || e.http != 400 || e.code != "bad_channels") throw e
+        refused()
+        openAudio(null)
     }
 
     private suspend fun get(path: String): JSONObject = withContext(Dispatchers.IO) {

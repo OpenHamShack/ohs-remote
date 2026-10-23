@@ -218,11 +218,61 @@ class ShackProtocolTest {
         assertNull(PcmFormat.parse(null, null))
     }
 
-    @Test fun pcmSamplesAreLittleEndianAndStereoIsAveraged() {
-        val mono = EngineSession.pcm(byteArrayOf(0x01, 0x00, 0xFF.toByte(), 0xFF.toByte()), 4, 1)
-        assertEquals(listOf<Short>(1, -1), mono.toList())
-        val stereo = EngineSession.pcm(byteArrayOf(0x64, 0x00, 0x00, 0x00), 4, 2)
-        assertEquals(listOf<Short>(50), stereo.toList())
+    @Test fun radiosFortyEightKilohertzHeadersAreBelievedAsSent() {
+        // openhamshack-nb 78ec61f get_audio_rx, mono and with ?channels=2.
+        assertEquals(PcmFormat(48000, 1), PcmFormat.parse("audio/L16; rate=48000; channels=1",
+            """{"encoding": "s16le", "rate": 48000, "channels": 1}"""))
+        assertEquals(PcmFormat(48000, 2), PcmFormat.parse("audio/L16; rate=48000; channels=2",
+            """{"encoding": "s16le", "rate": 48000, "channels": 2}"""))
+        // X-Audio-Format wins over a Content-Type that disagrees with it.
+        assertEquals(PcmFormat(48000, 2), PcmFormat.parse("audio/L16; rate=12000; channels=1",
+            """{"encoding": "s16le", "rate": 48000, "channels": 2}"""))
+        // More channels than a track can take is refused, not played as noise.
+        assertNull(PcmFormat.parse("audio/L16; rate=48000; channels=6", null))
+    }
+
+    @Test fun pcmSamplesAreLittleEndianAndStereoStaysInterleaved() {
+        assertEquals(listOf<Short>(1, -1), pcm16le(byteArrayOf(0x01, 0x00, 0xFF.toByte(), 0xFF.toByte())).toList())
+        // L=100, R=-2, L=3, R=4: the player gets both sides, in order, not an average.
+        val lr = byteArrayOf(0x64, 0x00, 0xFE.toByte(), 0xFF.toByte(), 0x03, 0x00, 0x04, 0x00)
+        assertEquals(listOf<Short>(100, -2, 3, 4), pcm16le(lr, 0, 8).toList())
+        // Only the bytes asked for: a torn frame's tail waits for the next read.
+        assertEquals(listOf<Short>(100, -2), pcm16le(lr, 0, 4).toList())
+    }
+
+    // --- stereo or mono ---------------------------------------------------------
+
+    private val newRadioAudio = JSONObject("""{"encoding": "s16le", "rate": 48000, "channels": 1, "stereo": true,
+        "listeners": 1, "tx": {"encoding": "s16le", "rate": 12000, "channels": 1}}""")
+
+    @Test fun statusAudioOfTheFortyEightKilohertzServer() {
+        val a = EngineStatus.parse(json("radio-status.json").put("audio", newRadioAudio)).audio!!
+        assertEquals(EngineAudio(rate = 48000, channels = 1, stereo = true, channelsKnown = true), a)
+        val off = EngineStatus.parse(json("radio-status.json").put("audio", JSONObject(newRadioAudio.toString()).put("stereo", false)))
+        assertFalse(off.audio!!.stereo)
+        assertTrue(off.audio!!.channelsKnown)
+    }
+
+    @Test fun statusAudioOfAnOlderServerIsNotTheNewShape() {
+        // Recorded 09/10/2026: `channels` was already there, `stereo` was not.
+        val old = EngineStatus.parse(json("radio-status.json")).audio!!
+        assertEquals(12000, old.rate)
+        assertFalse(old.channelsKnown)
+        assertFalse(old.stereo)
+        assertNull(EngineStatus.parse(json("radio-status.json").apply { remove("audio") }).audio)
+    }
+
+    @Test fun stereoIsAskedOnlyOfARadioThatUnderstandsIt() {
+        val new = EngineAudio.parse(newRadioAudio)
+        val old = EngineStatus.parse(json("radio-status.json")).audio
+        assertEquals(2, audioChannelsToRequest(Kind.RADIO, new, refused = false))
+        // Asked for whether or not the pilot is locked now: the format holds for the whole response.
+        assertEquals(2, audioChannelsToRequest(Kind.RADIO, new.copy(stereo = false), refused = false))
+        assertNull(audioChannelsToRequest(Kind.RADIO, old, refused = false))
+        assertNull(audioChannelsToRequest(Kind.RADIO, null, refused = false))
+        assertNull("refused once, mono for the session", audioChannelsToRequest(Kind.RADIO, new, refused = true))
+        // NB runs the same server but has no stereo to give.
+        assertNull(audioChannelsToRequest(Kind.QO100NB, new, refused = false))
     }
 
     // --- pairing ------------------------------------------------------------

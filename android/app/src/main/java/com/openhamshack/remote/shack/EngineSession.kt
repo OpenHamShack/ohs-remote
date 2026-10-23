@@ -43,6 +43,8 @@ data class EngineUi(
     val dialMin: Double? = null,
     val dialMax: Double? = null,
     val audioRate: Int = 0,
+    /** Channels the receive audio is playing with (1 or 2), from its headers; 0 while there is none. */
+    val audioChannels: Int = 0,
     /** The shared logbook as this app shows it, newest first; null until asked for. */
     val log: List<Qso>? = null,
     /** The engine has noise reduction (`nr` in its spec), and its own sentence for it. */
@@ -81,6 +83,13 @@ data class EngineUi(
     val dab: DabUi? = null,
 ) {
     val dialHz: Double? get() = pendingDialHz ?: state.dialHz
+
+    /**
+     * The radio is making stereo now (status `audio.stereo`: Radio's wide-FM
+     * pilot locked), for a stereo badge. Says nothing about whether this
+     * device is playing two channels - [audioChannels] says that.
+     */
+    val stereo: Boolean get() = status?.audio?.stereo == true
 
     /** Radio's band buttons: the dataset's bands with buttons, less any the receiver says it cannot reach. Empty until the data is read. */
     val bandButtons: List<BandButton>
@@ -134,6 +143,8 @@ class EngineSession(
     private var sending: Job? = null
     private var settle: Job? = null
     @Volatile private var target: Double? = null
+    /** The server answered `?channels=2` with 400 bad_channels: ask it mono from now on ([audioChannelsToRequest]). */
+    @Volatile private var stereoRefused = false
     /** Panels learnt from a mode's own events, for a decoder [DecoderPanel] has no name for. */
     private val seen = mutableMapOf<String, DecoderPanel>()
     /** This device's last spot on each band of this box (Radio); written back a moment after it settles. */
@@ -309,22 +320,32 @@ class EngineSession(
         while (scope.isActive) {
             try {
                 kotlinx.coroutines.withContext(Dispatchers.IO) {
-                    client.openAudio().use { r ->
+                    // Stereo only from a server whose status says it understands
+                    // the question. Asked afresh for each connection rather than
+                    // taken from the hello or the 2 s loop: a reconnect is often
+                    // a server restarted into another version, and one GET per
+                    // connection is nothing. A status that fails asks mono.
+                    val audio = (runCatching { client.status() }.getOrNull() ?: _ui.value.status)?.audio
+                    val asked = audioChannelsToRequest(kind, audio, stereoRefused)
+                    client.openAudioOrMono(asked) { stereoRefused = true }.use { r ->
+                        // What the headers say came back, never what was asked for.
                         val fmt = PcmFormat.parse(r.header("Content-Type"), r.header("X-Audio-Format"))
                             ?: throw ShackException(r.code, "audio_format", "")
                         player.muted = _ui.value.muted
-                        player.start(fmt.rate)
-                        _ui.update { it.copy(audioRate = fmt.rate) }
+                        player.start(fmt.rate, fmt.channels)
+                        _ui.update { it.copy(audioRate = fmt.rate, audioChannels = fmt.channels) }
                         val src = r.body!!.byteStream()
-                        val bytes = ByteArray(fmt.rate / 25 * 2 * fmt.channels)   // 40 ms
+                        val frame = 2 * fmt.channels
+                        val bytes = ByteArray(fmt.rate / 25 * frame)   // 40 ms
                         var carry = 0
                         while (isActive) {
                             val n = src.read(bytes, carry, bytes.size - carry)
                             if (n < 0) break
+                            // Whole frames only: a read can end mid-sample or
+                            // between L and R, and the rest waits for the next.
                             val have = carry + n
-                            val frame = 2 * fmt.channels
                             val usable = have - have % frame
-                            player.write(pcm(bytes, usable, fmt.channels))
+                            if (usable > 0) player.write(pcm16le(bytes, 0, usable))
                             carry = have - usable
                             if (carry > 0) System.arraycopy(bytes, usable, bytes, 0, carry)
                         }
@@ -337,7 +358,7 @@ class EngineSession(
                 // the app is unreachable, so this loop says nothing.
             }
             player.stop()
-            _ui.update { it.copy(audioRate = 0) }
+            _ui.update { it.copy(audioRate = 0, audioChannels = 0) }
             delay(RETRY_MS)
         }
     }
@@ -645,19 +666,6 @@ class EngineSession(
         const val RETRY_MS = 2000L
         const val SAVE_AFTER_MS = 2000L
         const val DAB_POLL_MS = 1000L
-
-        /** s16le into samples; two channels are averaged (the engines send mono, but the format says which). */
-        fun pcm(b: ByteArray, len: Int, channels: Int): ShortArray {
-            val n = len / 2 / channels
-            return ShortArray(n) { i ->
-                var sum = 0
-                for (c in 0 until channels) {
-                    val j = (i * channels + c) * 2
-                    sum += ((b[j].toInt() and 0xFF) or (b[j + 1].toInt() shl 8)).toShort().toInt()
-                }
-                (sum / channels).toShort()
-            }
-        }
     }
 }
 
