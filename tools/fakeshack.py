@@ -119,6 +119,9 @@ What it does, and nothing more:
     modes.wfm; a server with wfm of its own is passed through.
     FAKESHACK_RADIO_LISTEN_WFM=missing: a receiver too slow for wfm;
     FAKESHACK_RADIO_LISTEN_RXONLY=1: one that cannot transmit (RSPdx).
+    GET api/local answers made-up local frequencies near Edinburgh and the
+    NCDXF beacons (RADIO-LISTEN-CONTRACT §5), and api/local/mine adds,
+    changes and removes the operator's own, kept in memory.
     Unset, all of it passes.
 
   * Radio's 48 kHz receive audio with stereo on request (openhamshack-nb
@@ -574,7 +577,8 @@ async def handle(r, w):
     if app == "shack-radio" and TONE and method == "GET" and rest.split("?", 1)[0] == "/api/audio/rx":
         await tone_reply(r, w, rest)
         return
-    if app == "shack-radio" and (DECODERS or LISTEN) and rest.split("?", 1)[0].startswith("/api/decoders"):
+    if app == "shack-radio" and ((DECODERS or LISTEN) and rest.split("?", 1)[0].startswith("/api/decoders")
+                                 or LISTEN and rest.split("?", 1)[0].startswith("/api/local")):
         await decoders_reply(r, w, method, rest, hdr)
         return
     try:

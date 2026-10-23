@@ -49,6 +49,14 @@ What it makes Radio look like (FAKESHACK_RADIO_LISTEN=1):
     reported. With FAKESHACK_RADIO_LISTEN_SMETER=uncalibrated it gains
     only a `why` sentence instead, to see the uncalibrated path.
 
+  * local frequencies (RADIO-LISTEN-CONTRACT §5, Radio's API not out yet):
+    GET api/local answers a made-up list near Edinburgh (IO85) - airports,
+    area control, marine, PMR/CB/LPD channels - nearest first, with
+    attribution lines and the NCDXF beacons (the bands, the schedule, and who
+    is on now by the clock); POST api/local/mine adds one of the operator's
+    own, POST api/local/mine/{id} changes it, DELETE removes it, all kept in
+    memory for as long as fakeshack runs. The names are placeholders.
+
 The feed's results carry `type: "dab"`, `sync`, `ensemble`, `services` and
 `playing`, polled with `?since=` or sent to an events socket that asked
 for "decoder", as fakedecoders' sessions are. Field names follow the
@@ -142,6 +150,94 @@ class Session:
         return r
 
 
+#: Made-up local frequencies near IO85 (placeholders: real data comes from the server's sources).
+LOCAL = [
+    ("airport", "Edinburgh Tower", "EGPH · tower", 118_700_000, "am", 8333, 11.8, 284, "OurAirports"),
+    ("airport", "Edinburgh Approach", "EGPH · approach", 121_200_000, "am", 8333, 11.8, 284, "OurAirports"),
+    ("airport", "Edinburgh ATIS", "EGPH · ATIS", 131_355_000, "am", 8333, 11.8, 284, "OurAirports"),
+    ("airport", "Glasgow Tower", "EGPF · tower", 118_800_000, "am", 8333, 64.0, 262, "OurAirports"),
+    ("area-control", "Scottish Control", "Sector 5", 126_300_000, "am", 8333, 48.0, 250, "UK AIP"),
+    ("marine", "Forth Coastguard", "Channel 16 · calling and distress", 156_800_000, "fm", 25000, 9.5, 20, "ITU"),
+    ("marine", "Leith Port", "Channel 12 · port operations", 156_600_000, "fm", 25000, 4.2, 15, "ITU"),
+    ("pmr", "PMR446 channel 1", "Licence-free radios", 446_006_250, "fm", 12500, None, None, "Ofcom"),
+    ("pmr", "CB channel 19", "CEPT · the calling channel", 27_185_000, "fm", 10000, None, None, "Ofcom"),
+    ("pmr", "LPD433 channel 1", "Licence-free radios", 433_075_000, "fm", 25000, None, None, "Ofcom"),
+]
+NCDXF_CALLS = ["4U1UN", "VE8AT", "W6WX", "KH6RS", "ZL6B", "VK6RBP", "JA2IGY", "RR9O", "VR2B",
+               "4S7B", "ZS6DN", "5Z4B", "4X6TU", "OH2B", "CS3B", "LU4AA", "OA4B", "YV5B"]
+NCDXF_PLACES = {"4U1UN": "New York", "VE8AT": "Eureka", "W6WX": "Mt Umunhum", "KH6RS": "Maui", "ZL6B": "Masterton",
+                "VK6RBP": "Rolystone", "JA2IGY": "Mt Asama", "RR9O": "Novosibirsk", "VR2B": "Hong Kong",
+                "4S7B": "Colombo", "ZS6DN": "Pretoria", "5Z4B": "Kariobangi", "4X6TU": "Tel Aviv", "OH2B": "Lohja",
+                "CS3B": "Madeira", "LU4AA": "Buenos Aires", "OA4B": "Lima", "YV5B": "Caracas"}
+NCDXF_BANDS = [("20m", 14_100_000), ("17m", 18_110_000), ("15m", 21_150_000), ("12m", 24_930_000), ("10m", 28_200_000)]
+ATTRIBUTIONS = ["Airports: OurAirports (public domain), placeholder entries",
+                "Marine channels: ITU Radio Regulations Appendix 18",
+                "Beacons: Northern California DX Foundation (NCDXF/IARU)"]
+
+
+class Local:
+    """The local-frequencies fixture: the made-up list and the operator's own, in memory."""
+
+    def __init__(self):
+        self.mine: dict[str, dict] = {}
+        self.n = 0
+
+    @staticmethod
+    def entry(i: int, row) -> dict:
+        cat, name, sub, hz, mode, step, km, brg, src = row
+        e = {"id": f"e{i}", "category": cat, "name": name, "sub": sub, "freqHz": hz, "mode": mode, "step": step, "source": src}
+        if km is not None:
+            e["distanceKm"], e["bearing"] = km, brg
+        return e
+
+    def view(self, now: float | None = None) -> dict:
+        slot = int((now if now is not None else time.time()) % 180 // 10)
+        entries = [self.entry(i, r) for i, r in enumerate(LOCAL)] + list(self.mine.values())
+        entries.sort(key=lambda e: (e.get("distanceKm") is None, e.get("distanceKm") or 0))
+        return {"radiusKm": 100, "locator": "IO85", "attributions": ATTRIBUTIONS, "entries": entries,
+                "ncdxf": {"bands": [{"band": b, "freqHz": f} for b, f in NCDXF_BANDS], "schedule": NCDXF_CALLS,
+                          "locations": NCDXF_PLACES,
+                          "now": [{"band": b, "freqHz": f, "call": NCDXF_CALLS[(slot - k) % 18]} for k, (b, f) in enumerate(NCDXF_BANDS)]}}
+
+    @staticmethod
+    def check(b: dict) -> str | None:
+        name, hz, mode = b.get("name"), b.get("freqHz"), b.get("mode")
+        if not isinstance(name, str) or not name.strip() or "\n" in name or len(name) > 60:
+            return "Give the frequency a name of one line, at most 60 characters"
+        if isinstance(hz, bool) or not isinstance(hz, (int, float)) or not 1_000 <= hz <= 6e9:
+            return "Give a frequency between 1 kHz and 6 GHz, in Hz"
+        if not isinstance(mode, str) or not mode:
+            return "Give the mode to listen in"
+        return None
+
+    def answer(self, method: str, path: str, b: dict) -> tuple[int, dict] | None:
+        if path == "/api/local" and method == "GET":
+            return 200, self.view()
+        if path == "/api/local/mine" and method == "POST":
+            bad = self.check(b)
+            if bad:
+                return 400, {"error": bad, "code": "bad_params"}
+            self.n += 1
+            e = {"id": f"m{self.n}", "category": "mine", "name": b["name"].strip(), "sub": "", "freqHz": b["freqHz"],
+                 "mode": b["mode"], "step": b.get("step"), "source": "you"}
+            self.mine[e["id"]] = e
+            return 201, e
+        if path.startswith("/api/local/mine/"):
+            mid = path.rsplit("/", 1)[-1]
+            if mid not in self.mine:
+                return 404, {"error": "There is no such frequency of yours", "code": "not_found"}
+            if method == "DELETE":
+                del self.mine[mid]
+                return 200, {"deleted": True}
+            if method == "POST":
+                bad = self.check(b)
+                if bad:
+                    return 400, {"error": bad, "code": "bad_params"}
+                self.mine[mid].update(name=b["name"].strip(), freqHz=b["freqHz"], mode=b["mode"], step=b.get("step"))
+                return 200, self.mine[mid]
+        return None
+
+
 class Listen:
     def __init__(self, dab_missing: bool = False, rx_range: list[float] | None = None, calibrated: bool = True,
                  wfm_missing: bool = False, rx_only: bool = False):
@@ -157,6 +253,7 @@ class Listen:
         self.sessions: dict[str, Session] = {}
         self.listeners: set[asyncio.Queue] = set()
         self.n = 0
+        self.local = Local()
 
     # --- api/spec, api/status, api/state and api/set ------------------------
 
@@ -258,7 +355,9 @@ class Listen:
     # --- the dab decoder ----------------------------------------------------
 
     def answer(self, method: str, path: str, query: dict, body: dict) -> tuple[int, dict] | None:
-        """(status, body) for a dab route, or None for anything this fixture does not own."""
+        """(status, body) for a dab or local route, or None for anything this fixture does not own."""
+        if path.startswith("/api/local"):
+            return self.local.answer(method, path, body)
         if path == "/api/decoders/sessions" and method == "POST" and body.get("decoder") == "dab":
             return self._start(body)
         if path.startswith("/api/decoders/sessions/"):
