@@ -197,6 +197,15 @@ desktop app runs on the same account (they keep a station store).
   calibration as the server does (POST `{"dbm"}` against the last reading,
   for the dial's side of 30 MHz; DELETE clears it; GET lists them) and
   refuses 409 `cannot_calibrate` before any reading.
+  Radio's station lists, band scan and RDS (SERVER-API "Station lists",
+  "Wide FM") are faked over the simulator, which has neither shack-sdr nor
+  a scanned list: api/fm/stations and api/dab/stations answer a made-up
+  scan (`FAKESHACK_RADIO_LISTEN_STATIONS=never`: never scanned, so the DAB
+  picker falls back to Remote's own block scan); POST api/scan runs about
+  10 s a band with `bandScan` progress and `rxOwner` by "scan", any api/set
+  aborting it, and ends with a `stations` event; in wfm on 88.6, 89.1,
+  93.4, 97.1, 101.2, 102.5, 104.5 or 106.2 MHz `rds` appears about 2 s after
+  the dial settles, with the meter's `stereo` and api/status audio.stereo.
 - **Radio's 48 kHz audio and stereo** (openhamshack-nb 78ec61f, SERVER-API
   "Receive audio"): with `FAKESHACK_RADIO_TONE=1` fakeshack answers
   Radio's `api/audio/rx` itself with a test tone at 48 kHz, whatever
