@@ -150,6 +150,8 @@
     <!-- %1$s a band name such as 2m -->
     <string name="shack_band">Band %1$s</string>
     <string name="shack_band_none">Between bands</string>
+    <!-- Why the meter shows no S reading, in the server's words. %1$s that sentence -->
+    <string name="shack_smeter_why">S-meter: %1$s</string>
     <!-- Radio's listening areas on the band buttons: short, as a radio's band keys. Receive only -->
     <string name="shack_area_lw">LW</string>
     <string name="shack_area_mw">MW</string>

@@ -71,6 +71,8 @@ data class EngineUi(
     val autoOpen: Boolean = true,
     /** The receive passband's power, dBFS (the engine's `meter` feed, uncalibrated: not S-units). */
     val rxDb: Double? = null,
+    /** The meter's calibrated reading, or why it has none (SMeter); empty from a server that says neither. */
+    val sMeter: SMeter = SMeter(),
     /** The shared band-plan data, once read (Radio only): the strip and the band buttons. */
     val plan: PlanData? = null,
     /** The band button last pressed here (RadioBands.current: it stays lit while the dial is inside it). */
@@ -268,7 +270,8 @@ class EngineSession(
                 }
             }
             is EngineEvent.Toast -> _ui.update { it.copy(toast = e.text) }
-            is EngineEvent.Meter -> e.rxDb?.let { db -> _ui.update { it.copy(rxDb = db) } }
+            // Each meter item says afresh whether there is a calibration: one without `s` ends the reading.
+            is EngineEvent.Meter -> _ui.update { it.copy(rxDb = e.rxDb ?: it.rxDb, sMeter = e.s) }
             is EngineEvent.Decoded -> { learn(e); _ui.update { it.copy(decoded = it.decoded.add(e)) } }
             is EngineEvent.Slot -> { learn(e); _ui.update { it.copy(decodes = it.decodes.add(e.decode)) } }
             is EngineEvent.Sstv -> {

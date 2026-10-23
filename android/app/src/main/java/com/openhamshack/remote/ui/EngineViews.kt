@@ -191,10 +191,16 @@ internal fun ScopeView(
  * S-units need a calibration only the station has), so [number] is off
  * unless asked for. The bar spans -120 to -20 dBFS, a receiver's noise floor
  * to a strong local signal on both engines.
+ *
+ * Once the server calibrates (SMeter, 23/10/2026) its S reading ([s]) goes
+ * beside the bar in bold, big enough on a TV to read from a sofa: that is a
+ * number that means something, as the dBFS figure was not.
  */
 @Composable
-internal fun SignalMeter(rxDb: Double?, width: Dp, big: Boolean, number: Boolean = false) {
+internal fun SignalMeter(rxDb: Double?, width: Dp, big: Boolean, number: Boolean = false, s: String? = null, sSize: TextUnit = 16.sp) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (s != null) Text(s, color = Color.White, fontWeight = FontWeight.Bold, fontSize = sSize, maxLines = 1,
+            modifier = Modifier.testTag("sMeter"))
         val f = rxDb?.let { ((it + 120.0) / 100.0).coerceIn(0.0, 1.0).toFloat() } ?: 0f
         val shape = RoundedCornerShape(3.dp)
         Box(Modifier.width(width).height(if (big) 6.dp else 4.dp).clip(shape).background(Color(0xFF2A2A2A))) {

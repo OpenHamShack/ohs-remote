@@ -135,7 +135,7 @@ internal fun RadioPhone(e: EngineSession, onBack: () -> Unit, onRepair: () -> Un
             Row(verticalAlignment = Alignment.CenterVertically) {
                 RadioDial(u, Modifier.weight(1f), maxSize = if (tablet) 56 else 44, onType = { typing = true }, onMode = { controlsSheet = true },
                     antenna = antenna, onAntenna = { antennaSheet = true })
-                SignalMeter(u.rxDb, if (tablet) 160.dp else 100.dp, big = tablet)
+                SignalMeter(u.rxDb, if (tablet) 160.dp else 100.dp, big = tablet, s = u.sMeter.reading, sSize = if (tablet) 26.sp else 18.sp)
             }
             u.problem?.let { p ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -307,6 +307,8 @@ private fun RadioControlsSheet(e: EngineSession, u: EngineUi, onType: () -> Unit
                 }
             }
         }
+        // Why the meter has no S reading (no calibration yet), where there is room to say it.
+        u.sMeter.explanation?.let { Text(stringResource(R.string.shack_smeter_why, it), color = Dim, fontSize = 13.sp) }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             if (u.hasNr) FilledTonalButton(onClick = { e.nr(u.state.nr != true) }, enabled = !u.viewOnly,
                 modifier = Modifier.testTag("nr")) { Text(nrLabel(u.state.nr)) }

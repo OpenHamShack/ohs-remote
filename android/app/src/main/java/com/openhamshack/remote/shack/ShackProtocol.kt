@@ -238,7 +238,8 @@ sealed interface EngineEvent {
     /** Changed state keys only; the first full state comes from `GET api/state`. */
     data class State(val changes: JSONObject) : EngineEvent
     data class Spectrum(val frame: SpectrumFrame) : EngineEvent
-    data class Meter(val rxDb: Double?, val beaconDb: Double?) : EngineEvent
+    /** The meter: uncalibrated dBFS ([rxDb]) and, from a server that calibrates, an S reading ([s]). */
+    data class Meter(val rxDb: Double?, val beaconDb: Double?, val s: SMeter = SMeter()) : EngineEvent
     data class Toast(val text: String) : EngineEvent
     /** A character decoder's text as it comes (CW, RTTY, PSK): a letter, a space, or an undecodable code shown raw. */
     data class Decoded(val mode: String, val text: String, val freq: Double?, val wpm: Double?) : EngineEvent
@@ -255,7 +256,7 @@ sealed interface EngineEvent {
                 "hello" -> o.optJSONObject("status")?.let { Hello(EngineStatus.parse(it)) } ?: Other
                 "state" -> State(o.optJSONObject("changes") ?: JSONObject())
                 "wide", "zoom" -> SpectrumFrame.parse(o)?.let { Spectrum(it) } ?: Other
-                "meter" -> Meter(o.num("rx"), o.num("beacon"))
+                "meter" -> Meter(o.num("rx"), o.num("beacon"), SMeter.parse(o))
                 "toast" -> o.optString("text").ifEmpty { o.optString("message") }.takeIf { it.isNotEmpty() }?.let { Toast(it) } ?: Other
                 // Every decoder's output (ohscore engine._emit_event). A slot
                 // means a whole message; none, a stream of characters. A

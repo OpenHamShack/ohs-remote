@@ -547,6 +547,9 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
                 TvItem(onClick = { settings = false; keys.legend = true }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.shack_keys_item), fontSize = 17.sp)
                 }
+                // Why the meter shows no S reading, in the server's words: the settings
+                // are where a TV has room to explain, and the header has none.
+                u.sMeter.explanation?.let { Text(stringResource(R.string.shack_smeter_why, it), fontSize = 15.sp, color = Dim) }
             }
         }
 
@@ -647,7 +650,7 @@ private fun Header(e: EngineSession, u: EngineUi) {
         if (e.kind == Kind.RADIO) Text(if (u.state.band.isBlank()) stringResource(R.string.shack_band_none) else stringResource(R.string.shack_band, u.state.band),
             color = Dim, fontSize = small, maxLines = 1)
         // 110 dp: with the longest mode (HSMODEM) and Simulator showing, 140 ran into "Locked".
-        SignalMeter(u.rxDb, 110.dp, big = true)
+        SignalMeter(u.rxDb, 110.dp, big = true, s = u.sMeter.reading, sSize = 30.sp)
     }
 }
 
