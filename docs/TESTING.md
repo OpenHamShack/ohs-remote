@@ -670,3 +670,34 @@ buffers played/lost, the longest video and audio gaps, and `lag` (wall
 time since opening minus stream time - compare it between option sets,
 it means nothing alone). Read logcat as a stream, not `-d`: a TV's
 256 KB buffer turns over in seconds when a decoder is complaining.
+
+### Radio's overhauled screen, TV polish and local frequencies (23 October 2026)
+
+`~/build/radio-overhaul-rig/rig.sh start|stop|restart-fakes|emu <avd> <port>` on
+shack: two `ohsradio --server` simulators (openhamshack-nb main) and one
+`ohsnb`, fakeshack :19900 with `FAKESHACK_RADIO_LISTEN=1`,
+`FAKESHACK_DECODERS=1` and `FAKESHACK_RADIO_ANTENNAS=1`, and a plain
+fakeshack :19920. Restarting a fakeshack forgets its tokens: the phone signs
+in again, the TV pairs again from Radio's "Pair again". Phone `ohsr` on
+5790 (`wm size 2560x1600` / `1600x2560`, density 320, for the Tab S9 in
+both orientations), TV `ohsr-tv` on 5792 at `wm size 1920x1080`, density 320.
+
+Seen against the mockups (screenshots kept outside the repo, one per
+mockup): the phone on 2 m, airband, broadcast FM (wfm, the server's
+"listening only" sentence in the amber strip) and DAB (station list in the
+scope's place, a service played, a dab+ one dimmed, Scan all blocks through
+41 blocks to the end and back to 11D); the band sheet's filters; the tablet
+sideways (the grid and transmit in the right-hand column) and upright; the
+plain fake's 2 m with the transmit button's own refusal; NB on the phone
+and the TV, unchanged. TV, D-pad only: Down to the row (through a docked
+FT8 panel), Left and Right changing the step and passing on at 10 Hz, Up
+back to the scope, Left and Right tuning there, Ch+ to the next band, the
+band picker sliding in and choosing DAB, a station played from the tiles,
+BACK out of DAB. Local frequencies on both: an entry tuned with its mode and
+step, the beacon on each band by the clock, one of my own added, then
+changed and removed by long press on the phone. S-meter calibration from
+Controls: S9 and a typed S7 taken, the reading following.
+
+TV cold start (fast build, x86 on `ohsr-tv`, `am start -W` median of 7,
+warm-up first, alternated): 431/580 ms before the polish, 433/564 ms after;
+no difference the emulator can measure. The Fire TV was not used.
