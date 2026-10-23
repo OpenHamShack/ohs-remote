@@ -28,10 +28,14 @@ data class BandButton(val band: PlanBand, val label: String) {
 object RadioBands {
     /**
      * The bands with buttons, in this order (Brian's list): HF, 6 m, 4 m and
-     * the two VHF/UHF bands a Radio is most often on. Which bands exist and
+     * the two VHF/UHF bands a Radio is most often on; then (23/10/2026, "23cm
+     * band") the microwave bands the dataset has that an SDR may reach - 23,
+     * 13, 9, 6 and 3 cm - which a receiver's rxRange leaves out when it
+     * cannot (the RSPdx stops at 2 GHz, after 23 cm). Which bands exist and
      * where they start is the dataset's; this is only which get a button.
      */
-    val NAMES = listOf("160m", "80m", "60m", "40m", "30m", "20m", "17m", "15m", "12m", "10m", "6m", "4m", "2m", "70cm")
+    val NAMES = listOf("160m", "80m", "60m", "40m", "30m", "20m", "17m", "15m", "12m", "10m", "6m", "4m", "2m", "70cm",
+        "23cm", "13cm", "9cm", "6cm", "3cm")
 
     /** "160m" -> "160", "70cm" -> "70cm": metres go without their unit, as on a radio's band keys. */
     fun label(name: String): String = if (name.endsWith("cm") || name.endsWith("mm")) name else name.removeSuffix("m")

@@ -100,7 +100,8 @@ class RadioBandsTest {
     // --- the buttons ---------------------------------------------------------
 
     @Test fun buttonsAreLabelledAsARadiosBandKeys() {
-        assertEquals(listOf("160", "80", "60", "40", "30", "20", "17", "15", "12", "10", "6", "4", "2", "70cm"),
+        assertEquals(listOf("160", "80", "60", "40", "30", "20", "17", "15", "12", "10", "6", "4", "2", "70cm",
+            "23cm", "13cm", "9cm", "6cm", "3cm"),
             RadioBands.buttons(data.vocab).map { it.label })
     }
 
@@ -108,8 +109,10 @@ class RadioBandsTest {
         // An HF-and-6 m receiver: no 4 m, 2 m or 70 cm.
         val hf = RadioBands.buttons(data.vocab, 1_000.0, 60_000_000.0).map { it.name }
         assertEquals(RadioBands.NAMES.take(11), hf)
-        // A receiver that starts at 70 MHz (a Pluto): 4 m upward only.
-        assertEquals(listOf("4m", "2m", "70cm"), RadioBands.buttons(data.vocab, 70_000_000.0, 6e9).map { it.name })
+        // A receiver that starts at 70 MHz (a Pluto): 4 m upward only, as far as 6 cm.
+        assertEquals(listOf("4m", "2m", "70cm", "23cm", "13cm", "9cm", "6cm"), RadioBands.buttons(data.vocab, 70_000_000.0, 6e9).map { it.name })
+        // The RSPdx on ohs-box (1 kHz-2 GHz): 23 cm, and nothing above it.
+        assertEquals("23cm", RadioBands.buttons(data.vocab, 1_000.0, 2e9).last().name)
     }
 
     @Test fun theServersBandNameLightsTheButtonElseTheDial() {
@@ -124,7 +127,8 @@ class RadioBandsTest {
         assertEquals("17m", RadioBands.step(b, "20m", 14_074_000.0, 1)?.name)
         assertEquals("30m", RadioBands.step(b, "20m", 14_074_000.0, -1)?.name)
         assertNull(RadioBands.step(b, "160m", 1_840_000.0, -1))
-        assertNull(RadioBands.step(b, "70cm", 432_200_000.0, 1))
+        assertEquals("23cm", RadioBands.step(b, "70cm", 432_200_000.0, 1)?.name)
+        assertNull(RadioBands.step(b, "3cm", 10_368_000_000.0, 1))
         // Between bands (a broadcast station at 6 MHz): the next band each way.
         assertEquals("40m", RadioBands.step(b, "", 6_000_000.0, 1)?.name)
         assertEquals("60m", RadioBands.step(b, "", 6_000_000.0, -1)?.name)
