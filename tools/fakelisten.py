@@ -60,13 +60,14 @@ What it makes Radio look like (FAKESHACK_RADIO_LISTEN=1):
     level, for the dial's side of 30 MHz; DELETE clears it; GET lists them),
     and refuses 409 cannot_calibrate with a sentence before any reading.
 
-  * local frequencies (RADIO-LISTEN-CONTRACT §5, Radio's API not out yet):
-    GET api/local answers a made-up list near Edinburgh (IO85) - airports,
-    area control, marine, PMR/CB/LPD channels - nearest first, with
-    attribution lines and the NCDXF beacons (the bands, the schedule, and who
-    is on now by the clock); POST api/local/mine adds one of the operator's
-    own, POST api/local/mine/{id} changes it, DELETE removes it, all kept in
-    memory for as long as fakeshack runs. The names are placeholders.
+  * local frequencies as Radio has them (openhamshack-nb SERVER-API "Local
+    frequencies", fb64699): GET api/local-frequencies?radiusKm=&category=
+    answers a made-up list near Edinburgh (IO85) in Radio's shape and order,
+    the attributions as objects, and `ncdxf` (who is on each beacon frequency
+    now, `at`, `nextChangeS`, the schedule, the credit); api/local-frequencies/
+    mine adds (POST), changes (PUT) and removes (DELETE) the operator's own,
+    refusing any other field 400 bad_field; refresh is 403 not_admin; api/set
+    takes `localRadiusKm`. The names are placeholders.
 
 The feed's results carry `type: "dab"`, `sync`, `ensemble`, `services` and
 `playing`, polled with `?since=` or sent to an events socket that asked
@@ -187,91 +188,157 @@ class Session:
         return r
 
 
-#: Made-up local frequencies near IO85 (placeholders: real data comes from the server's sources).
+#: Made-up local frequencies near IO85 (placeholders: real data comes from the server's sources), in Radio's
+#: shape (openhamshack-nb SERVER-API "Local frequencies", fb64699): category, name, sub, freqHz, mode, step,
+#: distanceKm, bearingDeg, source. The channel tables carry no distance.
 LOCAL = [
-    ("airport", "Edinburgh Tower", "EGPH · tower", 118_700_000, "am", 8333, 11.8, 284, "OurAirports"),
-    ("airport", "Edinburgh Approach", "EGPH · approach", 121_200_000, "am", 8333, 11.8, 284, "OurAirports"),
-    ("airport", "Edinburgh ATIS", "EGPH · ATIS", 131_355_000, "am", 8333, 11.8, 284, "OurAirports"),
-    ("airport", "Glasgow Tower", "EGPF · tower", 118_800_000, "am", 8333, 64.0, 262, "OurAirports"),
-    ("area-control", "Scottish Control", "Sector 5", 126_300_000, "am", 8333, 48.0, 250, "UK AIP"),
-    ("marine", "Forth Coastguard", "Channel 16 · calling and distress", 156_800_000, "fm", 25000, 9.5, 20, "ITU"),
-    ("marine", "Leith Port", "Channel 12 · port operations", 156_600_000, "fm", 25000, 4.2, 15, "ITU"),
-    ("pmr", "PMR446 channel 1", "Licence-free radios", 446_006_250, "fm", 12500, None, None, "Ofcom"),
-    ("pmr", "CB channel 19", "CEPT · the calling channel", 27_185_000, "fm", 10000, None, None, "Ofcom"),
-    ("pmr", "LPD433 channel 1", "Licence-free radios", 433_075_000, "fm", 25000, None, None, "Ofcom"),
+    ("airband", "Edinburgh Airport", "TWR Edinburgh Tower", 118_700_000, "am", 8333, 11.8, 284, "ourairports"),
+    ("airband", "Edinburgh Airport", "APP Edinburgh Approach", 121_200_000, "am", 8333, 11.8, 284, "ourairports"),
+    ("airband", "Edinburgh Airport", "ATIS", 131_355_000, "am", 8333, 11.8, 284, "ourairports"),
+    ("airband", "Glasgow Airport", "TWR Glasgow Tower", 118_800_000, "am", 8333, 64.0, 262, "ourairports"),
+    ("marine", "Forth Coastguard", "Channel 16 · distress, safety and calling", 156_800_000, "fm", 25000, 9.5, 20, "hmcg"),
+    ("marine", "Leith Port", "Channel 12 · port operations", 156_600_000, "fm", 25000, 4.2, 15, "osm-marine"),
+    ("marine", "Marine Ch 16", "distress, safety and calling", 156_800_000, "fm", 25000, None, None, "itu-marine"),
+    ("pmr", "PMR446 Ch 1", "licence-free", 446_006_250, "fm", 12500, None, None, "channels"),
+    ("cb", "CB Ch 19", "CEPT · the calling channel", 27_185_000, "fm", 10000, None, None, "channels"),
+    ("lpd", "LPD433 Ch 1", "licence-free", 433_075_000, "fm", 25000, None, None, "channels"),
 ]
-NCDXF_CALLS = ["4U1UN", "VE8AT", "W6WX", "KH6RS", "ZL6B", "VK6RBP", "JA2IGY", "RR9O", "VR2B",
-               "4S7B", "ZS6DN", "5Z4B", "4X6TU", "OH2B", "CS3B", "LU4AA", "OA4B", "YV5B"]
-NCDXF_PLACES = {"4U1UN": "New York", "VE8AT": "Eureka", "W6WX": "Mt Umunhum", "KH6RS": "Maui", "ZL6B": "Masterton",
-                "VK6RBP": "Rolystone", "JA2IGY": "Mt Asama", "RR9O": "Novosibirsk", "VR2B": "Hong Kong",
-                "4S7B": "Colombo", "ZS6DN": "Pretoria", "5Z4B": "Kariobangi", "4X6TU": "Tel Aviv", "OH2B": "Lohja",
-                "CS3B": "Madeira", "LU4AA": "Buenos Aires", "OA4B": "Lima", "YV5B": "Caracas"}
-NCDXF_BANDS = [("20m", 14_100_000), ("17m", 18_110_000), ("15m", 21_150_000), ("12m", 24_930_000), ("10m", 28_200_000)]
-ATTRIBUTIONS = ["Airports: OurAirports (public domain), placeholder entries",
-                "Marine channels: ITU Radio Regulations Appendix 18",
-                "Beacons: Northern California DX Foundation (NCDXF/IARU)"]
+#: The order Radio lists categories in.
+CATEGORIES = ["airband", "enroute", "marine", "pmr", "cb", "lpd", "beacon", "mine"]
+NCDXF = [("4U1UN", "United Nations, New York"), ("VE8AT", "Eureka, Nunavut"), ("W6WX", "Mt Umunhum, California"),
+         ("KH6RS", "Maui, Hawaii"), ("ZL6B", "Masterton, New Zealand"), ("VK6RBP", "Rolystone, Australia"),
+         ("JA2IGY", "Mt Asama, Japan"), ("RR9O", "Novosibirsk, Russia"), ("VR2B", "Hong Kong"),
+         ("4S7B", "Colombo, Sri Lanka"), ("ZS6DN", "Pretoria, South Africa"), ("5Z4B", "Kariobangi, Kenya"),
+         ("4X6TU", "Tel Aviv, Israel"), ("OH2B", "Lohja, Finland"), ("CS3B", "Madeira"), ("LU4AA", "Buenos Aires, Argentina"),
+         ("OA4B", "Lima, Peru"), ("YV5B", "Caracas, Venezuela")]
+NCDXF_FREQS = [14_100_000, 18_110_000, 21_150_000, 24_930_000, 28_200_000]
+ATTRIBUTIONS = {
+    "ourairports": {"source": "OurAirports", "text": "Airfield frequencies from OurAirports (public domain), placeholder entries",
+                    "licence": "Public domain", "url": "https://ourairports.com/data/"},
+    "hmcg": {"source": "HM Coastguard", "text": "Coastguard working channels, HM Coastguard",
+             "licence": "Open Government Licence v3.0", "url": "https://www.nationalarchives.gov.uk/doc/open-government-licence/"},
+    "osm-marine": {"source": "OpenStreetMap", "text": "Marine VHF from OpenStreetMap contributors",
+                   "licence": "ODbL 1.0", "url": "https://www.openstreetmap.org/copyright"},
+    "itu-marine": {"source": "ITU", "text": "Marine channels from ITU Radio Regulations Appendix 18", "licence": "", "url": ""},
+    "channels": {"source": "Radio", "text": "PMR446, CB and LPD433 channel plans", "licence": "", "url": ""},
+    "ncdxf": {"source": "NCDXF", "text": "NCDXF/IARU International Beacon Project", "licence": "", "url": "https://www.ncdxf.org/beacon/"},
+}
+NO_LOCATOR = "Set the station's locator in the station profile to list what is near it"
+#: The fields "my frequencies" accept (SERVER-API): anything else is 400 bad_field.
+MINE_FIELDS = {"name", "freqHz", "mode", "category", "locator", "sub", "notes"}
+
+
+def _iso(t: float) -> str:
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(t))
 
 
 class Local:
-    """The local-frequencies fixture: the made-up list and the operator's own, in memory."""
+    """The local-frequencies fixture, Radio's shape: the made-up list, the beacons by the clock, the operator's own."""
 
-    def __init__(self):
+    def __init__(self, locator: str = "IO85"):
         self.mine: dict[str, dict] = {}
         self.n = 0
+        self.radius = 100
+        self.locator = locator
 
     @staticmethod
     def entry(i: int, row) -> dict:
         cat, name, sub, hz, mode, step, km, brg, src = row
-        e = {"id": f"e{i}", "category": cat, "name": name, "sub": sub, "freqHz": hz, "mode": mode, "step": step, "source": src}
+        e = {"id": f"{src}:{i}:{hz}", "category": cat, "name": name, "sub": sub, "freqHz": hz, "mode": mode, "step": step, "source": src}
         if km is not None:
-            e["distanceKm"], e["bearing"] = km, brg
+            e["distanceKm"], e["bearingDeg"] = km, brg
         return e
 
-    def view(self, now: float | None = None) -> dict:
-        slot = int((now if now is not None else time.time()) % 180 // 10)
-        entries = [self.entry(i, r) for i, r in enumerate(LOCAL)] + list(self.mine.values())
-        entries.sort(key=lambda e: (e.get("distanceKm") is None, e.get("distanceKm") or 0))
-        return {"radiusKm": 100, "locator": "IO85", "attributions": ATTRIBUTIONS, "entries": entries,
-                "ncdxf": {"bands": [{"band": b, "freqHz": f} for b, f in NCDXF_BANDS], "schedule": NCDXF_CALLS,
-                          "locations": NCDXF_PLACES,
-                          "now": [{"band": b, "freqHz": f, "call": NCDXF_CALLS[(slot - k) % 18]} for k, (b, f) in enumerate(NCDXF_BANDS)]}}
+    def ncdxf(self, now: float) -> dict:
+        slot = int(now % 180 // 10)
+        on = {str(f): NCDXF[(slot - k) % 18] for k, f in enumerate(NCDXF_FREQS)}
+        return {"now": {f: {"call": c, "location": loc} for f, (c, loc) in on.items()},
+                "at": _iso(now), "nextChangeS": round(10 - now % 10, 1), "slotSeconds": 10, "cycleSeconds": 180,
+                "frequencies": NCDXF_FREQS, "schedule": [{"slot": i, "call": c, "location": loc} for i, (c, loc) in enumerate(NCDXF)],
+                "credit": "NCDXF/IARU International Beacon Project"}
+
+    def view(self, now: float | None = None, radius: float | None = None, category: str | None = None) -> dict:
+        now = time.time() if now is None else now
+        r = radius or self.radius
+        rows = [self.entry(i, x) for i, x in enumerate(LOCAL)]
+        if not self.locator:
+            rows = [e for e in rows if "distanceKm" not in e]
+        rows = [e for e in rows if e.get("distanceKm") is None or e["distanceKm"] <= r]
+        b = self.ncdxf(now)
+        rows += [{"id": f"ncdxf:{f}", "category": "beacon", "name": f"NCDXF {f / 1e6:.3f}", "sub": b["now"][str(f)]["call"],
+                  "freqHz": f, "mode": "cw", "step": 10, "source": "ncdxf"} for f in NCDXF_FREQS]
+        rows += list(self.mine.values())
+        if category:
+            rows = [e for e in rows if e["category"] == category]
+        rows.sort(key=lambda e: (CATEGORIES.index(e["category"]), e.get("distanceKm") is None, e.get("distanceKm") or 0))
+        out = {"locator": self.locator, "radiusKm": r, "generatedAt": _iso(now),
+               "attributions": [ATTRIBUTIONS[s] for s in dict.fromkeys(e["source"] for e in rows) if s in ATTRIBUTIONS],
+               "entries": rows, "ncdxf": b}
+        if not self.locator:
+            out["why"] = NO_LOCATOR
+        return out
 
     @staticmethod
-    def check(b: dict) -> str | None:
-        name, hz, mode = b.get("name"), b.get("freqHz"), b.get("mode")
-        if not isinstance(name, str) or not name.strip() or "\n" in name or len(name) > 60:
-            return "Give the frequency a name of one line, at most 60 characters"
-        if isinstance(hz, bool) or not isinstance(hz, (int, float)) or not 1_000 <= hz <= 6e9:
-            return "Give a frequency between 1 kHz and 6 GHz, in Hz"
-        if not isinstance(mode, str) or not mode:
-            return "Give the mode to listen in"
+    def check(b: dict, partial: bool = False) -> tuple[str, str] | None:
+        """(field, sentence) for the first field Radio would refuse, else None."""
+        for k in b:
+            if k not in MINE_FIELDS:
+                return k, f"{k} is not a field of my frequencies"
+        for k, v in b.items():
+            if isinstance(v, str) and ("\n" in v or "\r" in v):
+                return k, f"{k} must be one line"
+        if not partial or "name" in b:
+            if not isinstance(b.get("name"), str) or not 1 <= len(b["name"].strip()) <= 60:
+                return "name", "Give it a name of 1 to 60 characters"
+        if not partial or "freqHz" in b:
+            hz = b.get("freqHz")
+            if isinstance(hz, bool) or not isinstance(hz, int) or not 10_000 <= hz <= 10_000_000_000:
+                return "freqHz", "Give a whole frequency in Hz, 10 kHz to 10 GHz"
+        if not partial or "mode" in b:
+            if not isinstance(b.get("mode"), str) or not b["mode"]:
+                return "mode", "Give the mode to listen in"
         return None
 
-    def answer(self, method: str, path: str, b: dict) -> tuple[int, dict] | None:
-        if path == "/api/local" and method == "GET":
-            return 200, self.view()
-        if path == "/api/local/mine" and method == "POST":
+    def answer(self, method: str, path: str, b: dict, query: dict | None = None) -> tuple[int, dict] | None:
+        q = query or {}
+        if path == "/api/local-frequencies" and method == "GET":
+            cat = (q.get("category") or [None])[0]
+            if cat and cat not in CATEGORIES:
+                return 400, {"error": f"No category {cat!r}", "code": "bad_category"}
+            try:
+                r = float(q["radiusKm"][0]) if "radiusKm" in q else None
+            except ValueError:
+                r = -1
+            if r is not None and not 1 <= r <= 2000:
+                return 400, {"error": "radiusKm runs from 1 to 2000", "code": "bad_radius"}
+            return 200, self.view(radius=r, category=cat)
+        if path == "/api/local-frequencies/refresh" and method == "POST":
+            return 403, {"error": "Only the controller's administrator can refresh the data", "code": "not_admin"}
+        if path == "/api/local-frequencies/mine" and method == "POST":
             bad = self.check(b)
             if bad:
-                return 400, {"error": bad, "code": "bad_params"}
+                return 400, {"error": bad[1], "code": "bad_field", "field": bad[0]}
             self.n += 1
-            e = {"id": f"m{self.n}", "category": "mine", "name": b["name"].strip(), "sub": "", "freqHz": b["freqHz"],
-                 "mode": b["mode"], "step": b.get("step"), "source": "you"}
+            e = {"id": f"mine:m{self.n}", "category": "mine", "name": b["name"].strip(), "sub": b.get("sub", ""), "freqHz": b["freqHz"],
+                 "mode": b["mode"], "source": "mine", "userCategory": b.get("category") or "other", "notes": b.get("notes", ""),
+                 "locator": b.get("locator", "")}
             self.mine[e["id"]] = e
             return 201, e
-        if path.startswith("/api/local/mine/"):
-            mid = path.rsplit("/", 1)[-1]
+        if path.startswith("/api/local-frequencies/mine/"):
+            mid = path[len("/api/local-frequencies/mine/"):]
             if mid not in self.mine:
-                return 404, {"error": "There is no such frequency of yours", "code": "not_found"}
+                return 404, {"error": "There is no such frequency of yours", "code": "unknown_entry"}
             if method == "DELETE":
                 del self.mine[mid]
-                return 200, {"deleted": True}
-            if method == "POST":
-                bad = self.check(b)
+                return 200, {"deleted": mid}
+            if method == "PUT":
+                bad = self.check(b, partial=True)
                 if bad:
-                    return 400, {"error": bad, "code": "bad_params"}
-                self.mine[mid].update(name=b["name"].strip(), freqHz=b["freqHz"], mode=b["mode"], step=b.get("step"))
-                return 200, self.mine[mid]
+                    return 400, {"error": bad[1], "code": "bad_field", "field": bad[0]}
+                e = self.mine[mid]
+                for k, v in b.items():
+                    e["userCategory" if k == "category" else k] = v.strip() if isinstance(v, str) else v
+                return 200, e
         return None
 
 
@@ -321,6 +388,13 @@ class Listen:
             return {}
         return {"by": "dab", "session": o["session"], "block": o["block"], "freqHz": o["freqHz"], "prior": o["prior"],
                 "text": BUSY.format(block=o["block"])}
+
+    def radius_set(self, changes: dict) -> tuple[dict, dict]:
+        """(localRadiusKm taken here, the rest): the simulator has no such setting yet."""
+        mine = {k: v for k, v in changes.items() if k == "localRadiusKm"}
+        if mine:
+            self.local.radius = mine["localRadiusKm"]
+        return mine, {k: v for k, v in changes.items() if k != "localRadiusKm"}
 
     def refuse_set(self, changes: dict) -> tuple[int, dict] | None:
         """409 receiver_busy for an api/set that would tune while a DAB session holds the receiver."""
@@ -452,8 +526,8 @@ class Listen:
 
     def answer(self, method: str, path: str, query: dict, body: dict) -> tuple[int, dict] | None:
         """(status, body) for a dab or local route, or None for anything this fixture does not own."""
-        if path.startswith("/api/local"):
-            return self.local.answer(method, path, body)
+        if path.startswith("/api/local-frequencies"):
+            return self.local.answer(method, path, body, query)
         if path == "/api/smeter/calibrate" and method in ("GET", "POST", "DELETE"):
             return self.calibrate(method, body)
         if path == "/api/decoders/sessions" and method == "POST" and body.get("decoder") == "dab":
