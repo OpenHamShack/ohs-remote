@@ -165,6 +165,8 @@ class EngineSession(
     private val seen = mutableMapOf<String, DecoderPanel>()
     /** This device's last spot on each band of this box (Radio); written back a moment after it settles. */
     private var spots: Map<String, BandSpot> = emptyMap()
+    /** The DAB station this device last chose on each block of this box (block label -> service id). */
+    private var dabServices: Map<String, String> = emptyMap()
     private var spotsSaved: Map<String, BandSpot> = emptyMap()
     private var saving: Job? = null
 
@@ -196,6 +198,7 @@ class EngineSession(
                 planData.invoke() to (bandMemory?.load(boxKey) ?: emptyMap())
             }
             val recent = kotlinx.coroutines.withContext(Dispatchers.IO) { bandMemory?.loadRecent(boxKey).orEmpty() }
+            dabServices = kotlinx.coroutines.withContext(Dispatchers.IO) { bandMemory?.loadDab(boxKey).orEmpty() }
             spots = kept
             spotsSaved = kept
             _ui.update { it.copy(plan = data, recentBands = recent) }
@@ -284,7 +287,11 @@ class EngineSession(
                     // passband starts a new labelled section. A state that carries no dial
                     // (a change to something else) leaves it alone.
                     val decodes = s.dialHz?.let { dial -> u.decodes.retune(s.band, dial, s.mode, System.currentTimeMillis() / 1000.0) } ?: u.decodes
-                    u.copy(state = s, pendingDialHz = pending, decodes = decodes, panel = u.panel.decoder(DecoderPanel.of(s.mode, seen), u.autoOpen))
+                    // The receiver given back: the "playing DAB" sentence left on the toast line no longer holds.
+                    val was = u.state.rxOwner?.text
+                    val toast = if (was != null && s.rxOwner == null && u.toast == was) null else u.toast
+                    u.copy(state = s, pendingDialHz = pending, decodes = decodes, panel = u.panel.decoder(DecoderPanel.of(s.mode, seen), u.autoOpen),
+                        toast = toast)
                 }
                 // On the session's own thread: the socket's messages arrive on OkHttp's, and the spots are not shared.
                 if (kind == Kind.RADIO) scope.launch { track(_ui.value.state) }
@@ -391,10 +398,28 @@ class EngineSession(
     fun tune(by: Int) {
         val u = _ui.value
         val from = u.dialHz ?: return
-        setDial(Tuning.stepped(from, u.stepHz, by, u.dialMin, u.dialMax, ListenAreas.origin(from, u.stepHz)))
+        if (held()) return
+        sendDial(Tuning.stepped(from, u.stepHz, by, u.dialMin, u.dialMax, ListenAreas.origin(from, u.stepHz)))
+    }
+
+    /**
+     * Whether a decoder session holds the receiver (`rxOwner`: DAB, SERVER-API
+     * "DAB"), so the dial and mode are not the operator's: Radio would refuse
+     * the set (409 receiver_busy), so none is sent, and the server's sentence
+     * is the toast line instead. Stopping DAB gives the receiver back.
+     */
+    private fun held(): Boolean {
+        val o = _ui.value.state.rxOwner ?: return false
+        _ui.update { it.copy(toast = o.text.ifEmpty { it.toast }) }
+        return true
     }
 
     fun setDial(hz: Double) {
+        if (held()) return
+        sendDial(hz)
+    }
+
+    private fun sendDial(hz: Double) {
         target = hz
         _ui.update { it.copy(pendingDialHz = hz) }
         if (sending?.isActive == true) return
@@ -408,7 +433,8 @@ class EngineSession(
                 try {
                     client.set(JSONObject().put("vfo", hz2))
                 } catch (e: Exception) {
-                    fail(e)
+                    // The receiver taken by a DAB session meanwhile: its sentence, not a lost connection.
+                    if (e is ShackException && e.code == RECEIVER_BUSY) _ui.update { it.copy(toast = e.message) } else fail(e)
                     _ui.update { it.copy(pendingDialHz = null) }
                     target = null
                     break
@@ -431,7 +457,7 @@ class EngineSession(
      * panel, as for a change made anywhere else.
      */
     fun setMode(mode: String) {
-        if (mode == _ui.value.state.mode) return
+        if (mode == _ui.value.state.mode || held()) return
         scope.launch { control { client.set(JSONObject().put("mode", mode)) } }
     }
 
@@ -441,7 +467,7 @@ class EngineSession(
      * lands on the dial with the FT8 decoder running, and its panel opens.
      * The dial moves on screen at once, as a D-pad tune does.
      */
-    fun goTo(b: Bookmark) = goTo(b.hz, b.mode)
+    fun goTo(b: Bookmark) { if (!held()) goTo(b.hz, b.mode) }
 
     private fun goTo(hz: Double, mode: String) {
         target = null
@@ -479,7 +505,13 @@ class EngineSession(
         block()
         true
     } catch (e: ShackException) {
-        if (e.http == 403) _ui.update { it.copy(viewOnly = true, toast = e.message) } else fail(e)
+        when {
+            e.http == 403 -> _ui.update { it.copy(viewOnly = true, toast = e.message) }
+            // Refusals that are about the radio, not the link (a DAB session holds the receiver, on the air, too
+            // slow a rate): the server's sentence on the toast line rather than the screen's connection problem.
+            e.code in SAID_REFUSALS -> _ui.update { it.copy(toast = e.message.orEmpty().ifEmpty { e.code }) }
+            else -> fail(e)
+        }
         false
     } catch (e: kotlinx.coroutines.CancellationException) {
         throw e
@@ -491,6 +523,7 @@ class EngineSession(
     fun step(by: Int) = _ui.update { it.copy(stepHz = Tuning.nextStep(kind, it.stepHz, by)) }
 
     fun mode(by: Int) {
+        if (held()) return
         val u = _ui.value
         val next = Tuning.nextMode(u.offered, u.state.mode, by)
         if (next == u.state.mode) return
@@ -519,15 +552,26 @@ class EngineSession(
      */
     fun bandTo(b: BandButton) {
         val u = _ui.value
-        val data = u.plan ?: return
+        if (u.plan == null) return
+        // Another device's DAB holds the receiver: say so rather than be refused.
+        val owner = u.state.rxOwner
+        if (owner != null && owner.session != u.dab?.session && b.area?.id != ListenAreas.DAB) { held(); return }
         val recent = RecentBands.push(u.recentBands, b.name)
         if (recent != u.recentBands) {
             _ui.update { it.copy(recentBands = recent) }
             bandMemory?.let { m -> sendScope.launch(Dispatchers.IO) { m.saveRecent(boxKey, recent) } }
         }
         // The station list takes the scope's place now, so the bands stay in
-        // reach while it is up: leaving DAB for another band ends its session.
-        if (b.area?.id != ListenAreas.DAB && u.dab != null) closeDab()
+        // reach while it is up: leaving DAB for another band ends its session
+        // first, which gives the receiver back (Radio puts the old dial and
+        // mode back), and only then tunes - a set sent before would be refused.
+        if (b.area?.id != ListenAreas.DAB && u.dab != null) { closeDab { pressBand(b) }; return }
+        pressBand(b)
+    }
+
+    private fun pressBand(b: BandButton) {
+        val u = _ui.value
+        val data = u.plan ?: return
         b.area?.let { area ->
             // A listening area: its spot, its mode (or the fallback when the
             // server has no such mode) and its step, every press - an area has
@@ -539,7 +583,7 @@ class EngineSession(
             // press opens the station list on the block the dial is near
             // (11D the first time), which tunes there itself.
             if (area.id == ListenAreas.DAB) { openDab(DabBlocks.at(u.dialHz) ?: DabBlocks.DEFAULT); return }
-            if (spot.mode == null) setDial(spot.hz) else goTo(spot.hz, spot.mode)
+            if (spot.mode == null) sendDial(spot.hz) else goTo(spot.hz, spot.mode)
             return
         }
         _ui.update { it.copy(pressedBand = b.name) }
@@ -554,25 +598,35 @@ class EngineSession(
 
     private var dabPoll: Job? = null
 
+    /** The toast for a DAB session stopped from elsewhere, in the screen's words (set by the screen: this class has no resources). */
+    var dabStoppedText: String = ""
+
     /**
-     * The DAB panel on [block]: the dial to the block's centre, a `dab`
-     * decoder session there (any session of ours on another block stopped
-     * first), and its feed polled once a second while the panel is open.
-     * A refusal (decoder_unavailable, too many sessions) is the panel's
-     * problem line in the server's words, not the screen's.
+     * The DAB panel on [block]: a `dab` decoder session there (any session
+     * of ours on another block stopped first), playing the station this
+     * device last chose on that block, and its feed polled once a second
+     * while the panel is open. The session tunes the receiver itself and
+     * holds it (SERVER-API "DAB": `rxOwner`), so nothing here sets the dial.
+     * A refusal (receiver_busy, on_air, rate_too_low, a bad block) is the
+     * panel's problem line in the server's words, not the screen's.
      */
     fun openDab(block: DabBlock) {
         val old = _ui.value.dab?.session
         dabPoll?.cancel()
         dabScanJob?.cancel()
         dabScanJob = null
-        _ui.update { it.copy(dabScan = null) }
-        _ui.update { it.copy(dab = DabUi(block), pressedBand = ListenAreas.DAB) }
-        setDial(block.centreHz)
+        val missing = _ui.value.dab?.missingText.orEmpty()
+        _ui.update { it.copy(dabScan = null, dab = DabUi(block, missingText = missing), pressedBand = ListenAreas.DAB) }
+        if (missing.isEmpty()) scope.launch {
+            // The catalogue's word for what cannot play here (no faad2: DAB+), once per opening.
+            runCatching { DabFeed.missingText(client.decoders()) }.onSuccess { t ->
+                if (t.isNotEmpty()) _ui.update { u -> u.copy(dab = u.dab?.copy(missingText = t)) }
+            }
+        }
         dabPoll = scope.launch {
-            old?.let { id -> runCatching { client.decoderStop(id) } }
+            old?.let { id -> stopAwaited(id) }
             val id = try {
-                client.decoderStart(DabFeed.start(block)).optString("id").ifEmpty { null }
+                client.decoderStart(DabFeed.start(block, dabServices[block.label])).optString("id").ifEmpty { null }
             } catch (e: ShackException) {
                 _ui.update { u -> u.copy(dab = u.dab?.copy(problem = e.message.orEmpty().ifEmpty { e.code })) }
                 return@launch
@@ -585,8 +639,19 @@ class EngineSession(
             _ui.update { u -> u.copy(dab = u.dab?.copy(session = id)) }
             while (isActive) {
                 val since = _ui.value.dab?.since ?: break
-                runCatching { client.decoderPoll(id, since) }.onSuccess { p ->
+                try {
+                    val p = client.decoderPoll(id, since)
                     _ui.update { u -> u.copy(dab = u.dab?.let { d -> DabFeed.apply(d, p) }) }
+                } catch (e: ShackException) {
+                    // Stopped from elsewhere (another device's Stop DAB, the radio stopping): the list goes,
+                    // the receiver is the operator's again, and the toast line says so.
+                    if (e.http == 404) {
+                        _ui.update { u -> u.copy(dab = null, dabScan = null, toast = dabStoppedText) }
+                        break
+                    }
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
+                } catch (_: Exception) {
                 }
                 delay(DAB_POLL_MS)
             }
@@ -605,18 +670,60 @@ class EngineSession(
         val d = _ui.value.dab ?: return
         if (!DabFeed.canPlay(d, sid)) return
         val id = d.session ?: return
-        scope.launch { control { client.decoderParams(id, JSONObject().put("service", sid)) } }
+        scope.launch {
+            if (control { client.decoderParams(id, JSONObject().put("service", sid)) }) {
+                // Remembered per block, per box: the next start on this block plays it at once.
+                dabServices = dabServices + (d.block.label to sid)
+                val m = bandMemory
+                val keep = dabServices
+                if (m != null) sendScope.launch(Dispatchers.IO) { m.saveDab(boxKey, keep) }
+            }
+        }
     }
 
-    /** The panel put away: its session stopped, so the server is not left decoding a block nobody is listening to. */
-    fun closeDab() {
+    /**
+     * The panel put away: its session stopped, which gives the receiver back
+     * (Radio puts the dial and mode from before back), and [then] once the
+     * server has answered - a tune sent sooner would be refused as busy.
+     */
+    fun closeDab(then: (() -> Unit)? = null) {
         val id = _ui.value.dab?.session
         dabPoll?.cancel()
         dabPoll = null
         dabScanJob?.cancel()
         dabScanJob = null
         _ui.update { it.copy(dab = null, dabScan = null) }
-        id?.let { scope.launch { runCatching { client.decoderStop(it) } } }
+        if (id == null) { then?.invoke(); return }
+        scope.launch {
+            stopAwaited(id)
+            then?.invoke()
+        }
+    }
+
+    /** Stop a session of ours and wait for the answer, even from a coroutine being cancelled: the next start must find the receiver free. */
+    private suspend fun stopAwaited(id: String) {
+        kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) { runCatching { client.decoderStop(id) } }
+    }
+
+    /**
+     * "Stop DAB" where the receiver is held (`rxOwner`): ours, the panel
+     * closes; another device's, its session is stopped here when the
+     * server lets this level do that, and its refusal said otherwise.
+     */
+    fun stopReceiverOwner() {
+        val o = _ui.value.state.rxOwner ?: return
+        if (o.session == _ui.value.dab?.session) { closeDab(); return }
+        scope.launch {
+            try {
+                client.decoderStopChecked(o.session)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: ShackException) {
+                _ui.update { it.copy(viewOnly = it.viewOnly || e.http == 403, toast = e.message.orEmpty().ifEmpty { e.code }) }
+            } catch (e: Exception) {
+                _ui.update { it.copy(toast = e.message.orEmpty()) }
+            }
+        }
     }
 
     private var dabScanJob: Job? = null
@@ -647,9 +754,14 @@ class EngineSession(
 
     /** OK on a local frequency: its dial, its mode where the server offers it, its step; receive only, nothing keys. */
     fun tuneLocal(spot: LocalSpot) {
-        if (_ui.value.dab != null) closeDab()
-        spot.stepHz?.let { s -> _ui.update { it.copy(stepHz = s) } }
-        if (spot.mode == null || spot.mode == _ui.value.state.mode) setDial(spot.hz) else goTo(spot.hz, spot.mode)
+        val u = _ui.value
+        val owner = u.state.rxOwner
+        if (owner != null && owner.session != u.dab?.session) { held(); return }
+        val go = {
+            spot.stepHz?.let { s -> _ui.update { it.copy(stepHz = s) } }
+            if (spot.mode == null) sendDial(spot.hz) else goTo(spot.hz, spot.mode)
+        }
+        if (u.dab != null) closeDab(go) else go()
     }
 
     /** One of the operator's own, added ([id] null) or changed; the list read again after. A refusal is the screen's line. */
@@ -695,12 +807,12 @@ class EngineSession(
         dabPoll = null
         dabScanJob?.cancel()
         dabScanJob = scope.launch {
-            old?.let { id -> runCatching { client.decoderStop(id) } }
+            old?.let { id -> stopAwaited(id) }
             val found = mutableListOf<DabFound>()
             val total = DabBlocks.ALL.size
             for ((i, block) in DabBlocks.ALL.withIndex()) {
-                _ui.update { it.copy(dab = DabUi(block), dabScan = DabScanProgress(i, total, block, found.toList())) }
-                setDial(block.centreHz)
+                _ui.update { it.copy(dab = DabUi(block, missingText = it.dab?.missingText.orEmpty()),
+                    dabScan = DabScanProgress(i, total, block, found.toList())) }
                 val id = try {
                     client.decoderStart(DabFeed.start(block)).optString("id").ifEmpty { null }
                 } catch (e: ShackException) {
@@ -729,8 +841,8 @@ class EngineSession(
                         }
                     }
                 } finally {
-                    // Stopped on the send scope: a Stop pressed mid-poll cancels this one.
-                    sendScope.launch { runCatching { client.decoderStop(id) } }
+                    // Waited for, even when Stop cancels the scan: one DAB session holds the receiver at a time.
+                    stopAwaited(id)
                     _ui.update { u -> u.copy(dab = u.dab?.copy(session = null)) }
                 }
             }
@@ -909,8 +1021,14 @@ class EnginePttLink(private val client: EngineClient) : PttLink {
     }
 }
 
-/** Decoder refusals that end a DAB scan rather than skip one block. */
-private val SCAN_FATAL = setOf("decoder_unavailable", "too_many_sessions")
+/** Decoder refusals that end a DAB scan rather than skip one block (the receiver taken, on the air, too slow a rate). */
+private val SCAN_FATAL = setOf("decoder_unavailable", "too_many_sessions", "receiver_busy", "on_air", "rate_too_low")
+
+/** Radio's refusal while a DAB session holds the receiver (SERVER-API "DAB"). */
+const val RECEIVER_BUSY = "receiver_busy"
+
+/** Refusals about the radio rather than the link: said on the toast line in the server's words. */
+private val SAID_REFUSALS = setOf(RECEIVER_BUSY, "on_air", "rate_too_low", "out_of_range", "bad_params")
 
 /** The de-emphasis choices Radio's server takes (openhamshack-nb ohsradio/state.py DEEMPHASIS_US). */
 val WFM_DEEMPHASIS_US = listOf(50, 75)

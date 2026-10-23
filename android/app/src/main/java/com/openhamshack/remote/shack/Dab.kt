@@ -14,9 +14,13 @@ import org.json.JSONObject
 // Radio session, 23/10/2026: so it is on ohs-box until faad2 arrives), so a
 // service with a why is shown dimmed with its sentence and never asked for.
 
-/** One service on the block: [why] non-empty means the server cannot play it, and says why. */
-data class DabService(val sid: String, val label: String, val kind: String, val bitrate: Int?, val why: String) {
-    val playable: Boolean get() = why.isEmpty()
+/**
+ * One service on the block: [why] the sentence for why the server cannot
+ * play it (its `whyText`, else `why`), [code] the code itself
+ * (needs_codec:faad2); either non-empty means it is not offered.
+ */
+data class DabService(val sid: String, val label: String, val kind: String, val bitrate: Int?, val why: String, val code: String = "") {
+    val playable: Boolean get() = why.isEmpty() && code.isEmpty()
 }
 
 /**
@@ -35,6 +39,12 @@ data class DabUi(
     val playing: String? = null,
     val problem: String = "",
     val since: Int = 0,
+    /** The ensemble's list is whole (Radio's `complete`, about 0.8 s after sync); null from a server that does not say. */
+    val complete: Boolean? = null,
+    /** The playing station's programme text (DLS), null until one is whole. */
+    val dls: String? = null,
+    /** The catalogue's sentence for what part of DAB cannot play here (no faad2: DAB+), said once under the list. */
+    val missingText: String = "",
 ) {
     /** Still acquiring: a session and nothing heard yet, nor refused. */
     val acquiring: Boolean get() = session != null && !sync && problem.isEmpty()
@@ -43,9 +53,14 @@ data class DabUi(
 object DabFeed {
     const val DECODER = "dab"
 
-    /** `POST api/decoders/sessions`'s body for [block]: its centre is the dial (and the session's frequency). */
-    fun start(block: DabBlock): JSONObject = JSONObject().put("decoder", DECODER).put("freqHz", block.centreHz)
-        .put("params", JSONObject().put("block", block.label))
+    /**
+     * `POST api/decoders/sessions`'s body for [block] (SERVER-API "DAB"): its
+     * centre and its label, which the server checks agree, and the station
+     * remembered there ([service]) so it plays at once; none lists the
+     * ensemble without playing (a scan).
+     */
+    fun start(block: DabBlock, service: String? = null): JSONObject = JSONObject().put("decoder", DECODER).put("freqHz", block.centreHz)
+        .put("params", JSONObject().put("block", block.label).apply { if (!service.isNullOrEmpty()) put("service", service) })
 
     /**
      * The panel after one poll of the session (`GET .../sessions/{id}?since=`):
@@ -62,20 +77,47 @@ object DabFeed {
             val rev = r.optInt("rev", 0)
             if (rev <= out.since) continue
             out = out.copy(since = rev)
-            if (!r.has("sync")) continue
-            val sync = r.optBoolean("sync", false)
-            out = out.copy(
-                sync = sync,
-                ensemble = r.optJSONObject("ensemble")?.optString("label").orEmpty().trim(),
-                services = services(r),
-                playing = r.optString("playing").ifEmpty { null }.takeIf { r.has("playing") && !r.isNull("playing") },
-                problem = if (!sync) sentence(r) else "",
-            )
+            // Radio's `decoder` items carry the feed in `fields`; the fake's and the older shape, at the top.
+            out = feed(out, r.optJSONObject("fields") ?: r)
         }
+        // The session itself carries the latest feed as `meta` (SERVER-API "DAB"): it wins, being newest.
+        poll.optJSONObject("meta")?.let { m -> out = feed(out, m) }
         if (poll.optString("state") == "failed" || poll.optString("state") == "stopped") {
             out = out.copy(problem = poll.optString("whyText").ifEmpty { out.problem })
         }
         return out
+    }
+
+    /**
+     * One feed (a result, or the session's `meta`): sync, the ensemble, the
+     * services, what plays, its programme text and, when not in sync, why.
+     * A feed that does not say `sync` changes nothing.
+     */
+    private fun feed(ui: DabUi, r: JSONObject): DabUi {
+        if (!r.has("sync")) return ui
+        val sync = r.optBoolean("sync", false)
+        val playing = r.optString("playing").ifEmpty { null }.takeIf { r.has("playing") && !r.isNull("playing") }
+        return ui.copy(
+            sync = sync,
+            ensemble = r.optJSONObject("ensemble")?.optString("label").orEmpty().trim(),
+            services = services(r),
+            playing = playing,
+            // The feed's why while it plays is the playing station's (a DAB+ one without faad2): the
+            // station's own row says that, so only a block that is not in sync is the list's problem.
+            problem = if (!sync) sentence(r) else "",
+            complete = if (r.has("complete")) r.optBoolean("complete") else ui.complete,
+            dls = r.optString("dls").trim().takeIf { playing != null && r.has("dls") && !r.isNull("dls") && it.isNotEmpty() },
+        )
+    }
+
+    /** The catalogue's (`GET api/decoders`) sentence for what of DAB cannot play here: `missingText` of a `partial` dab entry. */
+    fun missingText(catalogue: JSONObject): String {
+        val a = catalogue.optJSONArray("decoders") ?: return ""
+        for (i in 0 until a.length()) {
+            val d = a.optJSONObject(i) ?: continue
+            if (d.optString("id") == DECODER && d.optBoolean("partial")) return d.optString("missingText").trim()
+        }
+        return ""
     }
 
     /** A result's services, in the server's order; one with no id is dropped (nothing could choose it). */
@@ -86,7 +128,7 @@ object DabFeed {
             val sid = s.optString("sid")
             if (sid.isEmpty()) null
             else DabService(sid, s.optString("label").trim().ifEmpty { sid }, s.optString("kind"),
-                s.optInt("bitrate", 0).takeIf { it > 0 }, sentence(s))
+                s.optInt("bitrate", 0).takeIf { it > 0 }, sentence(s), if (s.isNull("why")) "" else s.optString("why"))
         }
     }
 
@@ -128,7 +170,9 @@ object DabScan {
     enum class Verdict { WAIT, KEEP, SKIP }
 
     fun verdict(d: DabUi, waitedMs: Long): Verdict = when {
-        d.sync && d.services.isNotEmpty() -> Verdict.KEEP
+        // Radio says when the list is whole (`complete`); a server that does not say is taken at its first list.
+        d.sync && d.services.isNotEmpty() && d.complete != false -> Verdict.KEEP
+        d.sync && d.services.isNotEmpty() && waitedMs < WAIT_MS -> Verdict.WAIT
         d.sync || d.problem.isNotEmpty() -> Verdict.SKIP
         waitedMs >= WAIT_MS -> Verdict.SKIP
         else -> Verdict.WAIT

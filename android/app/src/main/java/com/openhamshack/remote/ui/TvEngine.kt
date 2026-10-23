@@ -147,6 +147,7 @@ import com.openhamshack.remote.shack.WFM_DEEMPHASIS_US
 internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit) {
     val u by e.ui.collectAsStateWithLifecycle()
     val txState by e.enableTx.state.collectAsStateWithLifecycle()
+    e.dabStoppedText = stringResource(R.string.shack_dab_stopped_elsewhere)
     // Like a music app: awake while receive audio plays, so the Fire TV's
     // screensaver does not come on over a QSO someone is listening to - and
     // always while Enable TX is on: the screen going off would end it.

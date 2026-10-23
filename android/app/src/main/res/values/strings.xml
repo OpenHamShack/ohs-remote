@@ -214,6 +214,9 @@
     <!-- Over the station list: %1$s the block. -->
     <string name="shack_dab_stations_on">STATIONS ON %1$s</string>
     <string name="shack_dab_scan">Scan all blocks</string>
+    <!-- Ends the DAB session that holds the receiver (Radio then puts the dial and mode back). -->
+    <string name="shack_dab_stop">Stop DAB</string>
+    <string name="shack_dab_stopped_elsewhere">DAB was stopped from another device: the receiver is yours again.</string>
     <!-- While scanning: %1$s the block being tried, %2$d how many tried, %3$d how many there are. -->
     <string name="shack_dab_scanning">Scanning %1$s · %2$d of %3$d</string>
     <string name="shack_dab_scan_stop">Stop</string>

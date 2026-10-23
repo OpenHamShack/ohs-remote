@@ -160,12 +160,18 @@ class EngineClient(val url: String, private val controller: ShackController) {
      * change its params, stop it. A refusal is a [ShackException] with the
      * server's code and sentence (409 decoder_unavailable without faad2).
      */
+    suspend fun decoders(): JSONObject = get("api/decoders")
     suspend fun decoderStart(body: JSONObject): JSONObject = postJson("api/decoders/sessions", body)
     suspend fun decoderPoll(id: String, since: Int): JSONObject = get("api/decoders/sessions/$id?since=$since")
     suspend fun decoderParams(id: String, params: JSONObject): JSONObject =
         postJson("api/decoders/sessions/$id", JSONObject().put("params", params))
     suspend fun decoderStop(id: String) {
         withContext(Dispatchers.IO) { shackHttp.newCall(req("api/decoders/sessions/$id").delete().build()).execute().close() }
+    }
+
+    /** The same stop with the server's refusal as a [ShackException]: for a session this device did not start (another's DAB). */
+    suspend fun decoderStopChecked(id: String) {
+        withContext(Dispatchers.IO) { shackHttp.newCall(req("api/decoders/sessions/$id").delete().build()).execute().use { r -> answer(r) } }
     }
 
     /**

@@ -103,6 +103,7 @@ import com.openhamshack.remote.shack.WFM_DEEMPHASIS_US
 internal fun RadioPhone(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit) {
     val u by e.ui.collectAsStateWithLifecycle()
     val pttState = e.ptt?.state?.collectAsStateWithLifecycle()
+    e.dabStoppedText = stringResource(R.string.shack_dab_stopped_elsewhere)
     if (keepAwake(u.audioRate, u.muted, keyed = pttState != null && pttState.value.phase != PttPhase.Idle)) KeepScreenOn()
     var typing by remember { mutableStateOf(false) }
     var logOpen by remember { mutableStateOf(false) }
@@ -171,6 +172,7 @@ internal fun RadioPhone(e: EngineSession, onBack: () -> Unit, onRepair: () -> Un
             }
         }
         u.toast?.let { Text(it, color = Dim, maxLines = 1) }
+        ReceiverHeld(e, u)
     }
     // The scope, or DAB's list in its place, with the decoder's panel: beside
     // or under it as before (a slotted decoder's Band Activity gets half a
@@ -409,5 +411,22 @@ private fun CalibrateSection(e: EngineSession, u: EngineUi) {
             },
             dismissButton = { TextButton(onClick = { typing = false }) { Text(stringResource(R.string.shack_local_cancel)) } },
         )
+    }
+}
+
+/**
+ * The receiver held by a DAB session this screen is not showing (another
+ * device's, or one left running): the server's sentence and Stop DAB, which
+ * stops it when the server lets this level, and says its refusal if not.
+ * Tuning meanwhile is not sent (EngineSession.held).
+ */
+@Composable
+internal fun ReceiverHeld(e: EngineSession, u: EngineUi) {
+    val o = u.state.rxOwner ?: return
+    if (o.session == u.dab?.session) return
+    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(RxStripBg).border(1.dp, RxStripLine, RoundedCornerShape(14.dp))
+        .padding(start = 14.dp, end = 4.dp, top = 4.dp, bottom = 4.dp).testTag("rxHeld"), verticalAlignment = Alignment.CenterVertically) {
+        Text(o.text, color = Amber, fontSize = 13.sp, modifier = Modifier.weight(1f))
+        TextButton(onClick = { e.stopReceiverOwner() }, enabled = !u.viewOnly) { Text(stringResource(R.string.shack_dab_stop)) }
     }
 }

@@ -39,4 +39,13 @@ class BandMemoryPrefs(context: Context) : BandMemory {
     override fun loadRecent(key: String): List<String> = RecentBands.decode(prefs.getString("$key|recent", null))
 
     override fun saveRecent(key: String, names: List<String>) { prefs.edit().putString("$key|recent", RecentBands.encode(names)).apply() }
+
+    override fun loadDab(key: String): Map<String, String> {
+        val o = runCatching { org.json.JSONObject(prefs.getString("$key|dab", null) ?: return emptyMap()) }.getOrNull() ?: return emptyMap()
+        return o.keys().asSequence().associateWith { o.optString(it) }.filterValues { it.isNotEmpty() }
+    }
+
+    override fun saveDab(key: String, services: Map<String, String>) {
+        prefs.edit().putString("$key|dab", org.json.JSONObject(services as Map<*, *>).toString()).apply()
+    }
 }

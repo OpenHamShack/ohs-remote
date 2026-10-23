@@ -242,4 +242,7 @@ interface BandMemory {
     /** The bands pressed last on this box (RecentBands), newest first; none by default. */
     fun loadRecent(key: String): List<String> = emptyList()
     fun saveRecent(key: String, names: List<String>) {}
+    /** The DAB station last chosen on each block of this box (block label -> service id); none by default. */
+    fun loadDab(key: String): Map<String, String> = emptyMap()
+    fun saveDab(key: String, services: Map<String, String>) {}
 }

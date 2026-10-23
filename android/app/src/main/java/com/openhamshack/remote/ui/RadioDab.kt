@@ -72,6 +72,17 @@ private fun dabDetail(s: DabService): String =
 @Composable
 private fun dabTitle(d: DabUi): String = stringResource(R.string.shack_dab_title, d.block.label, dialText(d.block.centreHz))
 
+/**
+ * What of DAB cannot play here, said once under the list: an older
+ * controller's own sentence (hostLibs: "Update the controller to use SDRplay
+ * radios and DAB+"), else the catalogue's missingText (no faad2: DAB+).
+ */
+@Composable
+internal fun dabLimits(u: EngineUi, d: DabUi): Pair<String, Color>? {
+    val host = u.status?.hostLibs?.takeIf { !it.supported && it.why.isNotEmpty() }
+    return host?.let { it.why to Amber } ?: d.missingText.takeIf { it.isNotEmpty() }?.let { it to Dim }
+}
+
 /** The playing service, if the list has it. */
 private fun playing(d: DabUi): DabService? = d.services.firstOrNull { it.sid == d.playing }
 
@@ -88,6 +99,9 @@ internal fun DabReadout(d: DabUi, onBlocks: () -> Unit, modifier: Modifier = Mod
         Text(stringResource(R.string.shack_dab_now), fontSize = 12.sp, color = Dim)
         Text(now?.label ?: stringResource(R.string.shack_dab_pick), fontSize = 28.sp, fontWeight = FontWeight.Bold, maxLines = 1,
             overflow = TextOverflow.Ellipsis, color = if (now == null) Dim else Color.White, modifier = Modifier.testTag("dabNow"))
+        // The station's programme text (DLS), as it sends it.
+        d.dls?.let { Text(it, fontSize = 14.sp, color = Color(0xFFA7B3C0), maxLines = 2, overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.testTag("dabDls")) }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp),
             itemVerticalAlignment = Alignment.CenterVertically) {
             ReadoutChip(true, null, "dabMode") {
@@ -126,6 +140,8 @@ internal fun DabStations(e: EngineSession, u: EngineUi, d: DabUi, modifier: Modi
         } else {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 SmallHeading(stringResource(R.string.shack_dab_stations_on, d.block.label), Modifier.weight(1f))
+                // The session holds the receiver: Stop gives it back, the old dial and mode with it.
+                TextButton(onClick = { e.closeDab() }, modifier = Modifier.testTag("dabStop")) { Text(stringResource(R.string.shack_dab_stop)) }
                 val shape = RoundedCornerShape(18.dp)
                 Box(Modifier.height(36.dp).clip(shape).border(1.dp, RadioLine, shape).clickable(enabled = !u.viewOnly) { e.dabScan() }
                     .padding(horizontal = 14.dp).testTag("dabScan"), contentAlignment = Alignment.Center) {
@@ -133,6 +149,7 @@ internal fun DabStations(e: EngineSession, u: EngineUi, d: DabUi, modifier: Modi
                 }
             }
         }
+        val limits = dabLimits(u, d)
         LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             if (d.services.isEmpty()) item {
                 val (line, colour) = dabStatus(d)
@@ -155,6 +172,7 @@ internal fun DabStations(e: EngineSession, u: EngineUi, d: DabUi, modifier: Modi
                 }
             }
             if (u.viewOnly) item { Text(stringResource(R.string.shack_dab_view_only), color = Amber, fontSize = 13.sp) }
+            limits?.let { (text, colour) -> item { Text(text, color = colour, fontSize = 13.sp, modifier = Modifier.testTag("dabMissing")) } }
         }
     }
 }
@@ -231,6 +249,8 @@ internal fun TvDabScreen(e: EngineSession, u: EngineUi, d: DabUi, first: FocusRe
             PolishLabel(stringResource(R.string.shack_dab_now_heading))
             Text(now?.label ?: stringResource(R.string.shack_dab_pick), fontSize = 30.sp, fontWeight = FontWeight.Medium, lineHeight = 32.sp,
                 color = if (now == null) PolishDim else PolishText, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            // The station's programme text (DLS), where TvPolishDab has it.
+            d.dls?.let { Text(it, fontSize = 15.sp, color = Color(0xFFA7B3C0), lineHeight = 20.sp, maxLines = 3, overflow = TextOverflow.Ellipsis) }
             val (line, colour) = dabStatus(d)
             Text(d.ensemble.ifEmpty { line }, fontSize = 15.sp, color = if (d.ensemble.isEmpty()) colour else Color(0xFFA7B3C0), maxLines = 2)
             Spacer(Modifier.weight(1f))
@@ -279,6 +299,7 @@ internal fun TvDabScreen(e: EngineSession, u: EngineUi, d: DabUi, first: FocusRe
                     }
                 }
             }
+            dabLimits(u, d)?.let { (text, colour) -> Text(text, fontSize = 14.sp, color = colour) }
             Text(stringResource(R.string.shack_dab_rx_only), fontSize = 13.sp, color = PolishQuiet)
         }
     }

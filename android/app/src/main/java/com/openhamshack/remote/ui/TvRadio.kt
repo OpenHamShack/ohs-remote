@@ -132,7 +132,10 @@ internal fun TvRadioReadout(e: EngineSession, u: EngineUi) {
             Spacer(Modifier.weight(1f))
             SignalCard(u, Modifier.width(300.dp))
         }
-        u.toast?.let { Text(it, color = PolishDim, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+        // The receiver held by a DAB session this screen is not showing: the server's sentence; Stop DAB is in the row.
+        val held = u.state.rxOwner?.takeIf { it.session != u.dab?.session }
+        if (held != null) Text(held.text, color = Amber, fontSize = 15.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        else u.toast?.let { Text(it, color = PolishDim, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
     }
 }
 
@@ -166,6 +169,10 @@ internal fun TvRadioRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically,
     ) {
         TvItem(onClick = onBands, focus = first) { Text(stringResource(R.string.shack_tv_bands), fontSize = 17.sp) }
+        // A DAB session holding the receiver - ours (its list is up) or another device's - stops from here.
+        if (u.state.rxOwner != null || u.dab != null) TvItem(onClick = { if (u.dab != null) e.closeDab() else e.stopReceiverOwner() }) {
+            Text(stringResource(R.string.shack_dab_stop), fontSize = 17.sp, color = PolishAmber)
+        }
         if (u.dab == null) {
             // OK raises it, as the controls row's Step always did (REMOTE-KEYS §4: OK, OK changes the step).
             TvItem(onClick = { e.step(1) }, modifier = Modifier.onFocusChanged { onStep = it.isFocused }.onPreviewKeyEvent { k ->

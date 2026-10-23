@@ -152,6 +152,8 @@ data class EngineStatus(
     val rxRange: Pair<Double, Double>? = null,
     /** `audio`: the receive audio as the server describes it; null from a server that does not. */
     val audio: EngineAudio? = null,
+    /** `hostLibs`: the controller's host libraries (faad2, the SDRplay API); null outside the store form or from an older server. */
+    val hostLibs: HostLibs? = null,
 ) {
     companion object {
         fun parse(o: JSONObject): EngineStatus {
@@ -175,6 +177,7 @@ data class EngineStatus(
                     if (lo.isFinite() && hi.isFinite() && hi > lo && lo >= 0) lo to hi else null
                 },
                 audio = o.optJSONObject("audio")?.let { EngineAudio.parse(it) },
+                hostLibs = o.optJSONObject("hostLibs")?.takeIf { it.has("supported") }?.let { HostLibs.parse(it) },
             )
         }
     }
@@ -433,6 +436,9 @@ class EngineState(initial: JSONObject = JSONObject()) {
     /** Which radio the engine drives (`device`: sim, pluto, hl2, sdrplay...); "" when it does not say. */
     val device: String get() = o.optString("device")
 
+    /** Who holds the receiver when the operator does not (`rxOwner`: a DAB session); null while the operator has it. */
+    val rxOwner: RxOwner? get() = o.optJSONObject("rxOwner")?.let { RxOwner.parse(it) }
+
     /** Any other numeric key (filter edges, CW pitch: [ModeAudio]); null when absent. */
     fun raw(key: String): Double? = o.num(key)
 }
@@ -474,6 +480,38 @@ data class EngineSpec(val modes: List<String>, val dialMin: Double?, val dialMax
                 hasNr = nr?.optString("type") == "bool",
                 nrHelp = nr?.optString("help").orEmpty(),
             )
+        }
+    }
+}
+
+/**
+ * A decoder session holding Radio's receiver (`rxOwner`, SERVER-API "DAB"):
+ * while it runs the dial and mode are its, `api/set` of them is refused
+ * `409 receiver_busy`, and stopping it puts them back. [text] is the
+ * server's sentence ("The receiver is playing DAB from block 11D: stop the
+ * DAB station to tune or change mode").
+ */
+data class RxOwner(val by: String, val session: String, val block: String, val freqHz: Double?, val text: String) {
+    companion object {
+        /** Null for `{}` (the operator has it) or anything without the session that holds it. */
+        fun parse(o: JSONObject): RxOwner? {
+            val session = o.optString("session").trim().takeIf { !o.isNull("session") && it.isNotEmpty() } ?: return null
+            return RxOwner(o.optString("by"), session, o.optString("block"), o.num("freqHz"), o.optString("text").trim())
+        }
+    }
+}
+
+/**
+ * The controller's host libraries (`hostLibs`): [supported] false on a
+ * controller too old to lend them, with its [why] ("Update the controller
+ * to use SDRplay radios and DAB+"), which a DAB view shows.
+ */
+data class HostLibs(val supported: Boolean, val libraries: Map<String, Boolean>, val why: String) {
+    companion object {
+        fun parse(o: JSONObject): HostLibs {
+            val l = o.optJSONObject("libraries")
+            return HostLibs(o.optBoolean("supported", true), l?.keys()?.asSequence()?.associateWith { l.optBoolean(it) }.orEmpty(),
+                o.optString("why").trim())
         }
     }
 }
