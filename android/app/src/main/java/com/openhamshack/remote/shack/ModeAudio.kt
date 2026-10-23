@@ -12,6 +12,8 @@ package com.openhamshack.remote.shack
 data class Passband(val lo: Double, val hi: Double, val centre: Double)
 
 object ModeAudio {
+    const val WFM_HALF_HZ = 90_000.0
+
     /**
      * The digital modes' own windows, copied from openhamshack-nb's
      * ohscore/modes/__init__.py MODES (offset_hz, passband_hz) at 8498fe9,
@@ -33,7 +35,8 @@ object ModeAudio {
      * The passband for [state]'s mode. The voice modes' come from the
      * engine's own state keys, as ohscore/dsp/demod.py `passband` reads
      * them (filterLo/filterHi for SSB, cwPitch/cwWidth, amWidth), so an
-     * operator's filter setting is what is drawn; FM is a 12.5 kHz channel.
+     * operator's filter setting is what is drawn; FM is a 12.5 kHz channel,
+     * wide FM a 180 kHz one.
      * Null for a mode this build has no window for: nothing is drawn and a
      * tap tunes the dial to where it was tapped.
      */
@@ -53,6 +56,9 @@ object ModeAudio {
             }
             "am" -> (amWidth ?: 3000.0).let { Passband(-it, it, 0.0) }
             "fm" -> Passband(-6250.0, 6250.0, 0.0)
+            // Broadcast FM: ±75 kHz deviation and 15 kHz audio make a channel
+            // of about 180 kHz (Carson; RADIO-LISTEN-CONTRACT §1), drawn as such.
+            "wfm" -> Passband(-WFM_HALF_HZ, WFM_HALF_HZ, 0.0)
             else -> DIGITAL[mode] ?: DIGITAL[mode.substringBefore('_')]
         }
     }
