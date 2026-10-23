@@ -38,4 +38,25 @@ class ModeAudioTest {
         assertNull(ModeAudio.of(state("mode" to "wspr")))
         assertEquals(7_040_120.0, ModeAudio.dialFor(7_040_123.0, null), 0.0)
     }
+
+    @Test fun theServersPassbandWinsOverTheGuessAndKeepsTheModesCentre() {
+        // Wide FM as the server has it: 180 kHz, centred on the dial.
+        assertEquals(Passband(-90_000.0, 90_000.0, 0.0),
+            ModeAudio.of(state("mode" to "wfm", "rxFilterLo" to -90_000.0, "rxFilterHi" to 90_000.0)))
+        // An operator's narrow SSB filter, though filterLo/filterHi say otherwise.
+        assertEquals(Passband(300.0, 2400.0, 1350.0),
+            ModeAudio.of(state("mode" to "usb", "filterLo" to 200.0, "filterHi" to 2800.0, "rxFilterLo" to 300.0, "rxFilterHi" to 2400.0)))
+        // FT8's signal still belongs 1500 Hz up: the edges are the server's, the centre the modem's.
+        assertEquals(10_489_540_000.0, ModeAudio.dialFor(10_489_541_500.0,
+            ModeAudio.of(state("mode" to "ft8", "rxFilterLo" to 200.0, "rxFilterHi" to 2800.0))), 0.0)
+        // A mode the table has no window for is shaded from the server and centred on it.
+        assertEquals(Passband(200.0, 2800.0, 1500.0), ModeAudio.of(state("mode" to "wspr", "rxFilterLo" to 200.0, "rxFilterHi" to 2800.0)))
+    }
+
+    @Test fun anOlderServerStillGetsTheGuess() {
+        assertEquals(Passband(-4000.0, 4000.0, 0.0), ModeAudio.of(state("mode" to "am")))
+        // One edge alone, or edges that make no window, are not a passband.
+        assertEquals(Passband(-6250.0, 6250.0, 0.0), ModeAudio.of(state("mode" to "fm", "rxFilterLo" to 0.0, "rxFilterHi" to 0.0)))
+        assertEquals(Passband(-6250.0, 6250.0, 0.0), ModeAudio.of(state("mode" to "fm", "rxFilterLo" to -5000.0)))
+    }
 }

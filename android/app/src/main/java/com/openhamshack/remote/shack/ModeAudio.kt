@@ -1,5 +1,7 @@
 package com.openhamshack.remote.shack
 
+import kotlin.math.abs
+
 // Where in the receive audio each mode listens, relative to the dial: what
 // the scope shades as the passband, and how far below a signal the dial
 // goes when the operator taps on it. Found the hard way on the real box
@@ -34,14 +36,34 @@ object ModeAudio {
     /**
      * The passband for [state]'s mode. The voice modes' come from the
      * engine's own state keys, as ohscore/dsp/demod.py `passband` reads
-     * them (filterLo/filterHi for SSB, cwPitch/cwWidth, amWidth), so an
+     * them (filterLo/filterHi for SSB, cwPitch/cwWidth, amWidth: ±4 kHz by
+     * default since openhamshack-nb 87177e8, for airband and broadcast), so an
      * operator's filter setting is what is drawn; FM is a 12.5 kHz channel,
      * wide FM a 180 kHz one.
      * Null for a mode this build has no window for: nothing is drawn and a
      * tap tunes the dial to where it was tapped.
      */
-    fun of(state: EngineState): Passband? = of(state.mode, state.raw("filterLo"), state.raw("filterHi"),
-        state.raw("cwPitch"), state.raw("cwWidth"), state.raw("amWidth"))
+    fun of(state: EngineState): Passband? {
+        val guess = of(state.mode, state.raw("filterLo"), state.raw("filterHi"),
+            state.raw("cwPitch"), state.raw("cwWidth"), state.raw("amWidth"))
+        return served(state.raw("rxFilterLo"), state.raw("rxFilterHi"), guess) ?: guess
+    }
+
+    /**
+     * The server's own passband (`rxFilterLo`/`rxFilterHi`, Hz either side
+     * of the dial, in every mode: openhamshack-nb SERVER-API "Wide FM",
+     * 23/10/2026) wins over the guess from the filter keys, which stays
+     * only for a server too old to send it. A signal belongs in the middle
+     * of the edges, except where this table knows a modem's own centre that
+     * is not its window's middle (FT8 and FreeDV 1500 Hz up in a 200-3000 Hz
+     * window): the server's edges are the filter's, not the modem's. Null
+     * without both edges, or with edges that make no window.
+     */
+    fun served(lo: Double?, hi: Double?, guess: Passband?): Passband? {
+        if (lo == null || hi == null || hi <= lo) return null
+        val own = guess?.takeIf { abs(it.centre - (it.lo + it.hi) / 2) > 0.5 && it.centre in lo..hi }?.centre
+        return Passband(lo, hi, own ?: (lo + hi) / 2)
+    }
 
     fun of(mode: String, filterLo: Double?, filterHi: Double?, cwPitch: Double?, cwWidth: Double?, amWidth: Double?): Passband? {
         val lo = filterLo ?: 300.0
@@ -54,7 +76,7 @@ object ModeAudio {
                 val w = cwWidth ?: 500.0
                 Passband(p - w / 2, p + w / 2, p)
             }
-            "am" -> (amWidth ?: 3000.0).let { Passband(-it, it, 0.0) }
+            "am" -> (amWidth ?: 4000.0).let { Passband(-it, it, 0.0) }
             "fm" -> Passband(-6250.0, 6250.0, 0.0)
             // Broadcast FM: ±75 kHz deviation and 15 kHz audio make a channel
             // of about 180 kHz (Carson; RADIO-LISTEN-CONTRACT §1), drawn as such.
