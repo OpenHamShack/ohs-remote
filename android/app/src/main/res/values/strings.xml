@@ -235,7 +235,10 @@
     <!-- %1$s the antenna input now. -->
     <string name="shack_tv_antenna_item">Antenna · %1$s</string>
     <!-- The TV row's key hint, two short lines (TvPolish): what Left and Right do where focus is now, and the channel keys. -->
-    <string name="shack_tv_keys_step">◀ ▶ change step</string>
+    <string name="shack_tv_keys_step">◀ ▶ step · BACK done</string>
+    <!-- On Step before OK takes hold of it: Left and Right still move along the row. -->
+    <string name="shack_tv_ok_step">OK to change step</string>
+    <string name="shack_tv_ok_block">OK to change block</string>
     <string name="shack_tv_keys_tune">◀ ▶ tune</string>
     <string name="shack_tv_keys_move">◀ ▶ move along</string>
     <string name="shack_tv_keys_band">CH ± band</string>
@@ -342,7 +345,7 @@
     <string name="shack_tv_block_item">Block · %1$s</string>
     <!-- A DAB station's bitrate on the Now playing card: %1$d kbit/s. -->
     <string name="shack_dab_bitrate">%1$d kbit/s</string>
-    <string name="shack_tv_block_keys">◀ ▶ change block</string>
+    <string name="shack_tv_block_keys">◀ ▶ block · BACK done</string>
     <!-- Wide FM's de-emphasis setting (50 µs in Europe, 75 µs in the Americas), shown only in wfm. -->
     <string name="shack_wfm_deemphasis">De-emphasis</string>
     <!-- %1$d: the time constant in microseconds, 50 or 75. -->

@@ -1,5 +1,6 @@
 package com.openhamshack.remote.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.height
@@ -57,7 +58,6 @@ import com.openhamshack.remote.shack.BandGrid
 import com.openhamshack.remote.shack.BandSection
 import com.openhamshack.remote.shack.EngineSession
 import com.openhamshack.remote.shack.EngineUi
-import com.openhamshack.remote.shack.Tuning
 
 // Radio on a TV, as Brian's Tv mockup (approved 23/10/2026), for reading
 // from a sofa: the readout at the top left, the mode and the band or area
@@ -157,13 +157,15 @@ internal fun TvRadioReadout(e: EngineSession, u: EngineUi) {
 
 /**
  * The bottom row (Tv's foot): one focusable row - Bands, Step, Mode,
- * Antenna, Mute - and the hint. The left/right conflict the first TV Step
- * had (23/10/2026: Left and Right both moved focus and changed the step) is
- * settled the mockup's way: on Step, Left and Right change the step, and at
- * the smallest or largest step the key is passed on so focus still moves
- * along the row; elsewhere in the row they move focus. Up leaves the row
- * for [onUp] (the scope, or DAB's list) from any item; Down stays. A held
- * key repeats the step but never carries focus off it.
+ * Antenna, Mute - and the hint. Step (and DAB's block) is adjusted in a
+ * mode of its own: Left and Right move along the row past it like any
+ * other item, OK takes hold of it, and only then do Left and Right change
+ * the step; OK again or BACK lets go. The first answer (23/10/2026) had
+ * Left and Right change the step whenever Step had focus and pass the key
+ * on only at the smallest or largest step - so getting past it to Mode,
+ * Antenna and Mute meant first winding the step to its end, which Brian
+ * found he could not do from the sofa. Up leaves the row for [onUp] (the
+ * scope, or DAB's list) from any item, letting go first; Down stays.
  */
 @Composable
 internal fun TvRadioRow(
@@ -175,6 +177,20 @@ internal fun TvRadioRow(
     onSurface: Boolean = true,
 ) {
     var onStep by remember { mutableStateOf(false) }
+    // Step held by OK: Left and Right change it until OK or BACK lets go, or focus leaves it.
+    var adjusting by remember { mutableStateOf(false) }
+    BackHandler(enabled = adjusting) { adjusting = false }
+    // Left and Right while held; anything else passes on (Up and Down let go first).
+    fun held(k: androidx.compose.ui.input.key.KeyEvent, change: (Int) -> Unit): Boolean {
+        if (!adjusting || k.type != KeyEventType.KeyDown) return false
+        when (k.key) {
+            Key.DirectionLeft -> change(-1)
+            Key.DirectionRight -> change(1)
+            Key.DirectionUp, Key.DirectionDown -> { adjusting = false; return false }
+            else -> return false
+        }
+        return true
+    }
     Row(
         modifier.onKeyEvent { k ->
             if (k.type != KeyEventType.KeyDown) return@onKeyEvent false
@@ -195,25 +211,17 @@ internal fun TvRadioRow(
             Text(stringResource(R.string.shack_dab_stop), fontSize = 17.sp, color = PolishAmber)
         }
         if (u.dab == null) {
-            // OK raises it, as the controls row's Step always did (REMOTE-KEYS §4: OK, OK changes the step).
-            TvItem(onClick = { e.step(1) }, modifier = Modifier.onFocusChanged { onStep = it.isFocused }.onPreviewKeyEvent { k ->
-                if (k.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-                val by = when (k.key) {
-                    Key.DirectionLeft -> -1
-                    Key.DirectionRight -> 1
-                    else -> return@onPreviewKeyEvent false
-                }
-                val now = e.ui.value.stepHz
-                if (Tuning.nextStep(e.kind, now, by) != now) { e.step(by); true }
-                else k.nativeKeyEvent.repeatCount > 0
-            }) {
-                Text("◀", fontSize = 18.sp, color = Accent)
+            // OK takes hold of it rather than raising it, so Left and Right are free to move along the row.
+            TvItem(onClick = { adjusting = !adjusting }, selected = adjusting,
+                modifier = Modifier.onFocusChanged { onStep = it.isFocused; if (!it.isFocused) adjusting = false }
+                    .onPreviewKeyEvent { k -> held(k) { by -> e.step(by) } }) {
+                Text("◀", fontSize = 18.sp, color = if (adjusting) Accent else Dim)
                 // A fixed width, so the row does not shift along as the step's words change length.
                 Column(Modifier.padding(horizontal = 10.dp).widthIn(min = 90.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(stringResource(R.string.shack_step_label), fontSize = 12.sp, color = Dim)
                     Text(stepText(u.stepHz), fontSize = 18.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, maxLines = 1)
                 }
-                Text("▶", fontSize = 18.sp, color = Accent)
+                Text("▶", fontSize = 18.sp, color = if (adjusting) Accent else Dim)
             }
             if (u.offered.isNotEmpty()) TvItem(onClick = onMode) {
                 Text(stringResource(R.string.shack_tv_mode_item, modeWord(u.state.mode)), fontSize = 17.sp, maxLines = 1)
@@ -223,22 +231,13 @@ internal fun TvRadioRow(
             // passed on at the ends of Band III - and Scan all blocks, or Stop while it runs.
             val refused = stringResource(R.string.shack_dab_view_only)
             val d = u.dab
-            TvItem(onClick = { if (u.viewOnly) e.note(refused) else e.dabBlock(1) }, modifier = Modifier.onFocusChanged { onStep = it.isFocused }.onPreviewKeyEvent { k ->
-                if (k.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-                val by = when (k.key) {
-                    Key.DirectionLeft -> -1
-                    Key.DirectionRight -> 1
-                    else -> return@onPreviewKeyEvent false
-                }
-                if (u.viewOnly) { e.note(refused); return@onPreviewKeyEvent true }
-                val now = e.ui.value.dab?.block ?: return@onPreviewKeyEvent false
-                if (com.openhamshack.remote.shack.DabBlocks.step(now, by) != now) { e.dabBlock(by); true }
-                else k.nativeKeyEvent.repeatCount > 0
-            }) {
-                Text("◀", fontSize = 18.sp, color = Accent)
+            TvItem(onClick = { if (u.viewOnly) e.note(refused) else adjusting = !adjusting }, selected = adjusting,
+                modifier = Modifier.onFocusChanged { onStep = it.isFocused; if (!it.isFocused) adjusting = false }
+                    .onPreviewKeyEvent { k -> held(k) { by -> e.dabBlock(by) } }) {
+                Text("◀", fontSize = 18.sp, color = if (adjusting) Accent else Dim)
                 Text(stringResource(R.string.shack_tv_block_item, d.block.label), fontSize = 17.sp, maxLines = 1,
                     modifier = Modifier.padding(horizontal = 12.dp).widthIn(min = 100.dp))
-                Text("▶", fontSize = 18.sp, color = Accent)
+                Text("▶", fontSize = 18.sp, color = if (adjusting) Accent else Dim)
             }
             // Radio's own scan where it keeps the list (Stations.dabSource); Remote's block scan otherwise.
             val server = Stations.dabSource(u.dabList, u.dabListMissing) == DabSource.SERVER && u.dabList != null
@@ -266,6 +265,7 @@ internal fun TvRadioRow(
         if (onStations != null && u.dab == null) Spacer(Modifier.weight(1f))
         else Column(Modifier.weight(1f), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
             val lr = when {
+                onStep && !adjusting -> stringResource(if (u.dab != null) R.string.shack_tv_ok_block else R.string.shack_tv_ok_step)
                 onStep && u.dab != null -> stringResource(R.string.shack_tv_block_keys)
                 onStep -> stringResource(R.string.shack_tv_keys_step)
                 onSurface && u.dab == null -> stringResource(R.string.shack_tv_keys_tune)
