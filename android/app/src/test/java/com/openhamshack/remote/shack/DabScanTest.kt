@@ -103,6 +103,9 @@ class DabScanTest {
     }
 
     @After fun down() {
+        // A poll or stop still in flight when the session closed resumes onto Main to be
+        // cancelled; let it land before Main is reset, or it fails whichever test runs next.
+        Thread.sleep(500)
         sendScope.cancel()
         server.shutdown()
         Dispatchers.resetMain()
