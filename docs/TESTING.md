@@ -538,6 +538,25 @@ sources"), then `adb connect <tv-ip>:5555`, accept the prompt on the TV,
 `adb -s <tv-ip>:5555 install -r app-armeabi-v7a-debug.apk`. It appears
 under Apps / Your Apps & Channels.
 
+**For using it rather than debugging it, install the fast build.** The
+debug APK starts in 7.3 s on the Fire TV, 0.46 s for the fast one (cold
+start, `am start -S -W` TotalTime, 23 October 2026). Fire OS does not
+compile a debuggable APK at install (`dumpsys package dexopt` says
+run-from-apk), so each start reads 41 MB of dex and runs it interpreted.
+The fast build is the release code (R8, uncompressed dex, a baseline
+profile) signed with the same debug key, so it replaces a debug install
+without losing pairing:
+
+```sh
+cd android && ./gradlew assembleFast
+tools/install-fast.sh <tv-ip>:5555            # armeabi-v7a; checks the signer, sends the .dm
+```
+
+It is not debuggable: no `run-as`, no RxPlayer stats line or
+vlc-options.txt, no DebugAdvertiser. Go back to the debug APK for those
+(the same `install -r`; the signer is the same). Timing a start:
+`adb shell am start -S -W -n com.openhamshack.remote/.MainActivity`.
+
 ## The standing test fakebox on shack
 
 Real devices on the LAN (the Fire TV first) test against a fakebox kept

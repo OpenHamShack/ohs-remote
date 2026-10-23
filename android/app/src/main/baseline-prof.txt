@@ -1,0 +1,30 @@
+# The app's own startup path, for ART to compile ahead of time (with the
+# Compose, coroutines and activity libraries' profiles, which AGP merges in
+# from their AARs). Written by hand rather than recorded with a
+# macrobenchmark: the app's code is small, and listing whole classes costs
+# little, where a generator module and a device to run it on cost a lot.
+#
+# How it reaches a device: the build puts the merged profile in the APK
+# (assets/dexopt/baseline.prof), and androidx.profileinstaller, at the first
+# start after an install, writes it where ART looks. ART compiles from it in
+# its next idle maintenance (on Android 9, a Fire TV); a Play install would
+# use it at once. Covers what a cold start runs on a TV and a phone: the
+# application and activity, the view model and its store, discovery, and the
+# box list on both, up to its first frame.
+#
+# Flags: H hot, S run at startup, P run after startup. ** matches any
+# characters across packages, * within one.
+
+HSPLuk/co/user/openhamshack/remote/OpenHamShackRemoteApp**->**(**)**
+HSPLuk/co/user/openhamshack/remote/MainActivity**->**(**)**
+HSPLuk/co/user/openhamshack/remote/AppViewModel**->**(**)**
+HSPLuk/co/user/openhamshack/remote/data/**->**(**)**
+HSPLuk/co/user/openhamshack/remote/api/BoxAddress**->**(**)**
+HSPLuk/co/user/openhamshack/remote/shack/ShackNav**->**(**)**
+HSPLuk/co/user/openhamshack/remote/ui/TvUiKt**->**(**)**
+HSPLuk/co/user/openhamshack/remote/ui/ThemeKt**->**(**)**
+HSPLuk/co/user/openhamshack/remote/ui/OpenHamShackRemoteUiKt**->**(**)**
+HSPLuk/co/user/openhamshack/remote/ui/I18nKt**->**(**)**
+
+# DataStore reads the saved boxes and settings at every start.
+HSPLandroidx/datastore/**->**(**)**

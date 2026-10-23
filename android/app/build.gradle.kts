@@ -18,8 +18,30 @@ android {
     }
 
     buildTypes {
+        // R8 on: an unshrunk build carries ~41 MB of dex (all of Compose,
+        // material3 and coroutines), and a Fire TV opens a freshly installed
+        // APK's dex without any ahead-of-time compilation (Fire OS skips
+        // dexopt at install; `dumpsys package dexopt` says run-from-apk until
+        // the idle job gets to it). Reading and verifying that much dex on its
+        // four slow cores was 3.2 s of a 7.3 s cold start. Keep rules for the
+        // JNI libraries are in proguard-rules.pro.
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+        // The release build signed with the debug key, for the devices that
+        // already run a debug build: Brian's TVs and tablets hold their
+        // pairing in the app's data, so they must be updated with
+        // `adb install -r` by the same signer, never uninstalled. Not
+        // debuggable, which is most of its speed: ART runs a debuggable app's
+        // code with its JIT in debug mode. A debuggable build is still the
+        // one for development (RxPlayer's stats line and vlc-options.txt,
+        // DebugAdvertiser); this one is what goes on a device to be used.
+        create("fast") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += "release"
         }
     }
 
@@ -47,6 +69,14 @@ android {
     }
 
     packaging {
+        // Dex stored uncompressed (and page-aligned), as AGP does by itself
+        // from minSdk 28: ART can then map it straight out of the APK where
+        // it would otherwise inflate every classes*.dex into memory at each
+        // start - which is every start on a Fire TV until the APK has been
+        // compiled (see buildTypes). The APK grows by the dex's compression.
+        dex {
+            useLegacyPackaging = false
+        }
         jniLibs {
             // Both libVLC and srtdroid ship the NDK's C++ runtime.
             pickFirsts += "**/libc++_shared.so"
@@ -96,6 +126,10 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.datastore.preferences)
+    // Writes the APK's baseline profile (src/main/baseline-prof.txt and the
+    // libraries') where ART compiles from, for an APK that did not come from
+    // Play. Compose depends on it already; declared so that it stays.
+    implementation(libs.androidx.profileinstaller)
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
     implementation(libs.compose.foundation)

@@ -25,6 +25,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // The theme's window background is the launch window (the mast, or
+        // the banner on a TV), which Android shows in a window of its own
+        // until this activity's first frame. This window goes back to plain
+        // black, so a screen that leaves any of it uncovered shows black, as
+        // before, and not a stray logo.
+        window.setBackgroundDrawableResource(android.R.color.black)
         registerReceiver(screenOff, IntentFilter(Intent.ACTION_SCREEN_OFF))
         // One APK for both: a TV gets the receive-only UI, decided once -
         // a device does not stop being a TV while the app runs.

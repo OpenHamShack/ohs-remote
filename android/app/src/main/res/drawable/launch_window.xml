@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The launch window: what Android draws the moment the app is opened,
+     before the process has started, until the first frame of the UI. The
+     mast from the launcher icon on the app's black, so a slow start shows
+     the app rather than a blank screen. A TV draws its banner instead
+     (drawable-television/). MainActivity sets the window back to plain
+     black once it exists, so nothing of this shows behind the UI. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@android:color/black" />
+    <item
+        android:width="160dp"
+        android:height="160dp"
+        android:gravity="center"
+        android:drawable="@drawable/ic_launcher_foreground" />
+</layer-list>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The launch window on a TV (Android TV, Google TV, Fire TV all report
+     the television UI mode): the launcher banner - mast and the app's name -
+     centred on black, as the launcher showed it a moment before. See
+     drawable/launch_window.xml. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@android:color/black" />
+    <item android:gravity="center">
+        <bitmap android:src="@drawable/tv_banner" android:gravity="center" />
+    </item>
+</layer-list>
