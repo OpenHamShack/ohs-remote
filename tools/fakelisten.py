@@ -27,20 +27,26 @@ What it makes Radio look like (FAKESHACK_RADIO_LISTEN=1):
   * FAKESHACK_RADIO_LISTEN_RXONLY=1: a receiver that cannot transmit, as
     the RSPdx: `deviceStatus.tx` is "receive only" and `txBlocked` "This
     radio can only receive" (wfm's own sentence in wfm);
-  * a `dab` decoder (contract §3) in api/decoders: a session started on a
-    Band III block (`{"decoder": "dab", "freqHz" (or "rfHz"), "params":
-    {"block": "11D"}}`) is `starting`, reports `sync: false` with no
-    services at once, and about two seconds later `sync: true`, a made-up
-    ensemble and five to eight made-up services, a mix of "dab" (MP2,
-    playable) and "dab+" (HE-AAC) - the dab+ ones carrying a `why`
-    sentence and refused if chosen, as on a server without faad2 (the
-    Radio session, 23/10/2026). A block in the fixture's EMPTY set (5A)
-    never syncs and says why. `POST .../sessions/{id} {"params":
-    {"service": sid}}` sets `playing` and sends a new result. With
-    FAKESHACK_RADIO_LISTEN_DAB=missing the decoder is listed but not
-    available, and starting it is 409 decoder_unavailable with `needs`
-    and the server's sentence, as `dabplus` is today.
-
+  * a `dab` decoder as Radio's own (openhamshack-nb SERVER-API "DAB",
+    dbb3e44): a session (`{"decoder": "dab", "freqHz": <block centre>, and/or
+    "params": {"block": "11D", "service": "C221"}}`) holds the receiver
+    while it runs - one at a time, a second is 409 receiver_busy - and
+    fakeshack tunes the simulator to the block's centre, says so in state as
+    `rxOwner` {by, session, block, freqHz, prior, text}, refuses api/set of
+    the dial or mode with 409 receiver_busy and the sentence, and on DELETE
+    puts the dial and mode back. The session is `panel: "meta"`,
+    `holdsReceiver: true`, with `meta`, the feed: `sync` at once false and
+    about two seconds later true, then `complete`, a made-up ensemble
+    {id, label, shortLabel} and five to eight services {sid, label,
+    shortLabel, bitrate, kind, why, whyText, needs}, `playing`, `why`/
+    `whyText`, `audio` {codec}, `block`, and `dls` (the playing station's
+    programme text). The dab+ services carry needs_codec:faad2 with its
+    sentence, as on a controller without faad2; the catalogue's dab entry
+    is `available` and `partial` with `missing` ["faad2"] and `missingText`
+    (FAKESHACK_RADIO_LISTEN_DAB=full: faad2 present, everything plays).
+    Block 5A never syncs (no_signal). A start with a block that does not
+    exist is 400 bad_params with a sentence. api/status carries `hostLibs`
+    (FAKESHACK_RADIO_LISTEN_HOSTLIBS=old: an older controller, its why).
   * a calibrated S-meter (Radio's server-side calibration, 23/10/2026): each
     `meter` item on the events socket gains `dbm` (the simulator's `rx`
     less 50.4 dB, a made-up calibration) and `s`, by the IARU rule - S9 is
@@ -82,11 +88,23 @@ DBM_OFFSET = -50.4
 UNCALIBRATED = "This band has not been calibrated yet: tune to a signal of known strength and calibrate (Controls › S-meter)."
 NO_READING = "There is no reading to calibrate against yet."
 SYNC_AFTER = 2.0
-MAX_SESSIONS = 4
 #: Blocks with nothing on them, to see the "nothing here" sentence.
 EMPTY = {"5A"}
-FAAD2 = "Ask your controller's administrator to install faad2 (Controller › Optional libraries)."
-DABPLUS_WHY = "DAB+ needs faad2, which this controller does not have yet."
+FAAD2 = "DAB+ stations need faad2: ask your controller's administrator to install it (Controller › Optional libraries)."
+DABPLUS_WHY = ("Needs faad2: ask your controller's administrator to install it (Controller › Optional libraries) "
+               "to hear DAB+ stations.")
+OLD_CONTROLLER = "Update the controller to use SDRplay radios and DAB+"
+NO_SIGNAL = "No DAB signal on this block."
+BUSY = "The receiver is playing DAB from block {block}: stop the DAB station to tune or change mode"
+#: The api/set keys a held receiver refuses (SERVER-API "DAB").
+HELD_KEYS = ("vfo", "mode", "rit", "ritOn", "rptReverse", "rptShift")
+#: Band III, ETSI EN 300 401, kHz: the blocks the fake accepts.
+BLOCKS = {"5A": 174928, "5B": 176640, "5C": 178352, "5D": 180064, "6A": 181936, "6B": 183648, "6C": 185360, "6D": 187072,
+          "7A": 188928, "7B": 190640, "7C": 192352, "7D": 194064, "8A": 195936, "8B": 197648, "8C": 199360, "8D": 201072,
+          "9A": 202928, "9B": 204640, "9C": 206352, "9D": 208064, "10A": 209936, "10N": 210096, "10B": 211648,
+          "10C": 213360, "10D": 215072, "11A": 216928, "11N": 217088, "11B": 218640, "11C": 220352, "11D": 222064,
+          "12A": 223936, "12N": 224096, "12B": 225648, "12C": 227360, "12D": 229072, "13A": 230784, "13B": 232496,
+          "13C": 234208, "13D": 235776, "13E": 237488, "13F": 239200}
 #: The server's sentences (openhamshack-nb SERVER-API "Wide FM", ohsradio/radio.py).
 WFM_TX = "WFM is for listening only: nothing is ever transmitted in it"
 WFM_MISSING = "Wide FM needs the receiver to run at 240 kS/s or more, and the hl2 runs at 48 kS/s"
@@ -97,27 +115,28 @@ DAB = {
     "id": "dab", "family": "broadcast", "inputs": ["iq"], "rateHz": 2048000.0, "bandwidthHz": 1536000.0,
     "outputs": ["meta"], "panel": "meta", "params": [{"key": "block", "type": "text"}, {"key": "service", "type": "text"}],
     "needs": [], "engine": "fake", "available": True, "why": None, "whyText": "", "version": "fake", "fixed": True,
+    "partial": False, "missing": [], "missingText": "",
 }
 
 STATIONS = ["Radio Wyvern", "Severn Sound", "Hilltop Jazz", "Kingfisher FM", "Northern Lights", "Canal Street Radio",
             "Morning Talk", "Classic Gold Fake", "Signal 1", "The Beacon", "Moorland Country", "Tide Radio"]
 
 
-def _services(block: str) -> tuple[dict, list[dict]]:
-    """The same made-up ensemble every time for a block: 5-8 services, about half dab+."""
+def _services(block: str, faad2: bool = False) -> tuple[dict, list[dict]]:
+    """The same made-up ensemble every time for a block: 5-8 services, about half dab+ (silent without faad2)."""
     rnd = random.Random(block)
     n = rnd.randint(5, 8)
     names = rnd.sample(STATIONS, n)
     out = []
     for i, name in enumerate(names):
         plus = i % 2 == 1
-        s = {"sid": f"{0xC220 + i:04X}", "label": name,
+        s = {"sid": f"{0xC220 + i:04X}", "label": name, "shortLabel": name[:8],
              "bitrate": rnd.choice([64, 80, 96]) if plus else rnd.choice([128, 160, 192]),
-             "kind": "dab+" if plus else "dab"}
-        if plus:
-            s["why"] = DABPLUS_WHY
+             "kind": "dab+" if plus else "dab", "why": None, "whyText": "", "needs": []}
+        if plus and not faad2:
+            s.update(why="needs_codec:faad2", whyText=DABPLUS_WHY, needs=["faad2"])
         out.append(s)
-    ens = {"id": f"C{rnd.randint(0x100, 0xFFF):03X}", "label": f"Fake Mux {block}"}
+    ens = {"id": f"C{rnd.randint(0x100, 0xFFF):03X}", "label": f"Fake Mux {block}", "shortLabel": f"Mux {block}"}
     return ens, out
 
 
@@ -131,27 +150,39 @@ def s_units(dbm: float, dial_hz: float) -> str:
 
 
 class Session:
-    def __init__(self, sid: str, freq: float, block: str):
+    def __init__(self, sid: str, freq: float, block: str, service: str | None, faad2: bool):
         self.id, self.freq, self.block = sid, freq, block
         self.state = "starting"
         self.since = time.time()
         self.rev = 0
         self.results: list[dict] = []
-        self.ensemble, self.services = _services(block)
-        self.playing: str | None = None
+        self.ensemble, self.services = _services(block, faad2)
+        self.playing: str | None = service or None
+        self.synced_at: float | None = None
+
+    def meta(self) -> dict:
+        synced = self.state == "synced"
+        svc = next((x for x in self.services if x["sid"] == self.playing), None) if synced else None
+        silent = svc is not None and bool(svc.get("why"))
+        m = {"sync": synced, "complete": synced and self.synced_at is not None and time.time() - self.synced_at > 0.8,
+             "ensemble": self.ensemble if synced else None, "services": self.services if synced else [],
+             "playing": self.playing, "why": None, "whyText": "", "block": self.block,
+             "audio": {"codec": ("he-aac" if svc["kind"] == "dab+" else "mp2")} if svc and not silent else None,
+             "dls": f"{svc['label']} - now: the fake's programme text" if svc and not silent else None}
+        if self.state == "nothing":
+            m.update(why="no_signal", whyText=NO_SIGNAL)
+        elif silent:
+            m.update(why=svc["why"], whyText=svc["whyText"])
+        return m
 
     def view(self) -> dict:
-        return {"id": self.id, "decoder": "dab", "freqHz": self.freq, "params": {"block": self.block},
-                "state": self.state, "why": None, "whyText": "", "since": self.since, "rev": self.rev, "panel": "meta"}
+        return {"id": self.id, "decoder": "dab", "freqHz": self.freq, "params": {"block": self.block, "service": self.playing or ""},
+                "state": self.state, "why": None, "whyText": "", "since": self.since, "rev": self.rev, "panel": "meta",
+                "holdsReceiver": True, "block": self.block, "meta": self.meta()}
 
     def feed(self) -> dict:
         self.rev += 1
-        synced = self.state == "synced"
-        r = {"kind": "decoder", "session": self.id, "rev": self.rev, "t": round(time.time(), 2), "type": "dab",
-             "sync": synced, "ensemble": self.ensemble if synced else None,
-             "services": self.services if synced else [], "playing": self.playing}
-        if self.block in EMPTY and self.state == "nothing":
-            r["why"] = f"Nothing was found on block {self.block}."
+        r = dict(self.meta(), kind="decoder", session=self.id, rev=self.rev, t=round(time.time(), 2), type="meta")
         self.results.append(r)
         return r
 
@@ -246,7 +277,7 @@ class Local:
 
 class Listen:
     def __init__(self, dab_missing: bool = False, rx_range: list[float] | None = None, calibrated: bool = True,
-                 wfm_missing: bool = False, rx_only: bool = False):
+                 wfm_missing: bool = False, rx_only: bool = False, faad2: bool = False, old_controller: bool = False):
         self.wfm = False
         #: The server has wfm of its own: pass it through rather than fake it.
         self.native = False
@@ -260,15 +291,42 @@ class Listen:
         self.listeners: set[asyncio.Queue] = set()
         self.n = 0
         self.local = Local()
+        #: The DAB session holding the receiver: {session, block, freqHz, prior}; None while the operator has it.
+        self.owner: dict | None = None
+        self.faad2 = faad2
+        self.old_controller = old_controller
+        #: State messages for events sockets that asked for state (rxOwner as it changes).
+        self.state_listeners: set[asyncio.Queue] = set()
         self.cals: dict[str, dict] = {}
         self.last_rx: float | None = None
 
     # --- api/spec, api/status, api/state and api/set ------------------------
 
     def catalogue(self) -> dict:
-        if not self.dab_missing:
+        if self.faad2:
             return DAB
-        return dict(DAB, needs=["faad2"], available=False, why="codec_missing", whyText=FAAD2)
+        return dict(DAB, partial=True, missing=["faad2"], missingText=OLD_CONTROLLER if self.old_controller else FAAD2)
+
+    def host_libs(self) -> dict:
+        if self.old_controller:
+            return {"supported": False, "root": None, "libraries": {}, "why": OLD_CONTROLLER}
+        return {"supported": True, "root": "/opt/hostlibs", "libraries": {"faad2": self.faad2, "sdrplay-api": True}, "why": ""}
+
+    # --- the receiver held by a DAB session (SERVER-API "DAB") ----------------
+
+    def owner_view(self) -> dict:
+        """`rxOwner` as state and status carry it: {} while the operator has the receiver."""
+        o = self.owner
+        if not o:
+            return {}
+        return {"by": "dab", "session": o["session"], "block": o["block"], "freqHz": o["freqHz"], "prior": o["prior"],
+                "text": BUSY.format(block=o["block"])}
+
+    def refuse_set(self, changes: dict) -> tuple[int, dict] | None:
+        """409 receiver_busy for an api/set that would tune while a DAB session holds the receiver."""
+        if self.owner and any(k in changes for k in HELD_KEYS):
+            return 409, {"error": BUSY.format(block=self.owner["block"]), "code": "receiver_busy", "rxOwner": self.owner_view()}
+        return None
 
     def spec(self, obj: dict) -> dict:
         mode = obj.get("mode")
@@ -284,10 +342,15 @@ class Listen:
 
     def status(self, obj: dict) -> dict:
         obj.setdefault("rxRange", self.rx_range)
+        obj["rxOwner"] = self.owner_view()
+        obj["hostLibs"] = self.host_libs()
         return obj
 
     def state(self, obj: dict) -> dict:
         """GET api/state's answer (or a state message's changes) as the fixture says it."""
+        if "vfo" in obj and "mode" in obj:
+            obj["rxOwner"] = self.owner_view()
+            obj["hostLibs"] = self.host_libs()
         if isinstance(obj.get("vfo"), (int, float)) and not isinstance(obj.get("vfo"), bool):
             self.dial = float(obj["vfo"])
         if isinstance(obj.get("modes"), dict) and "wfm" in obj["modes"]:
@@ -408,13 +471,13 @@ class Listen:
                 return 200, dict(s.view(), results=[r for r in s.results if since is None or r["rev"] > since])
             if method == "POST":
                 params = body.get("params") if isinstance(body.get("params"), dict) else {}
+                if params.get("block") and str(params["block"]).upper() != s.block:
+                    return 400, {"error": "A session plays one block: stop it and start one on the other", "code": "bad_params"}
                 want = params.get("service")
-                svc = next((x for x in s.services if x["sid"] == want), None)
-                if svc is None:
+                if s.state == "synced" and not any(x["sid"] == want for x in s.services):
                     return 400, {"error": f"There is no service {want!r} on block {s.block}", "code": "bad_params"}
-                if svc.get("why"):
-                    return 409, {"error": svc["why"], "code": "decoder_unavailable", "needs": ["faad2"]}
-                s.playing = want
+                # A DAB+ station without faad2 is chosen all the same and is silent; the feed says why.
+                s.playing = want or None
                 self._send(s.feed())
                 return 200, s.view()
             if method == "DELETE":
@@ -425,18 +488,40 @@ class Listen:
     def _start(self, b: dict) -> tuple[int, dict]:
         freq = b.get("freqHz", b.get("rfHz"))
         params = b.get("params") or {}
-        if isinstance(freq, bool) or not isinstance(freq, (int, float)) or not isinstance(params, dict):
+        if not isinstance(params, dict) or (freq is not None and (isinstance(freq, bool) or not isinstance(freq, (int, float)))):
             return 400, {"error": "Give decoder, freqHz and, if any, params", "code": "bad_params"}
-        if self.dab_missing:
-            return 409, {"error": FAAD2, "code": "decoder_unavailable", "needs": ["faad2"]}
-        if len(self.sessions) >= MAX_SESSIONS:
-            return 429, {"error": f"There are already {len(self.sessions)} decoders running, the most "
-                                  "Settings › Decoders allows", "code": "too_many_sessions"}
+        block = str(params.get("block") or "").upper()
+        if block and block not in BLOCKS:
+            return 400, {"error": f"There is no DAB block {params.get('block')!r}: Band III runs from 5A to 13F", "code": "bad_params"}
+        if freq is not None:
+            at = next((k for k, khz in BLOCKS.items() if abs(khz * 1000 - freq) <= 8000), None)
+            if at is None or (block and at != block):
+                return 400, {"error": "That frequency is not the centre of a DAB block", "code": "bad_params"}
+            block = at
+        if not block:
+            return 400, {"error": "Give the block, or its centre frequency", "code": "bad_params"}
+        if self.owner:
+            return 409, {"error": f"Another DAB session is playing block {self.owner['block']}: stop it first", "code": "receiver_busy"}
         self.n += 1
-        s = Session(f"ds_dab{self.n}", float(freq), str(params.get("block") or "?"))
+        s = Session(f"ds_dab{self.n}", BLOCKS[block] * 1000.0, block, str(params.get("service") or "") or None, self.faad2)
         self.sessions[s.id] = s
         self._send(s.feed())
         return 201, s.view()
+
+    def hold(self, s: "Session", prior: dict):
+        """The session has the receiver (fakeshack has tuned the simulator): rxOwner says so."""
+        self.owner = {"session": s.id, "block": s.block, "freqHz": s.freq, "prior": prior}
+        self._state({"rxOwner": self.owner_view()})
+
+    def give_back(self) -> dict | None:
+        """The session stopped: the prior dial and mode, for fakeshack to put back; rxOwner is {} again."""
+        o, self.owner = self.owner, None
+        self._state({"rxOwner": {}})
+        return o["prior"] if o else None
+
+    def _state(self, changes: dict):
+        for q in list(self.state_listeners):
+            q.put_nowait(json.dumps({"kind": "state", "changes": changes}))
 
     async def run(self, every: float = 0.25):
         """A session syncs SYNC_AFTER seconds after it starts (or says it found nothing)."""
@@ -446,6 +531,9 @@ class Listen:
             for s in list(self.sessions.values()):
                 if s.state == "starting" and now - s.since >= SYNC_AFTER:
                     s.state = "nothing" if s.block in EMPTY else "synced"
+                    s.synced_at = now
+                    self._send(s.feed())
+                elif s.state == "synced" and s.synced_at and 0.8 < now - s.synced_at <= 0.8 + every:
                     self._send(s.feed())
 
     def _send(self, r: dict):

@@ -264,7 +264,9 @@ ANTENNAS = Antennas() if os.environ.get("FAKESHACK_RADIO_ANTENNAS", "") == "1" e
 LISTEN = Listen(dab_missing=os.environ.get("FAKESHACK_RADIO_LISTEN_DAB", "") == "missing", rx_range=RADIO_RXRANGE,
                 calibrated=os.environ.get("FAKESHACK_RADIO_LISTEN_SMETER", "") != "uncalibrated",
                 wfm_missing=os.environ.get("FAKESHACK_RADIO_LISTEN_WFM", "") == "missing",
-                rx_only=os.environ.get("FAKESHACK_RADIO_LISTEN_RXONLY", "") == "1") \
+                rx_only=os.environ.get("FAKESHACK_RADIO_LISTEN_RXONLY", "") == "1",
+                faad2=os.environ.get("FAKESHACK_RADIO_LISTEN_DAB", "") == "full",
+                old_controller=os.environ.get("FAKESHACK_RADIO_LISTEN_HOSTLIBS", "") == "old") \
     if os.environ.get("FAKESHACK_RADIO_LISTEN", "") == "1" else None
 #: The simulator's last deviceStatus as it went by, for the antenna fixture to lay its keys over.
 radio_device: dict = {}
@@ -610,6 +612,8 @@ async def handle(r, w):
         for fx, want in ((DECODERS, decoders), (LISTEN, decoders), (ANTENNAS, antennas)):
             if fx is not None and want:
                 feeds.append(asyncio.ensure_future(listener_feed(inject, fx.listeners)))
+        if LISTEN and antennas:
+            feeds.append(asyncio.ensure_future(listener_feed(inject, LISTEN.state_listeners)))
         try:
             await asyncio.gather(pipe(r, uw), server_frames(ur, w, inject, mode, state_frame if antennas else None))
         finally:
@@ -646,6 +650,19 @@ async def decoders_reply(r, w, method: str, rest: str, hdr: dict):
     # The listening fixture's dab sessions first, then fakedecoders' own; the
     # catalogue is both together (or the dab decoder alone).
     got = LISTEN.answer(method, path, parse_qs(query), b) if LISTEN else None
+    # A DAB session holds the receiver (SERVER-API "DAB"): the simulator is tuned to the
+    # block's centre as it starts, and its dial and mode put back as it stops.
+    if LISTEN and got and path == "/api/decoders/sessions" and method == "POST" and got[0] == 201:
+        st = await radio_call("GET", "/api/state")
+        prior = {"vfo": st.get("vfo"), "mode": st.get("mode"), "rptOffsetHz": st.get("rptOffsetHz", 0)}
+        await radio_call("POST", "/api/set", {"changes": {"vfo": got[1]["freqHz"]}})
+        LISTEN.hold(LISTEN.sessions[got[1]["id"]], prior)
+    if LISTEN and got and method == "DELETE" and path.startswith("/api/decoders/sessions/") and LISTEN.owner \
+            and LISTEN.owner["session"] == path.rsplit("/", 1)[-1]:
+        prior = LISTEN.give_back() or {}
+        back = {k: v for k, v in prior.items() if k in ("vfo", "mode") and v is not None}
+        if back:
+            await radio_call("POST", "/api/set", {"changes": back})
     if got is None and DECODERS:
         got = DECODERS.answer(method, path, parse_qs(query), b)
     if LISTEN and path == "/api/decoders" and method == "GET":
@@ -656,6 +673,23 @@ async def decoders_reply(r, w, method: str, rest: str, hdr: dict):
     if got is None:
         got = 404, {"error": "Not found.", "code": "not_found"}
     await reply(w, *got)
+
+
+async def radio_call(method: str, path: str, body: dict | None = None) -> dict:
+    """One request of fakeshack's own to the Radio simulator, as the controller would make it (control level);
+    {} when it does not answer."""
+    data = json.dumps(body).encode() if body is not None else b""
+    try:
+        ur, uw = await asyncio.open_connection("127.0.0.1", APPS["shack-radio"][2])
+        uw.write((f"{method} {path} HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n"
+                  f"X-OpenHamShack-Proxy-Secret: {SECRET}\r\nX-OpenHamShack-User: fakeshack\r\nX-OpenHamShack-Level: control\r\n"
+                  f"Content-Type: application/json\r\nContent-Length: {len(data)}\r\n\r\n").encode() + data)
+        await uw.drain()
+        raw = await asyncio.wait_for(ur.read(), 5)
+        uw.close()
+        return json.loads(raw.split(b"\r\n\r\n", 1)[1] or b"{}")
+    except (OSError, ValueError, IndexError, asyncio.TimeoutError):
+        return {}
 
 
 async def tone_reply(r, w, rest: str):
@@ -778,6 +812,11 @@ async def antenna_set(r, w, ur, uw, request_line: str, keep: list, hdr: dict):
         return
     wrapped = isinstance(body.get("changes"), dict)
     changes = body["changes"] if wrapped else body
+    held = LISTEN.refuse_set(changes) if LISTEN else None
+    if held:
+        uw.close()
+        await reply(w, *held)
+        return
     if LISTEN and LISTEN.refuse(changes):
         uw.close()
         await reply(w, 400, {"error": LISTEN.refuse(changes), "code": "bad_request"})
