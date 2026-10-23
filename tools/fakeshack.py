@@ -580,7 +580,7 @@ async def handle(r, w):
         await tone_reply(r, w, rest)
         return
     if app == "shack-radio" and ((DECODERS or LISTEN) and rest.split("?", 1)[0].startswith("/api/decoders")
-                                 or LISTEN and rest.split("?", 1)[0].startswith(("/api/local-frequencies", "/api/smeter"))):
+                                 or LISTEN and rest.split("?", 1)[0].startswith(("/api/local-frequencies", "/api/smeter", "/api/fm/stations", "/api/dab/stations", "/api/scan"))):
         await decoders_reply(r, w, method, rest, hdr)
         return
     try:
@@ -814,6 +814,8 @@ async def antenna_set(r, w, ur, uw, request_line: str, keep: list, hdr: dict):
     changes = body["changes"] if wrapped else body
     radius = {}
     if LISTEN:
+        # Any change ends a band scan first, which gives everything back (SERVER-API "Station lists").
+        LISTEN.abort_scan()
         radius, changes = LISTEN.radius_set(changes)
         if radius and not changes:
             uw.close()

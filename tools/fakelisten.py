@@ -69,6 +69,17 @@ What it makes Radio look like (FAKESHACK_RADIO_LISTEN=1):
     refusing any other field 400 bad_field; refresh is 403 not_admin; api/set
     takes `localRadiusKm`. The names are placeholders.
 
+  * Radio's station lists and RDS (openhamshack-nb SERVER-API "Station
+    lists" and "Wide FM"): api/fm/stations and api/dab/stations answer a
+    made-up scan (FAKESHACK_RADIO_LISTEN_STATIONS=never: never scanned);
+    POST api/scan {"band": "fm"|"dab"|"both"} runs about 20 s, holding the
+    receiver as `rxOwner` {by: "scan"} with `bandScan` progress in state,
+    then remakes the lists, moves `stationsAt` and sends a `stations` event;
+    any api/set meanwhile aborts it. In wfm on one of the made-up stations,
+    `rds` appears in state about 2 s after the dial settles (null again the
+    moment it moves), the meter carries `stereo`, and api/status
+    audio.stereo follows.
+
 The feed's results carry `type: "dab"`, `sync`, `ensemble`, `services` and
 `playing`, polled with `?since=` or sent to an events socket that asked
 for "decoder", as fakedecoders' sessions are. Field names follow the
@@ -80,6 +91,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import random
 import time
 
@@ -342,6 +354,30 @@ class Local:
         return None
 
 
+#: Made-up FM stations: (pi, ps as sent, pty, ptyName, rt or None, best Hz, level dBFS, stereo, alternative Hz).
+FM_STATIONS = [
+    ("C201", "SIM ONE ", 10, "Pop music", "Sim One: 1 kHz left, 1.5 kHz right", 88_600_000, -38.0, True, [91_300_000]),
+    ("C3A1", "CLASSIC ", 14, "Serious classical", None, 101_200_000, -41.0, True, []),
+    ("C4B2", "ALPHA FM", 10, "Pop music", "Alpha FM - the hits", 104_500_000, -44.0, True, [97_100_000]),
+    ("C5C3", "TALK 5  ", 1, "News", None, 93_400_000, -45.0, False, []),
+    ("C6D4", "CLYDE 1 ", 10, "Pop music", None, 102_500_000, -39.0, True, []),
+    ("C7E5", "JAZZ 7  ", 17, "Jazz music", "Late night jazz", 106_200_000, -49.0, True, []),
+    ("C8F6", "BBC R2  ", 11, "Rock music", None, 89_100_000, -36.0, True, [90_200_000]),
+    (None, None, None, None, None, 97_700_000, -46.0, True, []),
+]
+#: The blocks the made-up DAB scan finds an ensemble on.
+DAB_SCAN_BLOCKS = ["11D", "12B", "12C"]
+SCAN_SECONDS = {"fm": 10.0, "dab": 10.0}
+SCAN_HOLD = "Radio is scanning {what} for its station list: it is yours again the moment you use it"
+
+
+def _fm_station_at(hz: float):
+    for st in FM_STATIONS:
+        if any(abs(f - hz) < 50_000 for f in [st[5]] + st[8]):
+            return st
+    return None
+
+
 class Listen:
     def __init__(self, dab_missing: bool = False, rx_range: list[float] | None = None, calibrated: bool = True,
                  wfm_missing: bool = False, rx_only: bool = False, faad2: bool = False, old_controller: bool = False):
@@ -358,6 +394,16 @@ class Listen:
         self.listeners: set[asyncio.Queue] = set()
         self.n = 0
         self.local = Local()
+        self.mode = ""
+        #: When the dial settled on a wfm station: RDS appears RDS_AFTER seconds later.
+        self.rds_since: float | None = None
+        self.rds: dict | None = None
+        never = os.environ.get("FAKESHACK_RADIO_LISTEN_STATIONS", "") == "never"
+        made = None if never else time.time() - 3 * 86400
+        self.lists = {b: {"status": "never" if never else "ok", "statusText": "" if not never else "Not scanned yet",
+                          "scannedAt": made} for b in ("fm", "dab")}
+        #: The scan under way: {bands: [...], i, started, band_started}; None when idle.
+        self.scan: dict | None = None
         #: The DAB session holding the receiver: {session, block, freqHz, prior}; None while the operator has it.
         self.owner: dict | None = None
         self.faad2 = faad2
@@ -383,6 +429,8 @@ class Listen:
 
     def owner_view(self) -> dict:
         """`rxOwner` as state and status carry it: {} while the operator has the receiver."""
+        if self.scan:
+            return self.scan_owner()
         o = self.owner
         if not o:
             return {}
@@ -416,17 +464,34 @@ class Listen:
 
     def status(self, obj: dict) -> dict:
         obj.setdefault("rxRange", self.rx_range)
+        if isinstance(obj.get("audio"), dict):
+            obj["audio"] = dict(obj["audio"], stereo=self.stereo_now())
         obj["rxOwner"] = self.owner_view()
         obj["hostLibs"] = self.host_libs()
         return obj
 
     def state(self, obj: dict) -> dict:
         """GET api/state's answer (or a state message's changes) as the fixture says it."""
-        if "vfo" in obj and "mode" in obj:
+        full = "vfo" in obj and "mode" in obj and "modes" in obj
+        if full:
             obj["rxOwner"] = self.owner_view()
             obj["hostLibs"] = self.host_libs()
+        moved = False
         if isinstance(obj.get("vfo"), (int, float)) and not isinstance(obj.get("vfo"), bool):
+            moved = float(obj["vfo"]) != self.dial
             self.dial = float(obj["vfo"])
+        if isinstance(obj.get("mode"), str):
+            moved = moved or obj["mode"] != self.mode
+            self.mode = obj["mode"]
+        # Every retune or change of mode clears RDS in the same change and starts it again (SERVER-API "Wide FM").
+        if moved:
+            self.rds, self.rds_since = None, time.time()
+            if not full:
+                obj["rds"] = None
+        if full:
+            obj["rds"] = self.rds
+            obj["bandScan"] = self.scan_view()
+            obj["stationsAt"] = self.stations_at()
         if isinstance(obj.get("modes"), dict) and "wfm" in obj["modes"]:
             self.native = True
         faked = self.wfm and not self.native
@@ -480,13 +545,145 @@ class Listen:
         except ValueError:
             return None
         if o.get("kind") == "meter":
-            return json.dumps(self.meter(o))
+            m = self.meter(o)
+            if self.mode == "wfm":
+                m["stereo"] = self.stereo_now()
+            return json.dumps(m)
         ch = o.get("changes") if o.get("kind") == "state" else None
         if not isinstance(ch, dict):
             return None
         before = json.dumps(ch, sort_keys=True)
         self.state(ch)
         return json.dumps(o) if json.dumps(ch, sort_keys=True) != before else None
+
+    # --- RDS, stereo, the station lists and the band scan --------------------
+
+    def station_now(self):
+        """The made-up station at the dial in wfm, with the receiver the operator's; None otherwise."""
+        if self.mode != "wfm" or self.owner or self.scan:
+            return None
+        return _fm_station_at(self.dial)
+
+    def stereo_now(self) -> bool:
+        st = self.station_now()
+        return bool(st and st[7])
+
+    def rds_view(self, st) -> dict | None:
+        pi, ps, pty, name, rt, *_ = st
+        if pi is None:
+            return None
+        return {"pi": pi, "ps": ps, "rt": rt, "pty": pty, "ptyName": name, "ta": False, "tp": pi == "C5C3",
+                "ct": None, "af": st[8], "stereo": st[7], "ts": round(time.time(), 1)}
+
+    def stations_at(self) -> dict:
+        return {b: _iso(self.lists[b]["scannedAt"]) if self.lists[b]["scannedAt"] else None for b in ("fm", "dab")}
+
+    def scan_view(self) -> dict:
+        sc = self.scan
+        if not sc:
+            return {}
+        band = sc["bands"][sc["i"]]
+        done = min(1.0, (time.time() - sc["band_started"]) / SCAN_SECONDS[band])
+        if band == "fm":
+            hop = min(10, int(done * 11))
+            hz = 87_600_000 + hop * 1_900_000
+            text = f"FM: {hz / 1e6:.2f} MHz ({hop + 1} of 11)"
+        else:
+            k = min(40, int(done * 41))
+            label = list(BLOCKS)[k]
+            hz = BLOCKS[label] * 1000
+            text = f"DAB: block {label} ({k + 1} of 41)"
+        return {"band": band, "percent": int(done * 100), "phase": "listening", "freqHz": hz, "text": text}
+
+    def list_header(self, band: str) -> dict:
+        x = self.lists[band]
+        status = "scanning" if self.scan and band in self.scan["bands"] else x["status"]
+        return {"scannedAt": _iso(x["scannedAt"]) if x["scannedAt"] else None,
+                "nextDue": _iso(time.time() + 4 * 86400), "status": status,
+                "statusText": "Scanning now" if status == "scanning" else x["statusText"]}
+
+    def fm_list(self) -> dict:
+        out = dict(self.list_header("fm"), stations=[])
+        if self.lists["fm"]["scannedAt"]:
+            out["stations"] = [{"pi": pi, "ps": ps, "pty": pty, "ptyName": name, "rt": rt if pi != "C3A1" else None,
+                                "best": {"hz": hz, "level": lvl, "stereo": stereo},
+                                "alts": [{"hz": a, "level": lvl - 9, "stereo": stereo} for a in alts]}
+                               for pi, ps, pty, name, rt, hz, lvl, stereo, alts in sorted(FM_STATIONS, key=lambda x: x[5])]
+        return out
+
+    def dab_list(self) -> dict:
+        out = dict(self.list_header("dab"), ensembles=[])
+        if self.lists["dab"]["scannedAt"]:
+            for b in DAB_SCAN_BLOCKS:
+                ens, services = _services(b, self.faad2)
+                out["ensembles"].append({"block": b, "freqHz": BLOCKS[b] * 1000, "id": ens["id"], "label": ens["label"],
+                                         "services": [{"sid": x["sid"], "label": x["label"], "kind": x["kind"], "bitrate": x["bitrate"]}
+                                                      for x in services]})
+        return out
+
+    def start_scan(self, b: dict) -> tuple[int, dict]:
+        band = b.get("band")
+        if band not in ("fm", "dab", "both"):
+            return 400, {"error": "band must be fm, dab or both", "code": "bad_params"}
+        if self.scan:
+            return 409, {"error": "Not scanning now: A band scan is running already", "code": "receiver_busy"}
+        if self.owner:
+            return 409, {"error": "Not scanning now: a DAB station is playing", "code": "receiver_busy"}
+        bands = ["fm", "dab"] if band == "both" else [band]
+        now = time.time()
+        self.scan = {"bands": bands, "i": 0, "started": now, "band_started": now}
+        self.rds = None
+        self._state({"rxOwner": self.scan_owner(), "bandScan": self.scan_view(), "rds": None})
+        return 202, {"bands": bands, "progress": 0}
+
+    def scan_owner(self) -> dict:
+        band = self.scan["bands"][self.scan["i"]]
+        what = "the FM band" if band == "fm" else "Band III (DAB)"
+        return {"by": "scan", "session": "bandscan", "block": what, "freqHz": self.dial, "prior": {"vfo": self.dial, "mode": self.mode},
+                "text": SCAN_HOLD.format(what=what)}
+
+    def abort_scan(self):
+        """Anyone doing anything ends the scan before it is handled; the band's last list stays, its status aborted."""
+        if not self.scan:
+            return
+        band = self.scan["bands"][self.scan["i"]]
+        self.lists[band].update(status="aborted", statusText="The scan stopped: someone wanted the radio")
+        self.scan = None
+        self.rds_since = time.time()
+        self._state({"rxOwner": {}, "bandScan": {}})
+
+    def scan_tick(self):
+        sc = self.scan
+        if not sc:
+            return
+        band = sc["bands"][sc["i"]]
+        if time.time() - sc["band_started"] < SCAN_SECONDS[band]:
+            self._state({"bandScan": self.scan_view()})
+            return
+        now = time.time()
+        self.lists[band].update(status="ok", statusText="", scannedAt=now)
+        count = len(FM_STATIONS) if band == "fm" else len(DAB_SCAN_BLOCKS)
+        self._state({"stationsAt": self.stations_at()})
+        for q in list(self.state_listeners):
+            q.put_nowait(json.dumps({"kind": "stations", "band": band, "scannedAt": _iso(now), "count": count, "t": round(now, 2)}))
+        if sc["i"] + 1 < len(sc["bands"]):
+            sc["i"] += 1
+            sc["band_started"] = now
+            self._state({"rxOwner": self.scan_owner(), "bandScan": self.scan_view()})
+        else:
+            self.scan = None
+            self.rds_since = now
+            self._state({"rxOwner": {}, "bandScan": {}})
+
+    def rds_tick(self):
+        """RDS a couple of seconds after the dial settles on a wfm station."""
+        st = self.station_now()
+        if st is None or self.rds is not None or self.rds_since is None or time.time() - self.rds_since < 2.0:
+            return
+        view = self.rds_view(st)
+        if view:
+            self.rds = view
+            self._state({"rds": view})
 
     def cal_key(self) -> str:
         """The calibration's key: the server's is the device, antenna and band; the fake's is the dial's side of 30 MHz."""
@@ -526,6 +723,12 @@ class Listen:
 
     def answer(self, method: str, path: str, query: dict, body: dict) -> tuple[int, dict] | None:
         """(status, body) for a dab or local route, or None for anything this fixture does not own."""
+        if path == "/api/fm/stations" and method == "GET":
+            return 200, self.fm_list()
+        if path == "/api/dab/stations" and method == "GET":
+            return 200, self.dab_list()
+        if path == "/api/scan" and method == "POST":
+            return self.start_scan(body)
         if path.startswith("/api/local-frequencies"):
             return self.local.answer(method, path, body, query)
         if path == "/api/smeter/calibrate" and method in ("GET", "POST", "DELETE"):
@@ -574,6 +777,8 @@ class Listen:
             block = at
         if not block:
             return 400, {"error": "Give the block, or its centre frequency", "code": "bad_params"}
+        # A decoder session is "doing something": a scan ends before it starts (SERVER-API "Station lists").
+        self.abort_scan()
         if self.owner:
             return 409, {"error": f"Another DAB session is playing block {self.owner['block']}: stop it first", "code": "receiver_busy"}
         self.n += 1
@@ -602,6 +807,9 @@ class Listen:
         while True:
             await asyncio.sleep(every)
             now = time.time()
+            self.rds_tick()
+            if self.scan and int(now / every) % 4 == 0:
+                self.scan_tick()
             for s in list(self.sessions.values()):
                 if s.state == "starting" and now - s.since >= SYNC_AFTER:
                     s.state = "nothing" if s.block in EMPTY else "synced"
