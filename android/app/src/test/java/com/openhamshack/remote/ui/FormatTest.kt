@@ -47,6 +47,12 @@ class FormatTest {
         assertEquals("1\u00a0kHz", reachEnd(1_000.0, "en-GB"))
         assertEquals("2\u00a0GHz", reachEnd(2e9, "en-GB"))
         assertEquals("6.1\u00a0GHz", reachEnd(6.1e9, "en-GB"))
+        // A local frequency as a channel list reads it.
+        assertEquals("118.700", channelText(118_700_000.0, "en-GB"))
+        assertEquals("446.00625", channelText(446_006_250.0, "en-GB"))
+        assertEquals("27.185", channelText(27_185_000.0, "en-GB"))
+        assertEquals("118.008333", channelText(118_008_333.0, "en-GB"))
+        assertEquals("909", channelText(909_000.0, "en-GB"))
         // A band's edges for the TV's band card.
         assertEquals(Triple("87.5", "108", "MHz"), rangeParts(87_500_000, 108_000_000, "en-GB"))
         assertEquals(Triple("148.5", "283.5", "kHz"), rangeParts(148_500, 283_500, "en-GB"))

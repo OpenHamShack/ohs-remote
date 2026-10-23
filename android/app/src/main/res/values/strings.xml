@@ -222,6 +222,60 @@
     <string name="shack_tv_keys_tune">◀ ▶ tune</string>
     <string name="shack_tv_keys_move">◀ ▶ move along</string>
     <string name="shack_tv_keys_band">CH ± band</string>
+    <!-- Local frequencies (Brian's TvPolishLocal mockup): what is on the air near the station. -->
+    <string name="shack_local_title">Local frequencies</string>
+    <string name="shack_local_heading">RADIO · LOCAL</string>
+    <!-- %1$s the radius ("100 km"), %2$s the station's locator. -->
+    <string name="shack_local_within">Within %1$s of %2$s · nearest first</string>
+    <string name="shack_local_nearest">Nearest first</string>
+    <!-- A distance: %1$s the number of kilometres. -->
+    <string name="shack_local_km">%1$s km</string>
+    <!-- A distance and the way to it: %1$s kilometres, %2$s a compass point ("12 km W"). -->
+    <string name="shack_local_km_bearing">%1$s km %2$s</string>
+    <string name="shack_compass_n">N</string>
+    <string name="shack_compass_ne">NE</string>
+    <string name="shack_compass_e">E</string>
+    <string name="shack_compass_se">SE</string>
+    <string name="shack_compass_s">S</string>
+    <string name="shack_compass_sw">SW</string>
+    <string name="shack_compass_w">W</string>
+    <string name="shack_compass_nw">NW</string>
+    <string name="shack_local_all">All</string>
+    <string name="shack_local_cat_airport">Airports</string>
+    <string name="shack_local_cat_area">Area control</string>
+    <string name="shack_local_cat_marine">Marine</string>
+    <string name="shack_local_cat_pmr">PMR · CB · LPD</string>
+    <string name="shack_local_cat_beacon">HF beacons</string>
+    <string name="shack_local_cat_mine">My frequencies</string>
+    <!-- The small badges beside each row, three letters at most. -->
+    <string name="shack_local_badge_airport">AIR</string>
+    <string name="shack_local_badge_area">ACC</string>
+    <string name="shack_local_badge_marine">SEA</string>
+    <string name="shack_local_badge_pmr">PMR</string>
+    <string name="shack_local_badge_beacon">BCN</string>
+    <string name="shack_local_badge_mine">ME</string>
+    <string name="shack_local_badge_other">·</string>
+    <string name="shack_local_beacons_heading">HF BEACONS · ON AIR NOW</string>
+    <!-- The beacon on air now: %1$s where it is, %2$s its frequency. -->
+    <string name="shack_local_beacon_line">%1$s · %2$s MHz CW</string>
+    <string name="shack_local_beacon_note">Each band hears the next beacon in 10 s. OK tunes to the one on now.</string>
+    <!-- %1$s the sources' own lines, as the server sends them. -->
+    <string name="shack_local_about">About this data: %1$s</string>
+    <string name="shack_local_loading">Reading the local frequencies…</string>
+    <string name="shack_local_missing">This Radio has no local frequencies yet.</string>
+    <string name="shack_local_empty">Nothing here yet.</string>
+    <string name="shack_local_add">Add this frequency</string>
+    <string name="shack_local_add_title">A frequency of your own</string>
+    <!-- What adding saves: %1$s the frequency, %2$s the mode. -->
+    <string name="shack_local_add_help">Saves %1$s in %2$s with the step in use. Give it a name.</string>
+    <string name="shack_local_name">Name</string>
+    <string name="shack_local_freq">Frequency, MHz</string>
+    <string name="shack_local_save">Save</string>
+    <string name="shack_local_remove">Remove</string>
+    <string name="shack_local_cancel">Cancel</string>
+    <string name="shack_local_view_only">Your own frequencies need the Control level for this app.</string>
+    <string name="shack_local_keys_ok">OK</string>
+    <string name="shack_local_hint">tunes, with its mode and step</string>
     <!-- The TV polish (Brian's TvPolish mockups). Small spaced capitals over a panel. -->
     <string name="shack_signal_heading">SIGNAL</string>
     <string name="shack_radio_heading">RADIO</string>

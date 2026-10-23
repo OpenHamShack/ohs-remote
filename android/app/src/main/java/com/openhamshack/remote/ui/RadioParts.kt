@@ -422,12 +422,16 @@ internal fun rangeParts(loHz: Long, hiHz: Long, tag: String): Triple<String, Str
  * phone's bottom sheet; [onPicked] closes it.
  */
 @Composable
-internal fun BandPicker(e: EngineSession, u: EngineUi, columns: Int, onPicked: () -> Unit) {
+internal fun BandPicker(e: EngineSession, u: EngineUi, columns: Int, onPicked: () -> Unit, onLocal: (() -> Unit)? = null) {
     var filter by remember { mutableStateOf(BandFilter.ALL) }
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(R.string.shack_bands_title), fontSize = 20.sp, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
             reachText(e, u)?.let { Text(it, fontSize = 12.sp, color = Dim, maxLines = 1) }
+        }
+        // Local frequencies (TvPolishLocal): what is on the air near the station, a sheet of its own.
+        if (onLocal != null) RadioKey(onLocal, Modifier.fillMaxWidth().height(44.dp), "localOpen", colour = RadioRaised, radius = 14.dp) {
+            Text(stringResource(R.string.shack_local_title), fontSize = 15.sp, color = Accent)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             for ((f, word) in listOf(BandFilter.ALL to R.string.shack_bands_all, BandFilter.AMATEUR to R.string.shack_bands_amateur,
@@ -456,13 +460,16 @@ internal fun BandPicker(e: EngineSession, u: EngineUi, columns: Int, onPicked: (
 
 /** The tablet's band grid (Tablet's right column), always there: every band and area in one grid, in frequency order. */
 @Composable
-internal fun BandGridCard(e: EngineSession, u: EngineUi, modifier: Modifier) {
+internal fun BandGridCard(e: EngineSession, u: EngineUi, modifier: Modifier, onLocal: (() -> Unit)? = null) {
     Column(modifier.clip(RoundedCornerShape(20.dp)).background(RadioCard).padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(R.string.shack_bands_heading), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Dim,
                 letterSpacing = 0.6.sp, modifier = Modifier.weight(1f))
             RxTag(10.sp)
             Text(stringResource(R.string.shack_bands_legend), fontSize = 12.sp, color = Dim, modifier = Modifier.padding(start = 4.dp))
+        }
+        if (onLocal != null) RadioKey(onLocal, Modifier.fillMaxWidth().height(40.dp), "localOpen", colour = RadioRaised, radius = 10.dp) {
+            Text(stringResource(R.string.shack_local_title), fontSize = 14.sp, color = Accent)
         }
         Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())) {
             TileGrid(e, u, u.bandButtons, 5, 46.dp, 6.dp, 14.sp, onPicked = {})

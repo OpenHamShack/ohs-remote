@@ -167,7 +167,9 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
     var lastMark by remember { mutableIntStateOf(-1) }
     // What the armed plan will send, once confirmed.
     var choice by remember { mutableStateOf<TxChoice?>(null) }
-    val covered = typing != null || logOpen || full || askLine
+    // Radio's local frequencies: a screen over the radio while open (the Local item in the band picker).
+    val localOpen = u.local != null
+    val covered = typing != null || logOpen || full || askLine || localOpen
     // DAB's station list: open while the DAB area is (Ch± or Bands onto it opens it). Radio's
     // since the overhaul is in the scope's place, not over it, so it is not an overlay.
     val dabOpen = u.dab != null
@@ -182,6 +184,7 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
     val firstAntenna = remember { FocusRequester() }
     val firstDab = remember { FocusRequester() }
     val rowFirst = remember { FocusRequester() }
+    val localFirst = remember { FocusRequester() }
     val pickerFocus = remember { FocusRequester() }
     val panelFocus = remember { FocusRequester() }
     var panelFocused by remember { mutableStateOf(false) }
@@ -272,6 +275,7 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
     // DAB's list is in the scope's place on Radio: BACK from it ends DAB (its session
     // stopped) and returns to the scope, before BACK would leave the screen.
     BackHandler(enabled = radio && dabOpen && !inert && !keys.anyOverlay) { e.closeDab() }
+    BackHandler(enabled = localOpen && !keys.anyOverlay) { e.closeLocal() }
     // The face's own overlays close before the keys' stack and before leaving: registered after it, so innermost.
     BackHandler(enabled = picker != null || controls || bandsPanel) {
         when {
@@ -642,8 +646,11 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
         if (bandsPanel) Box(Modifier.fillMaxSize().background(Color(0x99000000)))
         AnimatedVisibility(bandsPanel, enter = slideInHorizontally(tween(200)) { it } + fadeIn(tween(200)),
             exit = slideOutHorizontally(tween(150)) { it } + fadeOut(tween(150)), modifier = Modifier.align(Alignment.CenterEnd)) {
-            TvBandsPanel(e, u, onClose = { bandsPanel = false }, modifier = Modifier.fillMaxHeight().width(600.dp))
+            TvBandsPanel(e, u, onClose = { bandsPanel = false }, modifier = Modifier.fillMaxHeight().width(600.dp),
+                onLocal = { bandsPanel = false; e.openLocal() })
         }
+
+        if (localOpen) TvLocalScreen(e, u, localFirst, onClose = { e.closeLocal() }, modifier = Modifier.fillMaxSize())
 
         // On the air: what the server says is going on, for the red overlay.
         val auto = u.status?.autoTx

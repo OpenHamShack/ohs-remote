@@ -236,6 +236,24 @@ internal fun edgeText(hz: Double, tag: String): String {
 @Composable
 internal fun edgeText(hz: Double): String = edgeText(hz, localeTag())
 
+/**
+ * A listed frequency, as a list of channels reads it: MHz from 1 MHz up to
+ * three decimals and more only where the channel needs them (118.700,
+ * 446.00625, 27.185), kHz below (909). No unit: the list's heading has it.
+ */
+internal fun channelText(hz: Double, tag: String): String {
+    if (hz.isNaN() || hz < 0) return ""
+    val n = Math.round(hz)
+    if (n < 1_000_000L) return com.openhamshack.i18n.ShackFormat.frequency(n, tag, "kHz", if (n % 1000 == 0L) 0 else 3).substringBeforeLast('\u00a0')
+    var d = 3
+    var unit = 1_000L
+    while (d < 6 && n % unit != 0L) { d++; unit /= 10 }
+    return com.openhamshack.i18n.ShackFormat.frequency(n, tag, "MHz", d).substringBeforeLast('\u00a0')
+}
+
+@Composable
+internal fun channelText(hz: Double): String = channelText(hz, localeTag())
+
 @Composable
 internal fun stepText(hz: Int): String = stepText(hz, localeTag())
 

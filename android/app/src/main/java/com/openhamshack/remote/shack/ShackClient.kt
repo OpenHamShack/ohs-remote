@@ -168,6 +168,19 @@ class EngineClient(val url: String, private val controller: ShackController) {
         withContext(Dispatchers.IO) { shackHttp.newCall(req("api/decoders/sessions/$id").delete().build()).execute().close() }
     }
 
+    /**
+     * Radio's local frequencies (RADIO-LISTEN-CONTRACT §5, the shape Remote
+     * expects until Radio's API is out): the list, and the operator's own
+     * added, changed and removed (Control level). A refusal is a
+     * [ShackException] with the server's sentence.
+     */
+    suspend fun local(): JSONObject = get("api/local")
+    suspend fun localAdd(body: JSONObject): JSONObject = postJson("api/local/mine", body)
+    suspend fun localEdit(id: String, body: JSONObject): JSONObject = postJson("api/local/mine/$id", body)
+    suspend fun localDelete(id: String) {
+        withContext(Dispatchers.IO) { shackHttp.newCall(req("api/local/mine/$id").delete().build()).execute().use { r -> answer(r) } }
+    }
+
     /** The events socket; spectrum kinds are sent only when asked for. */
     fun events(kinds: List<String>, listener: WebSocketListener): WebSocket {
         val ws = url.replaceFirst("http", "ws") + "api/events?kinds=" + kinds.joinToString(",")

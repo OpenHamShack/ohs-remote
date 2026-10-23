@@ -251,7 +251,7 @@ internal fun TvRadioRow(
  * it (the caller's). Everything beneath is inert while it is up.
  */
 @Composable
-internal fun TvBandsPanel(e: EngineSession, u: EngineUi, onClose: () -> Unit, modifier: Modifier) {
+internal fun TvBandsPanel(e: EngineSession, u: EngineUi, onClose: () -> Unit, modifier: Modifier, onLocal: (() -> Unit)? = null) {
     var filter by remember { mutableStateOf(BandFilter.ALL) }
     var looking by remember { mutableStateOf(u.currentBand) }
     val lit = remember { FocusRequester() }
@@ -281,6 +281,11 @@ internal fun TvBandsPanel(e: EngineSession, u: EngineUi, onClose: () -> Unit, mo
                 TvItem(onClick = { filter = f }, selected = f == filter, compact = true, focus = if (f == BandFilter.ALL) firstFilter else null) {
                     Text(stringResource(word), fontSize = 15.sp, color = if (f == filter) Accent else Color.Unspecified)
                 }
+            }
+            Spacer(Modifier.weight(1f))
+            // Local frequencies (TvPolishLocal): a screen of its own over the radio.
+            if (onLocal != null) TvItem(onClick = onLocal, compact = true) {
+                Text(stringResource(R.string.shack_local_title), fontSize = 15.sp, color = Accent)
             }
         }
         Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {

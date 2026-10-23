@@ -142,8 +142,12 @@ internal fun RadioPhone(e: EngineSession, onBack: () -> Unit, onRepair: () -> Un
     }
     if (bandSheet) ModalBottomSheet(onDismissRequest = { bandSheet = false }, containerColor = RadioCard) {
         Column(Modifier.navigationBarsPadding().padding(horizontal = 16.dp).padding(bottom = 16.dp).verticalScroll(rememberScrollState())) {
-            BandPicker(e, u, columns = if (tablet) 6 else 4, onPicked = { bandSheet = false })
+            BandPicker(e, u, columns = if (tablet) 6 else 4, onPicked = { bandSheet = false },
+                onLocal = { bandSheet = false; e.openLocal() })
         }
+    }
+    if (u.local != null) ModalBottomSheet(onDismissRequest = { e.closeLocal() }, containerColor = RadioCard) {
+        LocalSheet(e, u, onDone = { e.closeLocal() })
     }
     if (blockSheet && dab != null) ModalBottomSheet(onDismissRequest = { blockSheet = false }) {
         DabBlocksSheet(e, u, dab, onDone = { blockSheet = false })
@@ -203,7 +207,7 @@ internal fun RadioPhone(e: EngineSession, onBack: () -> Unit, onRepair: () -> Un
                     }
                     Column(Modifier.width(380.dp).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         if (dab == null) TuningRow(e, u, 72.dp, Modifier.fillMaxWidth())
-                        BandGridCard(e, u, Modifier.weight(1f).fillMaxWidth())
+                        BandGridCard(e, u, Modifier.weight(1f).fillMaxWidth(), onLocal = { e.openLocal() })
                         PhoneEnableTx(e, tx)
                         RadioBottomRow(e, u, 64.dp, Modifier.fillMaxWidth())
                     }

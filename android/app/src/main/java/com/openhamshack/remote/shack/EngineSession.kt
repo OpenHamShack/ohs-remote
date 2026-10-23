@@ -87,6 +87,8 @@ data class EngineUi(
     val dabFound: List<DabFound> = emptyList(),
     /** The bands pressed last on this device for this box, newest first (RecentBands). */
     val recentBands: List<String> = emptyList(),
+    /** Local frequencies, while their screen is open (Radio only); null when it is closed. */
+    val local: LocalUi? = null,
 ) {
     val dialHz: Double? get() = pendingDialHz ?: state.dialHz
 
@@ -619,6 +621,63 @@ class EngineSession(
 
     private var dabScanJob: Job? = null
 
+    // --- local frequencies (LocalFreqs) --------------------------------------
+
+    /** Local frequencies' screen opened: the list read (again: the operator's own may have changed elsewhere). */
+    fun openLocal() {
+        _ui.update { it.copy(local = LocalUi(list = it.local?.list, loading = true)) }
+        scope.launch { readLocal() }
+    }
+
+    fun closeLocal() = _ui.update { it.copy(local = null) }
+
+    private suspend fun readLocal() {
+        try {
+            val l = LocalFreqs.parse(client.local())
+            _ui.update { u -> u.copy(local = u.local?.copy(list = l, loading = false, problem = "")) }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: ShackException) {
+            // 404: a Radio without the list yet (its API is not out); the screen says so rather than showing nothing.
+            _ui.update { u -> u.copy(local = u.local?.copy(loading = false, problem = e.message.orEmpty(), missing = e.http == 404)) }
+        } catch (e: Exception) {
+            _ui.update { u -> u.copy(local = u.local?.copy(loading = false, problem = e.message.orEmpty())) }
+        }
+    }
+
+    /** OK on a local frequency: its dial, its mode where the server offers it, its step; receive only, nothing keys. */
+    fun tuneLocal(spot: LocalSpot) {
+        if (_ui.value.dab != null) closeDab()
+        spot.stepHz?.let { s -> _ui.update { it.copy(stepHz = s) } }
+        if (spot.mode == null || spot.mode == _ui.value.state.mode) setDial(spot.hz) else goTo(spot.hz, spot.mode)
+    }
+
+    /** One of the operator's own, added ([id] null) or changed; the list read again after. A refusal is the screen's line. */
+    fun saveMine(id: String?, name: String, hz: Double, mode: String, stepHz: Int?) {
+        val body = LocalFreqs.mineBody(name, hz, mode, stepHz)
+        scope.launch {
+            if (localWrite { if (id == null) client.localAdd(body) else client.localEdit(id, body) }) readLocal()
+        }
+    }
+
+    fun deleteMine(id: String) {
+        scope.launch { if (localWrite { client.localDelete(id) }) readLocal() }
+    }
+
+    /** A change to the operator's own: a level refusal marks the screen view only, as any receive-side change does; any other is the list's problem line. */
+    private suspend fun localWrite(block: suspend () -> Unit): Boolean = try {
+        block()
+        true
+    } catch (e: kotlinx.coroutines.CancellationException) {
+        throw e
+    } catch (e: ShackException) {
+        _ui.update { u -> u.copy(viewOnly = u.viewOnly || e.http == 403, local = u.local?.copy(problem = e.message.orEmpty())) }
+        false
+    } catch (e: Exception) {
+        _ui.update { u -> u.copy(local = u.local?.copy(problem = e.message.orEmpty())) }
+        false
+    }
+
     /**
      * "Scan all blocks" (DabScan): each Band III block in turn, one session
      * at a time - the dial to its centre, a session, polled until it syncs,
@@ -819,3 +878,6 @@ private val SCAN_FATAL = setOf("decoder_unavailable", "too_many_sessions")
 
 /** The de-emphasis choices Radio's server takes (openhamshack-nb ohsradio/state.py DEEMPHASIS_US). */
 val WFM_DEEMPHASIS_US = listOf(50, 75)
+
+/** The local-frequencies screen: the list once read, while it is being read, and the server's last word. */
+data class LocalUi(val list: LocalList? = null, val loading: Boolean = false, val problem: String = "", val missing: Boolean = false)
