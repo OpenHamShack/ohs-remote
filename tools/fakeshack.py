@@ -115,7 +115,11 @@ What it does, and nothing more:
     faad2). FAKESHACK_RADIO_LISTEN_DAB=missing makes the decoder itself
     refuse with decoder_unavailable. Each meter item gains a calibrated
     `dbm` and `s` (FAKESHACK_RADIO_LISTEN_SMETER=uncalibrated: a `why`
-    instead). Unset, all of it passes.
+    instead). In wfm the state carries the server's passband, txBlocked and
+    modes.wfm; a server with wfm of its own is passed through.
+    FAKESHACK_RADIO_LISTEN_WFM=missing: a receiver too slow for wfm;
+    FAKESHACK_RADIO_LISTEN_RXONLY=1: one that cannot transmit (RSPdx).
+    Unset, all of it passes.
 
   * Radio's 48 kHz receive audio with stereo on request (openhamshack-nb
     78ec61f, SERVER-API "Receive audio"), whatever server is behind it:
@@ -255,7 +259,9 @@ def _tone() -> tuple[bytes, bytes]:
 TONE_PCM = _tone() if TONE else (b"", b"")
 ANTENNAS = Antennas() if os.environ.get("FAKESHACK_RADIO_ANTENNAS", "") == "1" else None
 LISTEN = Listen(dab_missing=os.environ.get("FAKESHACK_RADIO_LISTEN_DAB", "") == "missing", rx_range=RADIO_RXRANGE,
-                calibrated=os.environ.get("FAKESHACK_RADIO_LISTEN_SMETER", "") != "uncalibrated") \
+                calibrated=os.environ.get("FAKESHACK_RADIO_LISTEN_SMETER", "") != "uncalibrated",
+                wfm_missing=os.environ.get("FAKESHACK_RADIO_LISTEN_WFM", "") == "missing",
+                rx_only=os.environ.get("FAKESHACK_RADIO_LISTEN_RXONLY", "") == "1") \
     if os.environ.get("FAKESHACK_RADIO_LISTEN", "") == "1" else None
 #: The simulator's last deviceStatus as it went by, for the antenna fixture to lay its keys over.
 radio_device: dict = {}
@@ -768,6 +774,10 @@ async def antenna_set(r, w, ur, uw, request_line: str, keep: list, hdr: dict):
         return
     wrapped = isinstance(body.get("changes"), dict)
     changes = body["changes"] if wrapped else body
+    if LISTEN and LISTEN.refuse(changes):
+        uw.close()
+        await reply(w, 400, {"error": LISTEN.refuse(changes), "code": "bad_request"})
+        return
     if LISTEN:
         changes = LISTEN.take(changes)
     mine, rest = Antennas.split(changes) if ANTENNAS else ({}, changes)

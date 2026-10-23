@@ -165,7 +165,15 @@ desktop app runs on the same account (they keep a station store).
   maximum is 2 GHz and its modes include `wfm`. A set to `wfm` goes on to
   the simulator as `fm`, and while it is in force the fm the server reports
   (`api/state`, the set's `changed`, events `state` messages) reads `wfm`.
-  The audio is the simulator's FM. The simulator's own 100 kHz floor
+  The audio is the simulator's FM, and the state says what the server's
+  does in wfm: `rxFilterLo`/`rxFilterHi` ±90000, `txBlocked` "WFM is for
+  listening only…" and `modes.wfm` `{decode: true, encode: false}`. A
+  Radio server with wfm of its own (openhamshack-nb from d76e533) is passed
+  through untouched instead. `FAKESHACK_RADIO_LISTEN_WFM=missing` is a
+  receiver too slow for it (an HL2): `modes.wfm` carries the `missing`
+  sentence and a set to wfm is 400 with it. `FAKESHACK_RADIO_LISTEN_RXONLY=1`
+  is a receiver that cannot transmit (the RSPdx): `deviceStatus.tx` "receive
+  only" and `txBlocked` "This radio can only receive". The simulator's own 100 kHz floor
   stays, below LW. `api/decoders` lists a `dab` decoder (with
   `FAKESHACK_DECODERS=1`, after fakedecoders' own). A session on a block
   (`{"decoder":"dab","freqHz":222064000,"params":{"block":"11D"}}`,

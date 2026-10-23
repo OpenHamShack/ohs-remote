@@ -15,7 +15,18 @@ What it makes Radio look like (FAKESHACK_RADIO_LISTEN=1):
     wide FM, so a set to `wfm` goes to it as `fm`, and while it is in force
     every `mode: "fm"` the server reports (GET api/state, a set's
     `changed`, the events socket's state messages) is reported as `wfm`.
-    Any other mode set ends it. The audio is the simulator's FM;
+    Any other mode set ends it. The audio is the simulator's FM. In it the
+    state says what the server's does (openhamshack-nb SERVER-API, "Wide
+    FM"): `rxFilterLo`/`rxFilterHi` -90000/90000, `txBlocked` the wfm
+    sentence and `modes.wfm` {decode: true, encode: false}. A server that
+    has wfm itself (it is in its spec or its state's `modes`, openhamshack-nb
+    from d76e533) is left alone: its own wfm is passed through untouched.
+    FAKESHACK_RADIO_LISTEN_WFM=missing makes the receiver one too slow for
+    it, as an HL2 is: `modes.wfm` is {decode: false, encode: false,
+    missing: <sentence>} and a set to wfm is 400 with that sentence;
+  * FAKESHACK_RADIO_LISTEN_RXONLY=1: a receiver that cannot transmit, as
+    the RSPdx: `deviceStatus.tx` is "receive only" and `txBlocked` "This
+    radio can only receive" (wfm's own sentence in wfm);
   * a `dab` decoder (contract §3) in api/decoders: a session started on a
     Band III block (`{"decoder": "dab", "freqHz" (or "rfHz"), "params":
     {"block": "11D"}}`) is `starting`, reports `sync: false` with no
@@ -62,6 +73,11 @@ MAX_SESSIONS = 4
 EMPTY = {"5A"}
 FAAD2 = "Ask your controller's administrator to install faad2 (Controller › Optional libraries)."
 DABPLUS_WHY = "DAB+ needs faad2, which this controller does not have yet."
+#: The server's sentences (openhamshack-nb SERVER-API "Wide FM", ohsradio/radio.py).
+WFM_TX = "WFM is for listening only: nothing is ever transmitted in it"
+WFM_MISSING = "Wide FM needs the receiver to run at 240 kS/s or more, and the hl2 runs at 48 kS/s"
+RX_ONLY = "This radio can only receive"
+WFM_HALF = 90_000.0
 
 DAB = {
     "id": "dab", "family": "broadcast", "inputs": ["iq"], "rateHz": 2048000.0, "bandwidthHz": 1536000.0,
@@ -127,8 +143,13 @@ class Session:
 
 
 class Listen:
-    def __init__(self, dab_missing: bool = False, rx_range: list[float] | None = None, calibrated: bool = True):
+    def __init__(self, dab_missing: bool = False, rx_range: list[float] | None = None, calibrated: bool = True,
+                 wfm_missing: bool = False, rx_only: bool = False):
         self.wfm = False
+        #: The server has wfm of its own: pass it through rather than fake it.
+        self.native = False
+        self.wfm_missing = wfm_missing
+        self.rx_only = rx_only
         self.calibrated = calibrated
         self.dial = 145_500_000.0
         self.rx_range = rx_range or RX_RANGE
@@ -146,8 +167,11 @@ class Listen:
 
     def spec(self, obj: dict) -> dict:
         mode = obj.get("mode")
-        if isinstance(mode, dict) and isinstance(mode.get("choices"), list) and "wfm" not in mode["choices"]:
-            mode["choices"] = mode["choices"] + ["wfm"]
+        if isinstance(mode, dict) and isinstance(mode.get("choices"), list):
+            if "wfm" in mode["choices"]:
+                self.native = True
+            else:
+                mode["choices"] = mode["choices"] + ["wfm"]
         vfo = obj.get("vfo")
         if isinstance(vfo, dict):
             vfo["max"] = self.rx_range[1]
@@ -158,15 +182,40 @@ class Listen:
         return obj
 
     def state(self, obj: dict) -> dict:
+        """GET api/state's answer (or a state message's changes) as the fixture says it."""
         if isinstance(obj.get("vfo"), (int, float)) and not isinstance(obj.get("vfo"), bool):
             self.dial = float(obj["vfo"])
-        if self.wfm and obj.get("mode") == "fm":
+        if isinstance(obj.get("modes"), dict) and "wfm" in obj["modes"]:
+            self.native = True
+        faked = self.wfm and not self.native
+        if faked and obj.get("mode") == "fm":
             obj["mode"] = "wfm"
+        if faked and ("rxFilterLo" in obj or "mode" in obj):
+            obj["rxFilterLo"], obj["rxFilterHi"] = -WFM_HALF, WFM_HALF
+        if isinstance(obj.get("modes"), dict) or (not self.native and "mode" in obj and "vfo" in obj):
+            modes = obj.get("modes") if isinstance(obj.get("modes"), dict) else {}
+            if self.wfm_missing:
+                modes["wfm"] = {"decode": False, "encode": False, "missing": WFM_MISSING}
+            elif "wfm" not in modes:
+                modes["wfm"] = {"decode": True, "encode": False, "missing": ""}
+            obj["modes"] = modes
+        in_wfm = obj.get("mode") == "wfm" or faked
+        if "txBlocked" in obj or "mode" in obj:
+            if in_wfm and not self.native:
+                obj["txBlocked"] = WFM_TX
+            elif self.rx_only and not (in_wfm and obj.get("txBlocked")):
+                obj["txBlocked"] = RX_ONLY
+        if self.rx_only and isinstance(obj.get("deviceStatus"), dict):
+            obj["deviceStatus"] = dict(obj["deviceStatus"], tx="receive only")
         return obj
 
+    def refuse(self, changes: dict) -> str | None:
+        """The server's sentence for a set it would refuse (wfm on a receiver too slow), else None."""
+        return WFM_MISSING if self.wfm_missing and changes.get("mode") == "wfm" else None
+
     def take(self, changes: dict) -> dict:
-        """An api/set's changes as the simulator should see them: wfm goes as fm."""
-        if "mode" not in changes:
+        """An api/set's changes as the simulator should see them: wfm goes as fm, unless the server has its own."""
+        if "mode" not in changes or self.native:
             return changes
         self.wfm = changes["mode"] == "wfm"
         return dict(changes, mode="fm") if self.wfm else changes
@@ -181,7 +230,8 @@ class Listen:
         """A meter item with the S-meter added, or a state message whose mode
         is fm reported as wfm while it is in force; None for anything else
         (spectra, the bulk of the traffic, are not parsed)."""
-        if len(payload) > 65536 or not (b'"meter"' in payload or b'"vfo"' in payload or (self.wfm and b'"mode"' in payload)):
+        if len(payload) > 65536 or not (b'"meter"' in payload or b'"vfo"' in payload or b'"mode"' in payload
+                                        or b'"txBlocked"' in payload or b'"modes"' in payload or b'"deviceStatus"' in payload):
             return None
         try:
             o = json.loads(payload)
@@ -192,12 +242,9 @@ class Listen:
         ch = o.get("changes") if o.get("kind") == "state" else None
         if not isinstance(ch, dict):
             return None
-        if isinstance(ch.get("vfo"), (int, float)) and not isinstance(ch.get("vfo"), bool):
-            self.dial = float(ch["vfo"])
-        if not self.wfm or ch.get("mode") != "fm":
-            return None
-        ch["mode"] = "wfm"
-        return json.dumps(o)
+        before = json.dumps(ch, sort_keys=True)
+        self.state(ch)
+        return json.dumps(o) if json.dumps(ch, sort_keys=True) != before else None
 
     def meter(self, o: dict) -> dict:
         rx = o.get("rx")
