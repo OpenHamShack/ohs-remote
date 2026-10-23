@@ -62,6 +62,7 @@ import com.openhamshack.remote.shack.ModeAudio
 import com.openhamshack.remote.shack.PanelPrefs
 import com.openhamshack.remote.shack.ScopeLabels
 import com.openhamshack.remote.shack.Span
+import com.openhamshack.remote.shack.WFM_DEEMPHASIS_US
 
 /**
  * Radio on a phone or tablet, arranged as Flex's screen (Brian, 13/10/2026:
@@ -302,8 +303,21 @@ private fun RadioControlsSheet(e: EngineSession, u: EngineUi, onType: () -> Unit
             Text(stringResource(R.string.shack_modes), color = Dim)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 u.modes.forEach { m ->
+                    // A mode this receiver cannot do (wide FM on an HL2) is shown, disabled, with the server's why under the row.
                     FilterChip(selected = m == u.state.mode, onClick = { e.setMode(m); onDone() }, label = { Text(m.uppercase()) },
-                        enabled = !u.viewOnly, modifier = Modifier.testTag("mode-$m"))
+                        enabled = !u.viewOnly && m in u.offered, modifier = Modifier.testTag("mode-$m"))
+                }
+            }
+            u.modes.forEach { m -> u.state.modeMissing(m)?.takeIf { it.isNotEmpty() }?.let { Text(it, color = Dim, fontSize = 13.sp) } }
+        }
+        // Wide FM's de-emphasis, only in wfm and only from a server that has the setting.
+        val deemph = u.state.wfmDeemphasis
+        if (u.state.mode == "wfm" && deemph != null) {
+            Text(stringResource(R.string.shack_wfm_deemphasis), color = Dim)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                WFM_DEEMPHASIS_US.forEach { us ->
+                    FilterChip(selected = Math.round(deemph).toInt() == us, onClick = { e.setDeemphasis(us) }, enabled = !u.viewOnly,
+                        label = { Text(stringResource(R.string.shack_wfm_deemphasis_us, us)) }, modifier = Modifier.testTag("deemph-$us"))
                 }
             }
         }

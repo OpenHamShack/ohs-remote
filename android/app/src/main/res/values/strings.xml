@@ -152,6 +152,13 @@
     <string name="shack_band_none">Between bands</string>
     <!-- Why the meter shows no S reading, in the server's words. %1$s that sentence -->
     <string name="shack_smeter_why">S-meter: %1$s</string>
+    <!-- Wide FM's de-emphasis setting (50 µs in Europe, 75 µs in the Americas), shown only in wfm. -->
+    <string name="shack_wfm_deemphasis">De-emphasis</string>
+    <!-- %1$d: the time constant in microseconds, 50 or 75. -->
+    <string name="shack_wfm_deemphasis_us">%1$d µs</string>
+    <!-- The TV controls row's item: %1$d is the time constant now; OK switches to the other. -->
+    <string name="shack_wfm_deemphasis_item">De-emphasis %1$d µs</string>
+    <string name="shack_wfm_deemphasis_view_only">De-emphasis needs the Control level for this app.</string>
     <!-- Radio's listening areas on the band buttons: short, as a radio's band keys. Receive only -->
     <string name="shack_area_lw">LW</string>
     <string name="shack_area_mw">MW</string>

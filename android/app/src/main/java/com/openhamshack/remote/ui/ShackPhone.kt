@@ -288,7 +288,7 @@ private fun PhoneEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Un
             val current = Bookmarks.current(marks, u.state.dialHz, u.state.mode)
             val named = marks.getOrNull(ScopeLabels.named(marks, u.dialHz, null, range?.first, range?.second))
             var picking by remember { mutableStateOf(false) }
-            if (u.modes.isNotEmpty() || marks.isNotEmpty()) {
+            if (u.offered.isNotEmpty() || marks.isNotEmpty()) {
                 TextButton(onClick = { picking = !picking }, modifier = Modifier.testTag("picker")) {
                     Text(stringResource(R.string.shack_picker_open, current?.name ?: u.state.mode.uppercase()) + if (picking) "  ▴" else "  ▾")
                 }
@@ -300,8 +300,8 @@ private fun PhoneEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Un
                             label = { Text(b.name) }, modifier = Modifier.testTag("mark-${b.name}"))
                     }
                 }
-                if (u.modes.isNotEmpty()) Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    u.modes.forEach { m ->
+                if (u.offered.isNotEmpty()) Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    u.offered.forEach { m ->
                         FilterChip(selected = m == u.state.mode, onClick = { e.setMode(m); picking = false }, label = { Text(m.uppercase()) },
                             enabled = !u.viewOnly, modifier = Modifier.testTag("mode-$m"))
                     }

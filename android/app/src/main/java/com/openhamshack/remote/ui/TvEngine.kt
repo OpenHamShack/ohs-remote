@@ -99,6 +99,7 @@ import com.openhamshack.remote.shack.PickerStep
 import com.openhamshack.remote.shack.ScopeLabels
 import com.openhamshack.remote.shack.Span
 import com.openhamshack.remote.shack.Tuning
+import com.openhamshack.remote.shack.WFM_DEEMPHASIS_US
 
 /**
  * NB or Radio on a TV, laid out like OpenWebRX+ (Brian, 09/10/2026) and
@@ -212,7 +213,7 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
         override fun can(a: RemoteAction): Boolean = when (a) {
             RemoteAction.TUNE_DOWN, RemoteAction.TUNE_UP, RemoteAction.STEP_DOWN, RemoteAction.STEP_UP,
             RemoteAction.CONTROLS, RemoteAction.FREQUENCY, RemoteAction.SETTINGS, RemoteAction.MUTE -> true
-            RemoteAction.CHOOSE -> marks.isNotEmpty() || u.modes.isNotEmpty()
+            RemoteAction.CHOOSE -> marks.isNotEmpty() || u.offered.isNotEmpty()
             RemoteAction.FOCUS_DOWN -> shown != DecoderPanel.NONE
             RemoteAction.BAND_PREV, RemoteAction.BAND_NEXT -> e.kind == Kind.RADIO || u.bookmarks.isNotEmpty()
             // Offered in every mode: in a voice mode the plan says why not, rather than the key doing nothing.
@@ -226,7 +227,7 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
                 RemoteAction.STEP_DOWN -> e.step(-1)
                 RemoteAction.STEP_UP -> e.step(1)
                 RemoteAction.CHOOSE -> {
-                    picker = PickerFocus.open(marks, u.modes, u.dialHz, u.state.mode, SystemClock.uptimeMillis())
+                    picker = PickerFocus.open(marks, u.offered, u.dialHz, u.state.mode, SystemClock.uptimeMillis())
                     lastMark = picker?.takeIf { it.row == PickerRow.MARKS }?.index ?: -1
                 }
                 RemoteAction.FOCUS_DOWN -> runCatching { panelFocus.requestFocus() }
@@ -303,7 +304,7 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
     }
 
     // The bookmarks or modes changed under an open picker: keep its highlight on something real.
-    LaunchedEffect(marks.size, u.modes.size) { picker = picker?.fit(marks.size, u.modes.size) }
+    LaunchedEffect(marks.size, u.offered.size) { picker = picker?.fit(marks.size, u.offered.size) }
     // Left alone, the picker goes away by itself; each key puts that off.
     LaunchedEffect(picker?.touchedMs) {
         val p = picker ?: return@LaunchedEffect
@@ -413,7 +414,7 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
 
         picker?.let { p ->
             TvPicker(
-                p, marks, u.modes, current = current, mode = u.state.mode, focus = pickerFocus,
+                p, marks, u.offered, current = current, mode = u.state.mode, focus = pickerFocus,
                 // Over the foot of the waterfall, so the spectrum and the name of the
                 // bookmark being looked at stay in sight above it.
                 modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = TvSafeV, start = TvSafeH, end = TvSafeH),
@@ -423,7 +424,7 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
                     // Rights from adb, a remote's key repeat) each moved the
                     // same stale highlight, so eleven presses moved it two.
                     val live = picker ?: return@TvPicker
-                    val currentMode = u.modes.indexOf(u.state.mode)
+                    val currentMode = u.offered.indexOf(u.state.mode)
                     when (val step = live.key(k, SystemClock.uptimeMillis(), currentMode, lastMark)) {
                         is PickerStep.Move -> {
                             if (step.to.row == PickerRow.MARKS) lastMark = step.to.index
@@ -432,7 +433,7 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
                         is PickerStep.Choose -> {
                             picker = null
                             if (step.row == PickerRow.MARKS) marks.getOrNull(step.index)?.let { e.goTo(it) }
-                            else u.modes.getOrNull(step.index)?.let { e.setMode(it) }
+                            else u.offered.getOrNull(step.index)?.let { e.setMode(it) }
                         }
                         PickerStep.Close -> picker = null
                     }
@@ -485,6 +486,14 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
                         val refused = stringResource(R.string.shack_nr_view_only)
                         TvItem(onClick = { if (u.viewOnly) e.note(refused) else e.nr(u.state.nr != true) }, selected = u.state.nr == true) {
                             Text(nrLabel(u.state.nr), fontSize = 16.sp, color = if (u.viewOnly) Dim else Color.Unspecified)
+                        }
+                    }
+                    // Wide FM's de-emphasis: OK switches to the other of 50 and 75 µs.
+                    u.state.wfmDeemphasis?.takeIf { u.state.mode == "wfm" }?.let { d ->
+                        val now = Math.round(d).toInt()
+                        val refused = stringResource(R.string.shack_wfm_deemphasis_view_only)
+                        TvItem(onClick = { if (u.viewOnly) e.note(refused) else e.setDeemphasis(WFM_DEEMPHASIS_US.firstOrNull { it != now } ?: now) }) {
+                            Text(stringResource(R.string.shack_wfm_deemphasis_item, now), fontSize = 16.sp, color = if (u.viewOnly) Dim else Color.Unspecified)
                         }
                     }
                     if (e.kind == Kind.RADIO) {

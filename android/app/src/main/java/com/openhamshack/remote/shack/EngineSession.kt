@@ -91,6 +91,14 @@ data class EngineUi(
      */
     val stereo: Boolean get() = status?.audio?.stereo == true
 
+    /**
+     * The modes to offer: the server's list less any it says this receiver
+     * cannot do ([EngineState.modeMissing]: wide FM on an HL2), which the
+     * pickers leave out or show disabled with the sentence rather than send
+     * to be refused.
+     */
+    val offered: List<String> get() = modes.filter { state.modeMissing(it) == null }
+
     /** Radio's band buttons: the dataset's bands with buttons, less any the receiver says it cannot reach. Empty until the data is read. */
     val bandButtons: List<BandButton>
         get() = plan?.let { RadioBands.buttons(it.vocab, status?.rxRange?.first, status?.rxRange?.second, ListenAreas.ALL) }.orEmpty()
@@ -475,7 +483,7 @@ class EngineSession(
 
     fun mode(by: Int) {
         val u = _ui.value
-        val next = Tuning.nextMode(u.modes, u.state.mode, by)
+        val next = Tuning.nextMode(u.offered, u.state.mode, by)
         if (next == u.state.mode) return
         scope.launch { runCatching { client.set(JSONObject().put("mode", next)) }.onFailure { fail(it) } }
     }
@@ -508,7 +516,7 @@ class EngineSession(
             // server has no such mode) and its step, every press - an area has
             // no FT8/SSB/CW places to step through. Receive only, as every
             // band button: a dial, a mode and a step, nothing keys.
-            val spot = ListenAreas.target(area, u.modes)
+            val spot = ListenAreas.target(area, u.offered)
             _ui.update { it.copy(stepHz = spot.stepHz, pressedBand = b.name) }
             // DAB is a decoder session on a block, not a demodulator: its
             // press opens the station list on the block the dial is near
@@ -649,6 +657,15 @@ class EngineSession(
      * nothing is assumed here before the radio says so. A refusal for the
      * level marks the screen view only, as the mode and NR do.
      */
+    /**
+     * Wide FM's de-emphasis, 50 or 75 µs (`wfmDeemphasis`, Control level):
+     * a receive-side setting like NR, so a refusal marks the screen view only.
+     */
+    fun setDeemphasis(us: Int) {
+        if (us !in WFM_DEEMPHASIS_US) return
+        scope.launch { control { client.set(JSONObject().put("wfmDeemphasis", us.toDouble())) } }
+    }
+
     fun setAntenna(name: String) {
         if (AntennaChoice.of(_ui.value.state)?.chosen == name) return
         scope.launch { control { client.set(JSONObject().put("soapyAntenna", name)) } }
@@ -704,3 +721,6 @@ class EnginePttLink(private val client: EngineClient) : PttLink {
         const val NOT_ON_AIR = "\u0000not_on_air"
     }
 }
+
+/** The de-emphasis choices Radio's server takes (openhamshack-nb ohsradio/state.py DEEMPHASIS_US). */
+val WFM_DEEMPHASIS_US = listOf(50, 75)

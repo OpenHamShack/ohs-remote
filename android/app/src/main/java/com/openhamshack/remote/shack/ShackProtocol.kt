@@ -353,6 +353,11 @@ enum class BeaconLock { LOCKED, SEARCHING, HELD, UNKNOWN;
  * keys differ and the screen reads a handful of them.
  */
 class EngineState(initial: JSONObject = JSONObject()) {
+    companion object {
+        /** openhamshack-nb's devices that have no transmitter (ohscore/ui/chrome.py names them "receive only"). */
+        val RECEIVE_ONLY_DEVICES = setOf("rtlsdr", "sdrplay", "soapy")
+    }
+
     private val o = JSONObject(initial.toString())
 
     fun merge(changes: JSONObject): EngineState {
@@ -397,6 +402,36 @@ class EngineState(initial: JSONObject = JSONObject()) {
     val soapyAntenna: String? get() = if (o.has("soapyAntenna") && !o.isNull("soapyAntenna")) o.optString("soapyAntenna") else null
     /** `soapyAntennaLabels` as stored: one line of JSON, read by [Antennas.parseLabels]. */
     val antennaLabels: String get() = o.optString("soapyAntennaLabels")
+
+    /**
+     * Why [mode] cannot be used on this receiver, when the server says it
+     * cannot (`modes.<mode>` with `decode` false: wide FM on a Hermes-Lite 2,
+     * openhamshack-nb SERVER-API "Wide FM"): its `missing` sentence, "" when
+     * it gives none. Null when the mode can be used, or the server says
+     * nothing of it (an older one), which is taken as usable as before.
+     */
+    fun modeMissing(mode: String): String? {
+        val m = o.optJSONObject("modes")?.optJSONObject(mode) ?: return null
+        if (!m.has("decode") || m.optBoolean("decode", true)) return null
+        return m.optString("missing")
+    }
+
+    /** Wide FM's de-emphasis, µs (`wfmDeemphasis`: 50 or 75); null from a server without the setting. */
+    val wfmDeemphasis: Double? get() = o.num("wfmDeemphasis")
+
+    /** Why transmit is refused now, in the server's words (`txBlocked`: wfm, a receive-only radio, the licence); "" when it is not. */
+    val txBlocked: String get() = if (o.isNull("txBlocked")) "" else o.optString("txBlocked")
+
+    /**
+     * The radio cannot transmit at all: its device reports `tx: "receive only"`
+     * (openhamshack-nb's SoapySDR and SDR sources), or it is one of the
+     * receive-only kinds (`device`: rtlsdr, sdrplay, soapy).
+     */
+    val receiveOnlyRadio: Boolean
+        get() = o.optJSONObject("deviceStatus")?.optString("tx") == "receive only" || o.optString("device") in RECEIVE_ONLY_DEVICES
+
+    /** Which radio the engine drives (`device`: sim, pluto, hl2, sdrplay...); "" when it does not say. */
+    val device: String get() = o.optString("device")
 
     /** Any other numeric key (filter edges, CW pitch: [ModeAudio]); null when absent. */
     fun raw(key: String): Double? = o.num(key)
