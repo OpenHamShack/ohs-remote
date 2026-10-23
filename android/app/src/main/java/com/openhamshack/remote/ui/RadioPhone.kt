@@ -112,6 +112,8 @@ internal fun RadioPhone(e: EngineSession, onBack: () -> Unit, onRepair: () -> Un
         RadioControlsSheet(e, u, onType = { controlsSheet = false; typing = true }, onLog = { controlsSheet = false; logOpen = true },
             onDone = { controlsSheet = false })
     }
+    // DAB's station list, while the DAB area is open (its button opened it); put away, its session stops.
+    u.dab?.let { d -> ModalBottomSheet(onDismissRequest = { e.closeDab() }) { RadioDabSheet(e, d, u.viewOnly) } }
     val antenna = AntennaChoice.of(u.state)
     // The inputs went (the radio is no longer an SDR, or the app was replaced by an older one): nothing to pick from.
     if (antennaSheet && antenna != null) ModalBottomSheet(onDismissRequest = { antennaSheet = false }) {

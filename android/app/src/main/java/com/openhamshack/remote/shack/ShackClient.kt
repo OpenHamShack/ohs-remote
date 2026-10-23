@@ -154,6 +154,20 @@ class EngineClient(val url: String, private val controller: ShackController) {
         return postJson("api/shack/pad/action", JSONObject().put("action", action).put("kind", kind).put("step", step))
     }
 
+    /**
+     * Radio's decoder sessions (SERVER-API "Decoders"; DAB's station list,
+     * RADIO-LISTEN-CONTRACT §3): start one, poll its feed after [since],
+     * change its params, stop it. A refusal is a [ShackException] with the
+     * server's code and sentence (409 decoder_unavailable without faad2).
+     */
+    suspend fun decoderStart(body: JSONObject): JSONObject = postJson("api/decoders/sessions", body)
+    suspend fun decoderPoll(id: String, since: Int): JSONObject = get("api/decoders/sessions/$id?since=$since")
+    suspend fun decoderParams(id: String, params: JSONObject): JSONObject =
+        postJson("api/decoders/sessions/$id", JSONObject().put("params", params))
+    suspend fun decoderStop(id: String) {
+        withContext(Dispatchers.IO) { shackHttp.newCall(req("api/decoders/sessions/$id").delete().build()).execute().close() }
+    }
+
     /** The events socket; spectrum kinds are sent only when asked for. */
     fun events(kinds: List<String>, listener: WebSocketListener): WebSocket {
         val ws = url.replaceFirst("http", "ws") + "api/events?kinds=" + kinds.joinToString(",")

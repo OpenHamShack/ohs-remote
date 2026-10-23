@@ -4,6 +4,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.focus.focusProperties
+import com.openhamshack.remote.shack.BandButton
 import com.openhamshack.remote.shack.EngineUi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -317,11 +319,33 @@ internal fun BandButtons(e: EngineSession, u: EngineUi, height: Dp, textSize: Te
                     .testTag("band-${b.name}"),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(b.label, fontSize = textSize, fontWeight = FontWeight.Bold, maxLines = 1,
-                    color = if (on) Color.Black else if (u.viewOnly) Dim else Color.White)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(bandLabel(b), fontSize = textSize, fontWeight = FontWeight.Bold, maxLines = 1,
+                        color = if (on) Color.Black else if (u.viewOnly) Dim else Color.White)
+                    // A listening area says it is receive only, under its name.
+                    if (b.area != null) Text(stringResource(R.string.shack_area_rx), fontSize = textSize * 0.5f, maxLines = 1,
+                        color = if (on) Color.Black else Dim)
+                }
             }
         }
     }
+}
+
+/** A button's word: the band's own ("20", "70cm"), or a listening area's from the catalog ("Air", "PMR"). */
+@Composable
+internal fun bandLabel(b: BandButton): String = when (b.area?.id) {
+    null -> b.label
+    "lw" -> stringResource(R.string.shack_area_lw)
+    "mw" -> stringResource(R.string.shack_area_mw)
+    "cb" -> stringResource(R.string.shack_area_cb)
+    "cb-uk" -> stringResource(R.string.shack_area_cb_uk)
+    "fm-broadcast" -> stringResource(R.string.shack_area_fm)
+    "airband" -> stringResource(R.string.shack_area_air)
+    "marine" -> stringResource(R.string.shack_area_marine)
+    "dab" -> stringResource(R.string.shack_area_dab)
+    "lpd433" -> stringResource(R.string.shack_area_lpd)
+    "pmr446" -> stringResource(R.string.shack_area_pmr)
+    else -> b.name
 }
 
 /**
@@ -329,20 +353,31 @@ internal fun BandButtons(e: EngineSession, u: EngineUi, height: Dp, textSize: Te
  * dial's lit, for the channel keys to move along (REMOTE-KEYS §4: Ch± is
  * band ± on Radio). Not focusable: on a TV Up and Down already mean the
  * picker and the decoder panel, and a row of focus stops between them
- * would cost every operator a key press. Hidden when it would not fit.
+ * would cost every operator a key press. With the listening areas and the
+ * microwave bands (23/10/2026) the row no longer fits a screen, so it
+ * scrolls itself to keep the lit one in sight with two before it; it is
+ * never scrolled by hand or focused.
  */
 @Composable
 internal fun TvBandStrip(u: EngineUi, modifier: Modifier = Modifier) {
     val buttons = u.bandButtons
     if (buttons.isEmpty()) return
     val lit = u.currentBand
-    Row(modifier, horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-        buttons.forEach { b ->
+    val list = androidx.compose.foundation.lazy.rememberLazyListState()
+    val at = buttons.indexOf(lit)
+    androidx.compose.runtime.LaunchedEffect(at, buttons.size) { if (at >= 0) list.animateScrollToItem((at - 2).coerceAtLeast(0)) }
+    androidx.compose.foundation.lazy.LazyRow(modifier.focusProperties { canFocus = false }, state = list, userScrollEnabled = false,
+        horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+        items(buttons.size) { i ->
+            val b = buttons[i]
             val on = b == lit
-            Text(b.label, fontSize = 17.sp, fontWeight = if (on) FontWeight.Bold else FontWeight.Normal, maxLines = 1,
-                color = if (on) Color.Black else Dim,
-                modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(if (on) Accent else Color(0xFF1A1A1A))
-                    .padding(horizontal = 10.dp, vertical = 3.dp))
+            Row(Modifier.clip(RoundedCornerShape(6.dp)).background(if (on) Accent else Color(0xFF1A1A1A))
+                .padding(horizontal = 10.dp, vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(bandLabel(b), fontSize = 17.sp, fontWeight = if (on) FontWeight.Bold else FontWeight.Normal, maxLines = 1,
+                    color = if (on) Color.Black else Dim)
+                if (b.area != null) Text(stringResource(R.string.shack_area_rx), fontSize = 11.sp, maxLines = 1,
+                    color = if (on) Color.Black else Dim, modifier = Modifier.padding(start = 4.dp))
+            }
         }
     }
 }

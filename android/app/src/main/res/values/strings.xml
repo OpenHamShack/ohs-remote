@@ -150,6 +150,36 @@
     <!-- %1$s a band name such as 2m -->
     <string name="shack_band">Band %1$s</string>
     <string name="shack_band_none">Between bands</string>
+    <!-- Radio's listening areas on the band buttons: short, as a radio's band keys. Receive only -->
+    <string name="shack_area_lw">LW</string>
+    <string name="shack_area_mw">MW</string>
+    <string name="shack_area_cb">CB</string>
+    <string name="shack_area_cb_uk">CB UK</string>
+    <string name="shack_area_fm">FM</string>
+    <string name="shack_area_air">Air</string>
+    <string name="shack_area_marine">Marine</string>
+    <string name="shack_area_dab">DAB</string>
+    <string name="shack_area_lpd">LPD</string>
+    <string name="shack_area_pmr">PMR</string>
+    <!-- Under a listening area's name on its band button: it is receive only -->
+    <string name="shack_area_rx">RX</string>
+    <!-- DAB's station list. %1$s a block label such as 11D, %2$s its centre frequency with its unit -->
+    <string name="shack_dab_title">DAB block %1$s · %2$s</string>
+    <string name="shack_dab_block_down">◀ Block</string>
+    <string name="shack_dab_block_up">Block ▶</string>
+    <!-- The TV's block row, whose Left and Right change the block. %1$s a block label such as 11D -->
+    <string name="shack_dab_block">◀ Block %1$s ▶</string>
+    <string name="shack_dab_starting">Starting the DAB decoder…</string>
+    <string name="shack_dab_acquiring">Looking for a multiplex on this block…</string>
+    <string name="shack_dab_none">This multiplex lists no services.</string>
+    <!-- %1$s the multiplex (ensemble) name -->
+    <string name="shack_dab_ensemble">Multiplex: %1$s</string>
+    <!-- A service's kind and bitrate. %1$s "DAB" or "DAB+", %2$d kbit/s -->
+    <string name="shack_dab_service_rate">%1$s · %2$d kbit/s</string>
+    <string name="shack_dab_playing">Playing</string>
+    <string name="shack_dab_close">Close</string>
+    <string name="shack_dab_view_only">Choosing a DAB block or station needs the Control level for this app.</string>
+    <string name="shack_dab_rx_only">Receive only: the station plays through Radio\'s own audio.</string>
     <!-- The TV's key hints, shown a few at a time and joined with " · " -->
     <string name="shack_hint_tune">◀ ▶ tune</string>
     <string name="shack_hint_picker">▲ bookmarks and modes</string>

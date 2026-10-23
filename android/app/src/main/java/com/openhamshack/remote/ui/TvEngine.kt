@@ -161,12 +161,15 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
     // What the armed plan will send, once confirmed.
     var choice by remember { mutableStateOf<TxChoice?>(null) }
     val covered = typing != null || logOpen || full || askLine
-    val inert = controls || settings || antennaPanel || covered || picker != null
+    // DAB's station list: open while the DAB area is (Ch± or Band ◀ ▶ onto it opens it).
+    val dabOpen = u.dab != null
+    val inert = controls || settings || antennaPanel || dabOpen || covered || picker != null
 
     val tuner = remember { FocusRequester() }
     val firstControl = remember { FocusRequester() }
     val firstSetting = remember { FocusRequester() }
     val firstAntenna = remember { FocusRequester() }
+    val firstDab = remember { FocusRequester() }
     val pickerFocus = remember { FocusRequester() }
     val panelFocus = remember { FocusRequester() }
     var panelFocused by remember { mutableStateOf(false) }
@@ -277,7 +280,7 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
 
     // Focus always comes back somewhere when an overlay closes: with
     // nothing focused, the next key goes nowhere on a TV.
-    LaunchedEffect(controls, settings, antennaPanel, covered, picker != null, keys.legend) {
+    LaunchedEffect(controls, settings, antennaPanel, dabOpen, covered, picker != null, keys.legend) {
         delay(80)
         runCatching {
             when {
@@ -285,6 +288,7 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
                 picker != null -> pickerFocus.requestFocus()
                 settings -> firstSetting.requestFocus()
                 antennaPanel -> firstAntenna.requestFocus()
+                dabOpen -> firstDab.requestFocus()
                 controls -> firstControl.requestFocus()
                 !covered -> tuner.requestFocus()
             }
@@ -565,6 +569,16 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
                 }
                 if (u.viewOnly) Text(refused, fontSize = 14.sp, color = Amber)
                 Text(stringResource(R.string.shack_antenna_rx_only), fontSize = 14.sp, color = Dim)
+            }
+        }
+
+        u.dab?.let { d ->
+            // Opaque for the same reason as the antenna panel. Nothing here keys:
+            // a service plays through Radio's own receive audio.
+            val refused = stringResource(R.string.shack_dab_view_only)
+            SidePanel(stringResource(R.string.shack_area_dab), onClose = { e.closeDab() },
+                modifier = Modifier.align(Alignment.CenterEnd).background(Color(0xFF101418))) {
+                TvDabRows(e, d, u.viewOnly, firstDab, refused)
             }
         }
 

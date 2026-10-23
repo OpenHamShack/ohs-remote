@@ -20,8 +20,12 @@ import kotlin.math.abs
 /** Where a band button goes: the receive dial and the mode, set together. */
 data class BandSpot(val hz: Double, val mode: String)
 
-/** A band with a button: the dataset's band (edges, name) and the word on the button. */
-data class BandButton(val band: PlanBand, val label: String) {
+/**
+ * A band with a button: the dataset's band (edges, name) and the word on the
+ * button, or a listening area ([area], receive only: its band is the area's
+ * edges and its word is the screen's, from the catalog, so [label] is empty).
+ */
+data class BandButton(val band: PlanBand, val label: String, val area: ListenArea? = null) {
     val name: String get() = band.name
 }
 
@@ -45,14 +49,26 @@ object RadioBands {
      * server says (`rxRange` in its status); every band when it does not.
      * A band the receiver reaches any part of keeps its button.
      */
-    fun buttons(vocab: PlanVocab, rxLoHz: Double? = null, rxHiHz: Double? = null): List<BandButton> =
-        NAMES.mapNotNull { vocab.band(it) }
-            .filter { b -> rxLoHz == null || rxHiHz == null || (b.hiHz >= rxLoHz && b.loHz <= rxHiHz) }
-            .map { BandButton(it, label(it.name)) }
+    fun buttons(vocab: PlanVocab, rxLoHz: Double? = null, rxHiHz: Double? = null, areas: List<ListenArea> = emptyList()): List<BandButton> {
+        val bands = NAMES.mapNotNull { vocab.band(it) }.map { BandButton(it, label(it.name)) }
+        // Mixed in by where they start (Brian chose one row, in frequency
+        // order, over a separate list): sortedBy is stable, so the amateur
+        // bands keep their order and PMR446 follows 70 cm, which it is inside.
+        return (bands + areas.map { BandButton(it.band, "", it) }).sortedBy { it.band.loHz }
+            .filter { b -> rxLoHz == null || rxHiHz == null || (b.band.hiHz >= rxLoHz && b.band.loHz <= rxHiHz) }
+    }
 
-    /** Which button is lit: the server's band name (`band`) when it gives one, else the band the dial is in; null between bands. */
-    fun current(buttons: List<BandButton>, serverBand: String, dialHz: Double?): BandButton? =
-        buttons.firstOrNull { it.name == serverBand && serverBand.isNotEmpty() }
+    /**
+     * Which button is lit: [pressed] (the button last pressed on this
+     * device) while the dial is still inside it, else the server's band name
+     * (`band`) when it gives one, else the first button whose edges hold the
+     * dial; null between bands. [pressed] comes first because the listening
+     * areas overlap amateur bands (PMR446 and LPD433 are inside 70 cm): a
+     * press on PMR446 must light PMR446, though the server says "70cm".
+     */
+    fun current(buttons: List<BandButton>, serverBand: String, dialHz: Double?, pressed: String? = null): BandButton? =
+        pressed?.let { p -> buttons.firstOrNull { it.name == p && dialHz != null && dialHz in it.band } }
+            ?: buttons.firstOrNull { it.name == serverBand && serverBand.isNotEmpty() }
             ?: dialHz?.let { f -> buttons.firstOrNull { f in it.band } }
 
     /**
@@ -60,9 +76,9 @@ object RadioBands {
      * Between bands, the next one up or down from the dial, so a TV tuned
      * to 5 MHz with no button lit still moves the way the key says.
      */
-    fun step(buttons: List<BandButton>, serverBand: String, dialHz: Double?, by: Int): BandButton? {
+    fun step(buttons: List<BandButton>, serverBand: String, dialHz: Double?, by: Int, pressed: String? = null): BandButton? {
         if (buttons.isEmpty() || by == 0) return null
-        val at = current(buttons, serverBand, dialHz)
+        val at = current(buttons, serverBand, dialHz, pressed)
         if (at != null) return buttons.getOrNull((buttons.indexOf(at) + by).coerceIn(0, buttons.size - 1))?.takeIf { it != at }
         val f = dialHz ?: return if (by > 0) buttons.first() else buttons.last()
         return if (by > 0) buttons.firstOrNull { it.band.loHz > f } else buttons.lastOrNull { it.band.hiHz < f }

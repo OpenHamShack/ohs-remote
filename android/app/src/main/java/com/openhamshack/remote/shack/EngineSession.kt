@@ -73,15 +73,19 @@ data class EngineUi(
     val rxDb: Double? = null,
     /** The shared band-plan data, once read (Radio only): the strip and the band buttons. */
     val plan: PlanData? = null,
+    /** The band button last pressed here (RadioBands.current: it stays lit while the dial is inside it). */
+    val pressedBand: String? = null,
+    /** DAB's station list, while the DAB area's panel is open (Radio only); null when it is closed. */
+    val dab: DabUi? = null,
 ) {
     val dialHz: Double? get() = pendingDialHz ?: state.dialHz
 
     /** Radio's band buttons: the dataset's bands with buttons, less any the receiver says it cannot reach. Empty until the data is read. */
     val bandButtons: List<BandButton>
-        get() = plan?.let { RadioBands.buttons(it.vocab, status?.rxRange?.first, status?.rxRange?.second) }.orEmpty()
+        get() = plan?.let { RadioBands.buttons(it.vocab, status?.rxRange?.first, status?.rxRange?.second, ListenAreas.ALL) }.orEmpty()
 
-    /** The lit band button, from the server's band name or the dial. */
-    val currentBand: BandButton? get() = RadioBands.current(bandButtons, state.band, dialHz)
+    /** The lit band button: the one last pressed while the dial is in it, else the server's band name or the dial. */
+    val currentBand: BandButton? get() = RadioBands.current(bandButtons, state.band, dialHz, pressedBand)
 }
 
 /**
@@ -102,7 +106,7 @@ class EngineSession(
     private val client: EngineClient,
     private val clientId: String,
     canTransmit: Boolean,
-    sendScope: CoroutineScope,
+    private val sendScope: CoroutineScope,
     autoOpen: Boolean = true,
     /** Names this box to [bandMemory]: the controller and the app. */
     private val boxKey: String = app.id,
@@ -172,7 +176,8 @@ class EngineSession(
     fun foreground(on: Boolean, reason: String = "") {
         if (!on) { ptt?.release(reason); enableTx.release(reason) }
         if (on && feeds == null) startFeeds()
-        if (!on) { stopFeeds(); saveSpots() }
+        // DAB's session too: a TV in standby should not keep the server decoding a multiplex.
+        if (!on) { stopFeeds(); saveSpots(); closeDab() }
     }
 
     private fun startFeeds() {
@@ -193,6 +198,9 @@ class EngineSession(
     }
 
     fun close() {
+        // The session is the server's: stop it on the way out (fire and forget, on the send scope, which outlives this one).
+        _ui.value.dab?.session?.let { id -> sendScope.launch { runCatching { client.decoderStop(id) } } }
+        dabPoll?.cancel()
         ptt?.release("")
         enableTx.release("")
         stopFeeds()
@@ -342,7 +350,7 @@ class EngineSession(
     fun tune(by: Int) {
         val u = _ui.value
         val from = u.dialHz ?: return
-        setDial(Tuning.stepped(from, u.stepHz, by, u.dialMin, u.dialMax))
+        setDial(Tuning.stepped(from, u.stepHz, by, u.dialMin, u.dialMax, ListenAreas.origin(from, u.stepHz)))
     }
 
     fun setDial(hz: Double) {
@@ -460,7 +468,7 @@ class EngineSession(
             scope.launch { runCatching { client.padAction("band", "turn", by) }.onFailure { fail(it) } }
             return
         }
-        RadioBands.step(u.bandButtons, u.state.band, u.dialHz, by)?.let { bandTo(it) }
+        RadioBands.step(u.bandButtons, u.state.band, u.dialHz, by, u.pressedBand)?.let { bandTo(it) }
     }
 
     /**
@@ -471,6 +479,21 @@ class EngineSession(
     fun bandTo(b: BandButton) {
         val u = _ui.value
         val data = u.plan ?: return
+        b.area?.let { area ->
+            // A listening area: its spot, its mode (or the fallback when the
+            // server has no such mode) and its step, every press - an area has
+            // no FT8/SSB/CW places to step through. Receive only, as every
+            // band button: a dial, a mode and a step, nothing keys.
+            val spot = ListenAreas.target(area, u.modes)
+            _ui.update { it.copy(stepHz = spot.stepHz, pressedBand = b.name) }
+            // DAB is a decoder session on a block, not a demodulator: its
+            // press opens the station list on the block the dial is near
+            // (11D the first time), which tunes there itself.
+            if (area.id == ListenAreas.DAB) { openDab(DabBlocks.at(u.dialHz) ?: DabBlocks.DEFAULT); return }
+            if (spot.mode == null) setDial(spot.hz) else goTo(spot.hz, spot.mode)
+            return
+        }
+        _ui.update { it.copy(pressedBand = b.name) }
         val plan = u.state.planInUse.ifEmpty { null }
         // The band the dial is in already: its next place (FT8, SSB, CW), as a radio's band key pressed twice.
         val spot = if (u.currentBand == b) RadioBands.next(b.band, u.state.mode, u.bookmarks, data, plan) ?: return
@@ -478,9 +501,76 @@ class EngineSession(
         goTo(spot.hz, spot.mode)
     }
 
+    // --- DAB: the station list (Dab.kt) --------------------------------------
+
+    private var dabPoll: Job? = null
+
+    /**
+     * The DAB panel on [block]: the dial to the block's centre, a `dab`
+     * decoder session there (any session of ours on another block stopped
+     * first), and its feed polled once a second while the panel is open.
+     * A refusal (decoder_unavailable, too many sessions) is the panel's
+     * problem line in the server's words, not the screen's.
+     */
+    fun openDab(block: DabBlock) {
+        val old = _ui.value.dab?.session
+        dabPoll?.cancel()
+        _ui.update { it.copy(dab = DabUi(block), pressedBand = ListenAreas.DAB) }
+        setDial(block.centreHz)
+        dabPoll = scope.launch {
+            old?.let { id -> runCatching { client.decoderStop(id) } }
+            val id = try {
+                client.decoderStart(DabFeed.start(block)).optString("id").ifEmpty { null }
+            } catch (e: ShackException) {
+                _ui.update { u -> u.copy(dab = u.dab?.copy(problem = e.message.orEmpty().ifEmpty { e.code })) }
+                return@launch
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _ui.update { u -> u.copy(dab = u.dab?.copy(problem = e.message.orEmpty())) }
+                return@launch
+            } ?: return@launch
+            _ui.update { u -> u.copy(dab = u.dab?.copy(session = id)) }
+            while (isActive) {
+                val since = _ui.value.dab?.since ?: break
+                runCatching { client.decoderPoll(id, since) }.onSuccess { p ->
+                    _ui.update { u -> u.copy(dab = u.dab?.let { d -> DabFeed.apply(d, p) }) }
+                }
+                delay(DAB_POLL_MS)
+            }
+        }
+    }
+
+    /** The next or previous block (5A-13F), a new session there. */
+    fun dabBlock(by: Int) {
+        val d = _ui.value.dab ?: return
+        val next = DabBlocks.step(d.block, by)
+        if (next != d.block) openDab(next)
+    }
+
+    /** Play [sid]: only a service the server listed and can play (a dab+ one without faad2 carries a why and is not asked for). */
+    fun dabPlay(sid: String) {
+        val d = _ui.value.dab ?: return
+        if (!DabFeed.canPlay(d, sid)) return
+        val id = d.session ?: return
+        scope.launch { control { client.decoderParams(id, JSONObject().put("service", sid)) } }
+    }
+
+    /** The panel put away: its session stopped, so the server is not left decoding a block nobody is listening to. */
+    fun closeDab() {
+        val id = _ui.value.dab?.session
+        dabPoll?.cancel()
+        dabPoll = null
+        _ui.update { it.copy(dab = null) }
+        id?.let { scope.launch { runCatching { client.decoderStop(it) } } }
+    }
+
     /** The engine's dial and mode, remembered against the band they are in (RadioBands.remember). */
     private fun track(s: EngineState) {
         val data = _ui.value.plan ?: return
+        // In a listening area inside an amateur band (PMR446 in 70 cm) the
+        // band would otherwise remember the PMR channel as its own spot.
+        if (_ui.value.currentBand?.area != null) return
         val next = RadioBands.remember(spots, data.vocab, s.dialHz, s.mode)
         if (next == spots) return
         spots = next
@@ -551,6 +641,7 @@ class EngineSession(
     companion object {
         const val RETRY_MS = 2000L
         const val SAVE_AFTER_MS = 2000L
+        const val DAB_POLL_MS = 1000L
 
         /** s16le into samples; two channels are averaged (the engines send mono, but the format says which). */
         fun pcm(b: ByteArray, len: Int, channels: Int): ShortArray {
