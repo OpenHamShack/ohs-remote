@@ -145,6 +145,8 @@
     <string name="shack_reconnecting">Reconnecting…</string>
     <!-- %1$s a step size, already formatted with its unit -->
     <string name="shack_step">Step %1$s</string>
+    <!-- The TV's Step item, whose Left and Right lower and raise it. %1$s a step size with its unit -->
+    <string name="shack_step_adjust">◀ Step %1$s ▶</string>
     <!-- %1$s a band name such as 2m -->
     <string name="shack_band">Band %1$s</string>
     <string name="shack_band_none">Between bands</string>

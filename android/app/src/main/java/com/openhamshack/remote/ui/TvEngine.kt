@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
@@ -46,6 +47,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
@@ -96,6 +98,7 @@ import com.openhamshack.remote.shack.PickerRow
 import com.openhamshack.remote.shack.PickerStep
 import com.openhamshack.remote.shack.ScopeLabels
 import com.openhamshack.remote.shack.Span
+import com.openhamshack.remote.shack.Tuning
 
 /**
  * NB or Radio on a TV, laid out like OpenWebRX+ (Brian, 09/10/2026) and
@@ -142,6 +145,7 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
     // always while Enable TX is on: the screen going off would end it.
     if (keepAwake(u.audioRate, u.muted, keyed = txState.phase != EnableTxPhase.Idle)) KeepScreenOn()
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
     val res = LocalResources.current
     var controls by remember { mutableStateOf(false) }
     var settings by remember { mutableStateOf(false) }
@@ -448,7 +452,27 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     // Step first (REMOTE-KEYS.md §4: OK, OK still changes the step).
-                    TvItem(onClick = { e.step(1) }, focus = firstControl) { Text(stringResource(R.string.shack_step, stepText(u.stepHz)), fontSize = 16.sp) }
+                    // OK only ever went up, held at the top, so on a TV the small
+                    // steps were out of reach once left (Brian, 23/10/2026: on the
+                    // TV "the step only goes up"). Left lowers it and Right raises
+                    // it, held at the ends, as the settings panel's Step row
+                    // (SettingRow) already did. At an end the key is not taken,
+                    // so Right from the largest step moves on along the row as
+                    // before; Down moves on from any step, so Mute and the rest
+                    // are not only reachable by walking the step to its top.
+                    // A held key repeats the step but never carries focus off it.
+                    TvItem(onClick = { e.step(1) }, focus = firstControl, modifier = Modifier.onPreviewKeyEvent { k ->
+                        if (k.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                        val by = when (k.key) {
+                            Key.DirectionLeft -> -1
+                            Key.DirectionRight -> 1
+                            Key.DirectionDown -> { focusManager.moveFocus(FocusDirection.Right); return@onPreviewKeyEvent true }
+                            else -> return@onPreviewKeyEvent false
+                        }
+                        val now = e.ui.value.stepHz
+                        if (Tuning.nextStep(e.kind, now, by) != now) { e.step(by); true }
+                        else k.nativeKeyEvent.repeatCount > 0
+                    }) { Text(stringResource(R.string.shack_step_adjust, stepText(u.stepHz)), fontSize = 16.sp) }
                     TvItem(onClick = { e.mute(!u.muted) }) { Text(stringResource(if (u.muted) R.string.shack_unmute else R.string.shack_mute), fontSize = 16.sp) }
                     TvItem(onClick = { e.span(if (u.span == Span.WIDE) Span.ZOOM else Span.WIDE) }) {
                         Text(stringResource(if (u.span == Span.WIDE) R.string.shack_span_wide else R.string.shack_span_zoom), fontSize = 16.sp)
