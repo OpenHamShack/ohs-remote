@@ -117,6 +117,21 @@ What it does, and nothing more:
     `dbm` and `s` (FAKESHACK_RADIO_LISTEN_SMETER=uncalibrated: a `why`
     instead). Unset, all of it passes.
 
+  * Radio's 48 kHz receive audio with stereo on request (openhamshack-nb
+    78ec61f, SERVER-API "Receive audio"), whatever server is behind it:
+    with FAKESHACK_RADIO_TONE=1 fakeshack answers Radio's GET
+    api/audio/rx itself (while Radio is running) with a test tone at
+    48 kHz - left 440 Hz, on for half a second and off for half, right
+    660 Hz steady, -12 dBFS each - so stereo is audible as a beeping left
+    ear and a steady right one, and a mono player hears both at once.
+    ?channels=2 sends it interleaved L R; no query or ?channels=1 sends
+    (L+R)/2; anything else is 400 bad_channels. The headers are the
+    server's (Content-Type audio/L16; rate=48000; channels=N and
+    X-Audio-Format). Radio's api/status `audio` becomes the new shape,
+    {encoding, rate 48000, channels 1, stereo true, listeners, tx at
+    12 kHz}. The events socket's hello still carries the server's own
+    status. NB passes untouched: it stays 12 kHz mono.
+
 Bytes are piped after the head is rewritten, so the PCM stream, the TS
 stream and the websocket pass through untouched (the handshake is the
 client's own: no Sec-WebSocket-* rewriting, GUIDE section 5).
@@ -210,6 +225,34 @@ RADIO_RXRANGE = _rxrange(os.environ.get("FAKESHACK_RADIO_RXRANGE", ""))
 DECODERS = Decoders(os.environ.get("FAKESHACK_CALLSIGN", "M0TST")) \
     if os.environ.get("FAKESHACK_DECODERS", "") == "1" else None
 
+TONE = os.environ.get("FAKESHACK_RADIO_TONE", "") == "1"
+TONE_RATE = 48000
+#: Radio's tone streams now open, for status `listeners`.
+tone_listeners = 0
+
+
+def _tone() -> tuple[bytes, bytes]:
+    """One second of the test tone, (stereo s16le, mono s16le). A second
+    holds whole cycles of both tones and of the left gate, so it loops
+    without a click; the gate opens and closes at zero crossings."""
+    import array
+    import math
+    import sys
+    amp = 32767 * 10 ** (-12 / 20)
+    st, mo = array.array("h"), array.array("h")
+    for i in range(TONE_RATE):
+        t = i / TONE_RATE
+        left = amp * math.sin(2 * math.pi * 440 * t) if t < 0.5 else 0.0
+        right = amp * math.sin(2 * math.pi * 660 * t)
+        st.extend((round(left), round(right)))
+        mo.append(round((left + right) / 2))
+    if sys.byteorder != "little":
+        st.byteswap()
+        mo.byteswap()
+    return st.tobytes(), mo.tobytes()
+
+
+TONE_PCM = _tone() if TONE else (b"", b"")
 ANTENNAS = Antennas() if os.environ.get("FAKESHACK_RADIO_ANTENNAS", "") == "1" else None
 LISTEN = Listen(dab_missing=os.environ.get("FAKESHACK_RADIO_LISTEN_DAB", "") == "missing", rx_range=RADIO_RXRANGE,
                 calibrated=os.environ.get("FAKESHACK_RADIO_LISTEN_SMETER", "") != "uncalibrated") \
@@ -522,6 +565,9 @@ async def handle(r, w):
     if code != 200:
         await reply(w, code, refusal)
         return
+    if app == "shack-radio" and TONE and method == "GET" and rest.split("?", 1)[0] == "/api/audio/rx":
+        await tone_reply(r, w, rest)
+        return
     if app == "shack-radio" and (DECODERS or LISTEN) and rest.split("?", 1)[0].startswith("/api/decoders"):
         await decoders_reply(r, w, method, rest, hdr)
         return
@@ -560,7 +606,7 @@ async def handle(r, w):
             for f in feeds:
                 f.cancel()
         return
-    if app == "shack-radio" and (RADIO_RXRANGE or DECODERS or LISTEN) and method == "GET" \
+    if app == "shack-radio" and (RADIO_RXRANGE or DECODERS or LISTEN or TONE) and method == "GET" \
             and rest.split("?", 1)[0] == "/api/status":
         await json_with_extras(ur, w, status_extras)
         return
@@ -602,6 +648,42 @@ async def decoders_reply(r, w, method: str, rest: str, hdr: dict):
     await reply(w, *got)
 
 
+async def tone_reply(r, w, rest: str):
+    """Radio's api/audio/rx as openhamshack-nb 78ec61f answers it, with the
+    test tone (FAKESHACK_RADIO_TONE). Paced at real time from a clock, not
+    by sleeping a fixed 20 ms, so the stream neither drifts nor bursts."""
+    global tone_listeners
+    if not running(APPS["shack-radio"][2]):
+        await reply(w, 502, {"error": "Radio is not running.", "code": "app_down"})
+        return
+    q = parse_qs(rest.partition("?")[2]).get("channels", ["1"])[0]
+    if q not in ("1", "2"):
+        await reply(w, 400, {"error": "channels must be 1 or 2", "code": "bad_channels"})
+        return
+    ch = int(q)
+    fmt = {"encoding": "s16le", "rate": TONE_RATE, "channels": ch}
+    w.write((f"HTTP/1.1 200 OK\r\nContent-Type: audio/L16; rate={TONE_RATE}; channels={ch}\r\n"
+             f"X-Audio-Format: {json.dumps(fmt)}\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n").encode())
+    data = TONE_PCM[0] if ch == 2 else TONE_PCM[1]
+    block = TONE_RATE // 50 * 2 * ch     # 20 ms
+    loop = asyncio.get_running_loop()
+    due = loop.time()
+    pos = 0
+    tone_listeners += 1
+    try:
+        while True:
+            w.write(data[pos:pos + block])
+            pos = (pos + block) % len(data)
+            await w.drain()
+            due += 0.02
+            await asyncio.sleep(max(0.0, due - loop.time()))
+    except (ConnectionError, OSError):
+        pass
+    finally:
+        tone_listeners -= 1
+        w.close()
+
+
 async def listener_feed(inject: asyncio.Queue, listeners: set):
     """Every message a fixture (fakedecoders, fakeantennas) sends, as a frame, while this socket lasts."""
     q: asyncio.Queue = asyncio.Queue()
@@ -614,13 +696,16 @@ async def listener_feed(inject: asyncio.Queue, listeners: set):
 
 
 def status_extras(obj: dict) -> dict:
-    """Radio's api/status with rxRange and decoders added as configured."""
+    """Radio's api/status with rxRange, decoders and the tone's audio added as configured."""
     if RADIO_RXRANGE:
         obj["rxRange"] = RADIO_RXRANGE
     if DECODERS:
         obj["decoders"] = DECODERS.status()
     if LISTEN:
         LISTEN.status(obj)
+    if TONE:
+        obj["audio"] = {"encoding": "s16le", "rate": TONE_RATE, "channels": 1, "stereo": True,
+                        "listeners": tone_listeners, "tx": {"encoding": "s16le", "rate": 12000, "channels": 1}}
     return obj
 
 
@@ -775,7 +860,8 @@ async def main():
     print(f"fakeshack on :{PORT} (auto-approve {'on' if AUTO else 'off'}; anonymous view: "
           f"{', '.join(sorted(ANONYMOUS)) or 'none'}; Radio's decoders {'faked' if DECODERS else 'passed'}; "
           f"Radio's antennas {'faked' if ANTENNAS else 'passed'}; "
-          f"Radio's listening bands {'faked' if LISTEN else 'passed'})",
+          f"Radio's listening bands {'faked' if LISTEN else 'passed'}; "
+          f"Radio's audio {'a 48 kHz stereo tone' if TONE else 'passed'})",
           flush=True)
     if DECODERS:
         asyncio.ensure_future(DECODERS.run())
