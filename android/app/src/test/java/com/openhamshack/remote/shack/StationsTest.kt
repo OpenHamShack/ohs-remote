@@ -109,4 +109,45 @@ class StationsTest {
         assertEquals("dab", Stations.stationsEvent(JSONObject("""{"kind": "stations", "band": "dab", "scannedAt": "x", "count": 3}""")))
         assertEquals("""{"band":"both"}""", Stations.scanBody(Stations.BOTH).toString())
     }
+
+    @Test fun aPaddedPsIsTrimmedForShowingSortingAndTheBadge() {
+        val l = Stations.parseFm(JSONObject("""{"status": "ok", "stations": [
+            {"pi": "C203", "ps": "BBC R3  ", "best": {"hz": 90300000}},
+            {"pi": "C1A1", "ps": " ALPHA  ", "best": {"hz": 104500000}},
+            {"pi": "C111", "ps": "        ", "best": {"hz": 95000000}}]}"""))
+        assertEquals("BBC R3", l.stations[0].ps)
+        assertEquals(listOf("ALPHA", "BBC R3", null), Stations.tiles(l, null, FmSort.AZ).map { it.name })
+        assertEquals("R3", StationBadge.initials(l.stations[0].name!!))
+        assertNull(l.stations[2].name)
+        val rds = Rds.parse(JSONObject("""{"pi": "C203", "ps": "BBC R3  ", "ta": true, "tp": false}"""))!!
+        assertEquals("BBC R3", rds.ps)
+    }
+
+    @Test fun taIsShownOnlyOnAStationThatCarriesTraffic() {
+        fun traffic(ta: Boolean, tp: Boolean) = Rds.parse(JSONObject().put("pi", "C203").put("ta", ta).put("tp", tp))!!.traffic
+        // Real BBC Radio 3: ta true, tp false (another programme's announcement, EON). No marker.
+        assertNull(traffic(ta = true, tp = false))
+        assertEquals(Traffic.TA, traffic(ta = true, tp = true))
+        assertEquals(Traffic.TP, traffic(ta = false, tp = true))
+        assertNull(traffic(ta = false, tp = false))
+    }
+
+    @Test fun twentyStationsNineWithoutPsListNamedFirstThenByFrequency() {
+        val rows = (0 until 20).joinToString(",") { i ->
+            val hz = 88_000_000 + i * 1_000_000
+            if (i % 2 == 0 && i < 18) """{"pi": null, "ps": null, "best": {"hz": $hz}}"""
+            else """{"pi": "C$i", "ps": "${('Z' - i)}STN    ", "best": {"hz": $hz}}"""
+        }
+        val l = Stations.parseFm(JSONObject("""{"status": "ok", "stations": [$rows]}"""))
+        val az = Stations.tiles(l, null, FmSort.AZ)
+        assertEquals(9, az.count { it.name == null })
+        // The eleven named ones A-Z, then the nine without a PS by frequency.
+        assertEquals(az.take(11).mapNotNull { it.name }.sorted(), az.take(11).map { it.name })
+        assertEquals(az.drop(11).map { it.best.hz }.sorted(), az.drop(11).map { it.best.hz })
+        assertTrue(az.drop(11).all { it.name == null })
+        assertEquals(l.stations.map { it.best.hz }.sorted(), Stations.tiles(l, null, FmSort.MHZ).map { it.best.hz })
+        // A badge for one without a name says its whole MHz, so 100.x, 103.x and 107.x read apart.
+        assertEquals(listOf("88", "90", "92"), az.drop(11).take(3).map { it.badgeText })
+        assertNull(az.first().badgeText)
+    }
 }

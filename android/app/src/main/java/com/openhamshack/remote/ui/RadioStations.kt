@@ -79,8 +79,12 @@ internal fun fmName(s: FmStation): String = s.name ?: stringResource(R.string.sh
 
 /** A tile's second line: the frequency and the programme type, when there is one. */
 @Composable
-internal fun fmSub(s: FmStation): String = s.ptyName?.let { stringResource(R.string.shack_fm_tile_sub, channelText(s.best.hz), it) }
-    ?: stringResource(R.string.shack_fm_tile_freq, channelText(s.best.hz))
+internal fun fmSub(s: FmStation): String = when {
+    // Named by its frequency already: the second line says why, rather than the frequency again.
+    s.name == null -> stringResource(R.string.shack_fm_no_name)
+    s.ptyName != null -> stringResource(R.string.shack_fm_tile_sub, channelText(s.best.hz), s.ptyName)
+    else -> stringResource(R.string.shack_fm_tile_freq, channelText(s.best.hz))
+}
 
 /**
  * "Scan now", or the scan under way in Radio's own words with how far it has
@@ -147,7 +151,7 @@ internal fun FmPickerSheet(e: EngineSession, u: EngineUi, onDone: () -> Unit) {
                     .clickable(enabled = !u.viewOnly) { e.tuneFm(s); onDone() }.padding(horizontal = 12.dp, vertical = 8.dp)
                     .testTag("fm-${s.badgeKey}"),
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    StationBadgeBox(s.name ?: channelText(s.best.hz), s.badgeKey, 40.dp, 11.dp, 15.sp)
+                    StationBadgeBox(s.name ?: channelText(s.best.hz), s.badgeKey, 40.dp, 11.dp, 15.sp, text = s.badgeText)
                     Column(Modifier.weight(1f)) {
                         Text(fmName(s), fontSize = 16.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Text(fmSub(s), fontSize = 12.sp, color = Dim, maxLines = 1)
@@ -167,12 +171,14 @@ internal fun StereoBadge(small: Boolean) {
         modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(Accent).padding(horizontal = if (small) 7.dp else 10.dp, vertical = 2.dp))
 }
 
-/** RDS's traffic marker: "TA" while traffic news is on, "TP" for a station that carries it; nothing otherwise. */
+/** RDS's traffic marker (Rds.traffic): "TA" while this station's traffic news is on, "TP" for a station that carries it. */
 @Composable
 internal fun TrafficMarker(rds: Rds) {
-    val word = when { rds.ta -> R.string.shack_ta; rds.tp -> R.string.shack_tp; else -> return }
-    Text(stringResource(word), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = if (rds.ta) Amber else Dim, maxLines = 1,
-        modifier = Modifier.border(1.dp, if (rds.ta) Amber else RadioLine, RoundedCornerShape(5.dp)).padding(horizontal = 5.dp))
+    val t = rds.traffic ?: return
+    val on = t == com.openhamshack.remote.shack.Traffic.TA
+    Text(stringResource(if (on) R.string.shack_ta else R.string.shack_tp), fontSize = 11.sp, fontWeight = FontWeight.Bold,
+        color = if (on) Amber else Dim, maxLines = 1,
+        modifier = Modifier.border(1.dp, if (on) Amber else RadioLine, RoundedCornerShape(5.dp)).padding(horizontal = 5.dp))
 }
 
 /**
@@ -286,7 +292,7 @@ internal fun TvFmScreen(e: EngineSession, u: EngineUi, first: FocusRequester, on
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             pair.forEach { s ->
                                 TvItem(onClick = { e.tuneFm(s); onClose() }, selected = s == on, compact = true, modifier = Modifier.weight(1f).height(58.dp)) {
-                                    StationBadgeBox(s.name ?: channelText(s.best.hz), s.badgeKey, 38.dp, 11.dp, 15.sp)
+                                    StationBadgeBox(s.name ?: channelText(s.best.hz), s.badgeKey, 38.dp, 11.dp, 15.sp, text = s.badgeText)
                                     Column(Modifier.weight(1f).padding(start = 12.dp)) {
                                         Text(fmName(s), fontSize = 17.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                         Text(fmSub(s), fontSize = 12.sp, color = PolishDim, maxLines = 1)
@@ -323,7 +329,8 @@ private fun NowPlayingFm(u: EngineUi, rds: Rds?, listed: FmStation?, modifier: M
     val name = rds?.name ?: listed?.name
     val key = rds?.pi ?: listed?.badgeKey ?: Math.round(u.dialHz ?: 0.0).toString()
     Column(modifier.glass(RoundedCornerShape(22.dp)).padding(22.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        StationBadgeBox(name ?: channelText(u.dialHz ?: 0.0), key, 96.dp, 24.dp, 40.sp)
+        StationBadgeBox(name ?: channelText(u.dialHz ?: 0.0), key, 96.dp, 24.dp, 40.sp,
+            text = if (name == null) ((u.dialHz ?: 0.0) / 1e6).toInt().toString() else null)
         PolishLabel(stringResource(R.string.shack_rds_heading))
         Text(name ?: stringResource(R.string.shack_fm_no_rds, channelText(u.dialHz ?: 0.0)), fontSize = 30.sp, fontWeight = FontWeight.Medium,
             color = PolishText, maxLines = 2, overflow = TextOverflow.Ellipsis)

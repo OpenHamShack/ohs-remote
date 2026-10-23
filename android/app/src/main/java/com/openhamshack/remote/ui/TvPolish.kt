@@ -137,10 +137,12 @@ private val BADGES = listOf(
 
 /** A station's initials badge in its own stable colour (StationBadge: by the service's id). */
 @Composable
-internal fun StationBadgeBox(name: String, key: String, size: Dp, corner: Dp, textSize: androidx.compose.ui.unit.TextUnit) {
+internal fun StationBadgeBox(name: String, key: String, size: Dp, corner: Dp, textSize: androidx.compose.ui.unit.TextUnit,
+                             /** What the badge says instead of the name's initials (a station without RDS: its whole MHz, "103"). */
+                             text: String? = null) {
     val (a, b) = BADGES[StationBadge.colourIndex(key, BADGES.size)]
     Box(Modifier.size(size).clip(RoundedCornerShape(corner)).background(Brush.linearGradient(listOf(a, b))), contentAlignment = Alignment.Center) {
-        Text(StationBadge.initials(name), fontSize = textSize, fontWeight = FontWeight.Light, color = PolishText, maxLines = 1)
+        Text(text ?: StationBadge.initials(name), fontSize = textSize, fontWeight = FontWeight.Light, color = PolishText, maxLines = 1)
     }
 }
 

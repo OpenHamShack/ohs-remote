@@ -26,15 +26,31 @@ data class Rds(
     /** The station's name as shown: the 8 characters it sends, padding trimmed; null when it sent none. */
     val name: String? get() = ps?.trim()?.takeIf { it.isNotEmpty() }
 
+    /**
+     * Which traffic marker to show: TA only on a station that itself carries
+     * traffic news (TP). A station can send TA without TP for another
+     * programme's announcement (EON: real BBC Radio 3 sends ta true, tp
+     * false), which is not this station's traffic news.
+     */
+    val traffic: Traffic? get() = when {
+        ta && tp -> Traffic.TA
+        tp -> Traffic.TP
+        else -> null
+    }
+
     companion object {
         /** Null for null or `{}` (no PI heard yet, outside wfm, a retune). */
         fun parse(o: JSONObject?): Rds? {
             if (o == null || o.length() == 0) return null
-            return Rds(o.textOf("pi"), o.optString("ps").takeIf { !o.isNull("ps") && it.isNotBlank() }, o.textOf("rt"),
+            // The PS is sent padded to 8 ("BBC R3  "): trimmed here, once, so nothing shows or sorts the padding.
+            return Rds(o.textOf("pi"), o.textOf("ps"), o.textOf("rt"),
                 o.num("pty")?.toInt(), o.textOf("ptyName"), o.optBoolean("ta"), o.optBoolean("tp"), o.optBoolean("stereo"))
         }
     }
 }
+
+/** RDS's traffic marker: TA (traffic news on now) or TP (this station carries it). */
+enum class Traffic { TA, TP }
 
 /** A band scan under way (`bandScan`): which band, how far, and Radio's own words for where it is. */
 data class BandScan(val band: String, val percent: Int, val phase: String, val freqHz: Double?, val text: String) {
@@ -62,6 +78,13 @@ data class FmStation(
 ) {
     /** The name shown: the PS, trimmed; null for a station without RDS (shown by its frequency). */
     val name: String? get() = ps?.trim()?.takeIf { it.isNotEmpty() }
+
+    /**
+     * What a badge says for a station without RDS: its whole megahertz
+     * ("103" for 103.3), since a name's initials would give "10" to 100.3,
+     * 103.3 and 107.6 alike. Null for a named station (its initials).
+     */
+    val badgeText: String? get() = if (name != null) null else (best.hz / 1e6).toInt().toString()
 
     /** The key a badge's colour comes from: the PI, the same on every frequency and in every scan; the frequency for one without. */
     val badgeKey: String get() = pi ?: Math.round(best.hz).toString()
@@ -115,7 +138,7 @@ object Stations {
         val stations = (0 until (a?.length() ?: 0)).mapNotNull { i ->
             val s = a!!.optJSONObject(i) ?: return@mapNotNull null
             val best = heard(s.optJSONObject("best")) ?: return@mapNotNull null
-            FmStation(s.textOf("pi"), s.optString("ps").takeIf { !s.isNull("ps") && it.isNotBlank() }, s.num("pty")?.toInt(), s.textOf("ptyName"),
+            FmStation(s.textOf("pi"), s.textOf("ps"), s.num("pty")?.toInt(), s.textOf("ptyName"),
                 s.textOf("rt"), best, heardList(s.optJSONArray("alts")))
         }
         return FmList(ListHeader.parse(o), stations)

@@ -324,6 +324,8 @@
     <string name="shack_fm_tile_sub">%1$s MHz · %2$s</string>
     <string name="shack_fm_tile_freq">%1$s MHz</string>
     <string name="shack_tune_by_freq">Tune by frequency</string>
+    <!-- A listed station that sends no RDS name, under its frequency. -->
+    <string name="shack_fm_no_name">No station name (RDS)</string>
     <string name="shack_fm_hint">tunes to the station</string>
     <string name="shack_stations_empty">The scan found no stations.</string>
     <!-- The TV polish (Brian's TvPolish mockups). Small spaced capitals over a panel. -->
