@@ -626,7 +626,11 @@ class EngineSession(
             // DAB is a decoder session on a block, not a demodulator: its
             // press opens the station list on the block the dial is near
             // (11D the first time), which tunes there itself.
-            if (area.id == ListenAreas.DAB) { openDab(DabBlocks.at(u.dialHz) ?: DabBlocks.DEFAULT); return }
+            if (area.id == ListenAreas.DAB) {
+                // A DAB station already holding the receiver: its block, so the panel takes it over (openDab) without a gap.
+                val playing = u.holder?.takeIf { it.by == "dab" }?.let { DabBlocks.byLabel(it.block) }
+                openDab(playing ?: DabBlocks.at(u.dialHz) ?: DabBlocks.DEFAULT); return
+            }
             if (spot.mode == null) sendDial(spot.hz) else goTo(spot.hz, spot.mode)
             return
         }
@@ -655,7 +659,18 @@ class EngineSession(
      * panel's problem line in the server's words, not the screen's.
      */
     fun openDab(block: DabBlock, service: String? = null) {
-        val old = _ui.value.dab?.session
+        val ours = _ui.value.dab?.session
+        // A DAB session this device does not know holding the receiver: most
+        // often its own from before the app restarted (Brian, 23/10/2026: the
+        // TV, reinstalled, found its own 10C station "already has the
+        // receiver" and could start nothing). DAB is one receiver's audio
+        // whoever started it, so it is taken over rather than refused: on its
+        // own block the panel shows and steers it, and elsewhere it is stopped
+        // like a session of ours. Where this level may not stop it, the start
+        // is refused and the panel says so in the server's words.
+        val held = _ui.value.holder?.takeIf { it.by == "dab" && it.session != ours }
+        val adopt = held != null && ours == null && service == null && DabBlocks.byLabel(held.block) == block
+        val old = listOfNotNull(ours, held?.session?.takeUnless { adopt })
         dabPoll?.cancel()
         dabScanJob?.cancel()
         dabScanJob = null
@@ -668,8 +683,8 @@ class EngineSession(
             }
         }
         dabPoll = scope.launch {
-            old?.let { id -> stopAwaited(id) }
-            val id = try {
+            old.forEach { id -> stopAwaited(id) }
+            val id = if (adopt) held!!.session else try {
                 client.decoderStart(DabFeed.start(block, service ?: dabServices[block.label])).optString("id").ifEmpty { null }
             } catch (e: ShackException) {
                 _ui.update { u -> u.copy(dab = u.dab?.copy(problem = e.message.orEmpty().ifEmpty { e.code })) }
