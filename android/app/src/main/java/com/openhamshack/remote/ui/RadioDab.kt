@@ -45,6 +45,8 @@ import androidx.compose.ui.unit.sp
 import com.openhamshack.remote.R
 import com.openhamshack.remote.shack.DabService
 import com.openhamshack.remote.shack.DabUi
+import com.openhamshack.remote.shack.DabSource
+import com.openhamshack.remote.shack.Stations
 import com.openhamshack.remote.shack.EngineSession
 
 // DAB's station list (RADIO-LISTEN-CONTRACT §3). Since the overhaul
@@ -128,6 +130,23 @@ internal fun DabReadout(d: DabUi, onBlocks: () -> Unit, modifier: Modifier = Mod
  */
 @Composable
 internal fun DabStations(e: EngineSession, u: EngineUi, d: DabUi, modifier: Modifier) {
+    // Radio's own list, made by its weekly scan, whenever it has one (Stations.dabSource): every
+    // service of every ensemble, and Scan now. Remote's own block scan below is the fallback.
+    val server = u.dabList?.takeIf { Stations.dabSource(it, u.dabListMissing) == DabSource.SERVER }
+    if (server != null) {
+        Column(modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                SmallHeading(stringResource(R.string.shack_dab_list_title).uppercase(), Modifier.weight(1f))
+                TextButton(onClick = { e.closeDab() }, modifier = Modifier.testTag("dabStop")) { Text(stringResource(R.string.shack_dab_stop)) }
+            }
+            ScanLine(e, u, Stations.DAB, big = false)
+            DabServerList(e, u, server, big = false)
+            if (d.services.isEmpty()) dabStatus(d).let { (line, colour) -> Text(line, color = colour, fontSize = 13.sp) }
+            dabLimits(u, d)?.let { (text, colour) -> Text(text, color = colour, fontSize = 13.sp) }
+            if (u.viewOnly) Text(stringResource(R.string.shack_dab_view_only), color = Amber, fontSize = 13.sp)
+        }
+        return
+    }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         val scan = u.dabScan
         if (scan != null) {
@@ -260,6 +279,14 @@ internal fun TvDabScreen(e: EngineSession, u: EngineUi, d: DabUi, first: FocusRe
             }
         }
         Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            // Radio's own list where it has one (Stations.dabSource): every service of every ensemble; Scan now is in the row.
+            val server = u.dabList?.takeIf { Stations.dabSource(it, u.dabListMissing) == DabSource.SERVER }
+            if (server != null) {
+                ScanLine(e, u, Stations.DAB, big = true)
+                DabServerList(e, u, server, big = true)
+                dabLimits(u, d)?.let { (text, colour) -> Text(text, fontSize = 14.sp, color = colour) }
+                return@Column
+            }
             val scan = u.dabScan
             if (scan != null) {
                 Text(stringResource(R.string.shack_dab_scanning, scan.block.label, scan.at + 1, scan.total), fontSize = 16.sp, color = PolishDim)

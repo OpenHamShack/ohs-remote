@@ -34,6 +34,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -113,6 +114,7 @@ internal fun RadioPhone(e: EngineSession, onBack: () -> Unit, onRepair: () -> Un
     var modeSheet by remember { mutableStateOf(false) }
     var bandSheet by remember { mutableStateOf(false) }
     var blockSheet by remember { mutableStateOf(false) }
+    var fmSheet by remember { mutableStateOf(false) }
     val config = LocalConfiguration.current
     val landscape = config.screenWidthDp > config.screenHeightDp
     // Bigger everything on a tablet, read at arm's length or across a table.
@@ -147,6 +149,11 @@ internal fun RadioPhone(e: EngineSession, onBack: () -> Unit, onRepair: () -> Un
                 onLocal = { bandSheet = false; e.openLocal() })
         }
     }
+    if (fmSheet) ModalBottomSheet(onDismissRequest = { fmSheet = false }, containerColor = RadioCard) {
+        FmPickerSheet(e, u, onDone = { fmSheet = false })
+    }
+    // DAB's picker comes from Radio's own list where it has one: read it as DAB opens.
+    LaunchedEffect(dab != null) { if (dab != null && u.dabList == null && !u.dabListMissing) e.loadDabList() }
     if (u.local != null) ModalBottomSheet(onDismissRequest = { e.closeLocal() }, containerColor = RadioCard) {
         LocalSheet(e, u, onDone = { e.closeLocal() })
     }
@@ -162,7 +169,8 @@ internal fun RadioPhone(e: EngineSession, onBack: () -> Unit, onRepair: () -> Un
         if (dab != null) DabReadout(dab, onBlocks = { blockSheet = true }, modifier = Modifier.fillMaxWidth())
         else RadioReadout(u, antenna, row = row, digits = if (row) 56.sp else if (tablet) 52.sp else 40.sp,
             unit = if (row || tablet) 20.sp else 18.sp, onType = { typing = true }, onMode = { modeSheet = true },
-            onBands = { bandSheet = true }, onAntenna = { antennaSheet = true }, modifier = Modifier.fillMaxWidth())
+            onBands = { bandSheet = true }, onAntenna = { antennaSheet = true }, modifier = Modifier.fillMaxWidth(),
+            onStations = if (u.currentBand?.area?.id == "fm-broadcast") ({ fmSheet = true }) else null)
     }
     val notes = @Composable {
         u.problem?.let { p ->
@@ -426,7 +434,8 @@ internal fun ReceiverHeld(e: EngineSession, u: EngineUi) {
     if (o.session == u.dab?.session) return
     Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(RxStripBg).border(1.dp, RxStripLine, RoundedCornerShape(14.dp))
         .padding(start = 14.dp, end = 4.dp, top = 4.dp, bottom = 4.dp).testTag("rxHeld"), verticalAlignment = Alignment.CenterVertically) {
-        Text(o.text, color = Amber, fontSize = 13.sp, modifier = Modifier.weight(1f))
-        TextButton(onClick = { e.stopReceiverOwner() }, enabled = !u.viewOnly) { Text(stringResource(R.string.shack_dab_stop)) }
+        Text(o.text, color = Amber, fontSize = 13.sp, modifier = Modifier.weight(1f).padding(vertical = 8.dp))
+        // A band scan ends by itself the moment anything is done; only a DAB session is stopped from here.
+        if (o.by != "scan") TextButton(onClick = { e.stopReceiverOwner() }, enabled = !u.viewOnly) { Text(stringResource(R.string.shack_dab_stop)) }
     }
 }

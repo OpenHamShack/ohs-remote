@@ -89,6 +89,16 @@ data class EngineUi(
     val recentBands: List<String> = emptyList(),
     /** Local frequencies, while their screen is open (Radio only); null when it is closed. */
     val local: LocalUi? = null,
+    /** The meter's stereo flag in wfm, ten times a second (null outside wfm). */
+    val meterStereo: Boolean? = null,
+    /** Radio's FM station list (`api/fm/stations`) once read; [fmMissing] for a server without one (404). */
+    val fmList: FmList? = null,
+    val fmMissing: Boolean = false,
+    /** Radio's DAB station list (`api/dab/stations`) once read; [dabListMissing] for a server without one. */
+    val dabList: DabList? = null,
+    val dabListMissing: Boolean = false,
+    /** The server's sentence for a scan it refused, or a list it could not give. */
+    val stationsProblem: String = "",
 ) {
     val dialHz: Double? get() = pendingDialHz ?: state.dialHz
 
@@ -97,7 +107,15 @@ data class EngineUi(
      * pilot locked), for a stereo badge. Says nothing about whether this
      * device is playing two channels - [audioChannels] says that.
      */
-    val stereo: Boolean get() = status?.audio?.stereo == true
+    val stereo: Boolean get() = (meterStereo ?: status?.audio?.stereo) == true
+
+    /**
+     * Who holds the receiver so that tuning would be refused: a DAB session.
+     * A band scan holds it too (`rxOwner` by "scan"), but Radio ends a scan
+     * the moment anyone does anything and puts everything back, so a scan
+     * never stops the operator.
+     */
+    val holder: RxOwner? get() = state.rxOwner?.takeIf { it.by != "scan" }
 
     /**
      * The modes to offer: the server's list less any it says this receiver
@@ -257,7 +275,9 @@ class EngineSession(
                 delay(RETRY_MS)
                 continue
             }
-            socket = client.events(listOf("state", "toast", "meter", "events", span.feed), object : WebSocketListener() {
+            // Radio's `stations` events (a band's list made anew) are not in the default set; NB has none.
+            val kinds = listOf("state", "toast", "meter", "events", span.feed) + if (kind == Kind.RADIO) listOf("stations") else emptyList()
+            socket = client.events(kinds, object : WebSocketListener() {
                 override fun onOpen(webSocket: WebSocket, response: Response) {
                     _ui.update { it.copy(connected = true, problem = null) }
                 }
@@ -278,6 +298,17 @@ class EngineSession(
         when (e) {
             is EngineEvent.Hello -> _ui.update { it.copy(status = e.status) }
             is EngineEvent.State -> {
+                // A list made anew also moves stationsAt: read it again, as the stations event does.
+                val before = _ui.value.state.stationsAt
+                if (e.changes.has("stationsAt")) scope.launch {
+                    val after = _ui.value.state.stationsAt
+                    for (band in listOf(Stations.FM, Stations.DAB)) if (after[band] != before[band]) refreshStations(band)
+                }
+                // A scan that ended without a new list (aborted, failed) changes the list's status: read that too.
+                val scanning = _ui.value.state.bandScan
+                if (scanning != null && e.changes.has("bandScan")) scope.launch {
+                    if (_ui.value.state.bandScan?.band != scanning.band) refreshStations(scanning.band)
+                }
                 _ui.update { u ->
                     val s = u.state.merge(e.changes)
                     // The engine has caught up with the last tune: show its dial again.
@@ -306,7 +337,9 @@ class EngineSession(
             }
             is EngineEvent.Toast -> _ui.update { it.copy(toast = e.text) }
             // Each meter item says afresh whether there is a calibration: one without `s` ends the reading.
-            is EngineEvent.Meter -> _ui.update { it.copy(rxDb = e.rxDb ?: it.rxDb, sMeter = e.s) }
+            is EngineEvent.Meter -> _ui.update { it.copy(rxDb = e.rxDb ?: it.rxDb, sMeter = e.s, meterStereo = e.stereo) }
+            // A band's list made anew: read again if this screen has it.
+            is EngineEvent.StationsMade -> refreshStations(e.band)
             is EngineEvent.Decoded -> { learn(e); _ui.update { it.copy(decoded = it.decoded.add(e)) } }
             is EngineEvent.Slot -> { learn(e); _ui.update { it.copy(decodes = it.decodes.add(e.decode)) } }
             is EngineEvent.Sstv -> {
@@ -409,7 +442,7 @@ class EngineSession(
      * is the toast line instead. Stopping DAB gives the receiver back.
      */
     private fun held(): Boolean {
-        val o = _ui.value.state.rxOwner ?: return false
+        val o = _ui.value.holder ?: return false
         _ui.update { it.copy(toast = o.text.ifEmpty { it.toast }) }
         return true
     }
@@ -554,7 +587,7 @@ class EngineSession(
         val u = _ui.value
         if (u.plan == null) return
         // Another device's DAB holds the receiver: say so rather than be refused.
-        val owner = u.state.rxOwner
+        val owner = u.holder
         if (owner != null && owner.session != u.dab?.session && b.area?.id != ListenAreas.DAB) { held(); return }
         val recent = RecentBands.push(u.recentBands, b.name)
         if (recent != u.recentBands) {
@@ -610,7 +643,7 @@ class EngineSession(
      * A refusal (receiver_busy, on_air, rate_too_low, a bad block) is the
      * panel's problem line in the server's words, not the screen's.
      */
-    fun openDab(block: DabBlock) {
+    fun openDab(block: DabBlock, service: String? = null) {
         val old = _ui.value.dab?.session
         dabPoll?.cancel()
         dabScanJob?.cancel()
@@ -626,7 +659,7 @@ class EngineSession(
         dabPoll = scope.launch {
             old?.let { id -> stopAwaited(id) }
             val id = try {
-                client.decoderStart(DabFeed.start(block, dabServices[block.label])).optString("id").ifEmpty { null }
+                client.decoderStart(DabFeed.start(block, service ?: dabServices[block.label])).optString("id").ifEmpty { null }
             } catch (e: ShackException) {
                 _ui.update { u -> u.copy(dab = u.dab?.copy(problem = e.message.orEmpty().ifEmpty { e.code })) }
                 return@launch
@@ -711,7 +744,7 @@ class EngineSession(
      * server lets this level do that, and its refusal said otherwise.
      */
     fun stopReceiverOwner() {
-        val o = _ui.value.state.rxOwner ?: return
+        val o = _ui.value.holder ?: return
         if (o.session == _ui.value.dab?.session) { closeDab(); return }
         scope.launch {
             try {
@@ -727,6 +760,92 @@ class EngineSession(
     }
 
     private var dabScanJob: Job? = null
+
+    // --- the station lists (Stations.kt) -------------------------------------
+
+    /** Read Radio's FM list (the picker opening, or a list made anew). A 404 is an older Radio: no list, nothing more said. */
+    fun loadFm() {
+        scope.launch {
+            try {
+                val l = Stations.parseFm(client.fmStations())
+                _ui.update { it.copy(fmList = l, fmMissing = false) }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: ShackException) {
+                _ui.update { it.copy(fmMissing = e.http == 404, stationsProblem = if (e.http == 404) "" else e.message.orEmpty()) }
+            } catch (_: Exception) {
+            }
+        }
+    }
+
+    /** Read Radio's DAB list; an older Radio's 404 makes Remote's own block scan the DAB picker's (Stations.dabSource). */
+    fun loadDabList() {
+        scope.launch {
+            try {
+                val l = Stations.parseDab(client.dabStations())
+                _ui.update { it.copy(dabList = l, dabListMissing = false) }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: ShackException) {
+                _ui.update { it.copy(dabListMissing = e.http == 404, stationsProblem = if (e.http == 404) "" else e.message.orEmpty()) }
+            } catch (_: Exception) {
+            }
+        }
+    }
+
+    /** A band's list made anew (the `stations` event, stationsAt moving): read again the lists this screen has read. */
+    private fun refreshStations(band: String) {
+        val u = _ui.value
+        if (band == Stations.FM && u.fmList != null) loadFm()
+        if (band == Stations.DAB && u.dabList != null) loadDabList()
+    }
+
+    /**
+     * Scan now (`POST api/scan`, Control). Radio's progress comes in state
+     * (`bandScan`), the new list with the `stations` event. A refusal
+     * (receiver_busy, unsupported) is said in its words.
+     */
+    fun scanNow(band: String) {
+        if (kind != Kind.RADIO) return
+        scope.launch {
+            try {
+                client.scan(Stations.scanBody(band))
+                _ui.update { it.copy(stationsProblem = "") }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: ShackException) {
+                _ui.update { it.copy(viewOnly = it.viewOnly || e.http == 403, stationsProblem = e.message.orEmpty().ifEmpty { e.code }) }
+            } catch (e: Exception) {
+                _ui.update { it.copy(stationsProblem = e.message.orEmpty()) }
+            }
+        }
+    }
+
+    /**
+     * An FM station from the list: its best frequency in wide FM (FM where the
+     * receiver cannot) with the 100 kHz step, as SERVER-API says to tune it.
+     * Leaving DAB first, as any band change does; refused while a DAB session
+     * of another device holds the receiver.
+     */
+    fun tuneFm(st: FmStation) {
+        val u = _ui.value
+        val owner = u.holder
+        if (owner != null && owner.session != u.dab?.session) { held(); return }
+        val mode = if (u.offered.isEmpty() || "wfm" in u.offered) "wfm" else "fm"
+        val go = {
+            _ui.update { it.copy(stepHz = 100_000, pressedBand = "fm-broadcast") }
+            goTo(st.best.hz, mode)
+        }
+        if (u.dab != null) closeDab(go) else go()
+    }
+
+    /** A DAB service from the server's list: on this block's session, chosen live; elsewhere, a session there with it. */
+    fun playListed(block: String, sid: String) {
+        val b = DabBlocks.byLabel(block) ?: return
+        val d = _ui.value.dab
+        if (d != null && d.block == b && d.session != null && d.services.any { it.sid == sid }) { dabPlay(sid); return }
+        openDab(b, sid)
+    }
 
     // --- local frequencies (LocalFreqs) --------------------------------------
 
@@ -755,7 +874,7 @@ class EngineSession(
     /** OK on a local frequency: its dial, its mode where the server offers it, its step; receive only, nothing keys. */
     fun tuneLocal(spot: LocalSpot) {
         val u = _ui.value
-        val owner = u.state.rxOwner
+        val owner = u.holder
         if (owner != null && owner.session != u.dab?.session) { held(); return }
         val go = {
             spot.stepHz?.let { s -> _ui.update { it.copy(stepHz = s) } }

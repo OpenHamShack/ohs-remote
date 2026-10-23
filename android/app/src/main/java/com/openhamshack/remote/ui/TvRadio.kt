@@ -9,6 +9,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.TextStyle
 import com.openhamshack.remote.shack.Receiver
+import com.openhamshack.remote.shack.DabSource
+import com.openhamshack.remote.shack.Stations
 import com.openhamshack.remote.shack.TxSlot
 import com.openhamshack.remote.shack.splitTail
 import androidx.compose.foundation.layout.Arrangement
@@ -110,7 +112,20 @@ internal fun TvRadioReadout(e: EngineSession, u: EngineUi) {
                 val (number, unit) = dialParts(u.dialHz)
                 val (head, tail) = splitTail(number, unit)
                 val colour = if (u.pendingDialHz != null) Accent else PolishText
-                Row(verticalAlignment = Alignment.Bottom) {
+                // A wide FM station's RDS name in the frequency's place (TvPolishFm), RadioText and Stereo under it.
+                val rds = u.state.rds?.takeIf { u.state.mode == "wfm" && it.name != null }
+                if (rds != null) {
+                    Text(rds.name.orEmpty(), fontSize = 64.sp, fontWeight = FontWeight.Light, color = PolishText, maxLines = 1,
+                        style = TextStyle(lineHeight = 66.sp))
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(stringResource(R.string.shack_fm_tile_freq, channelText(u.dialHz ?: 0.0)), fontSize = 18.sp, color = PolishDim,
+                            style = TextStyle(fontFeatureSettings = TABULAR))
+                        if (u.stereo) StereoBadge(small = false)
+                        TrafficMarker(rds)
+                    }
+                    rds.rt?.let { Text(it, fontSize = 16.sp, color = Color(0xFFA7B3C0), maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.widthIn(max = 560.dp)) }
+                } else Row(verticalAlignment = Alignment.Bottom) {
                     Text(head, fontSize = 80.sp, fontWeight = FontWeight.Light, letterSpacing = (-2).sp, color = colour, maxLines = 1,
                         style = TextStyle(fontFeatureSettings = TABULAR, lineHeight = 80.sp))
                     if (tail.isNotEmpty()) Text(tail, fontSize = 38.sp, fontWeight = FontWeight.Light, color = Color(0xFF6F7C8A), maxLines = 1,
@@ -121,6 +136,7 @@ internal fun TvRadioReadout(e: EngineSession, u: EngineUi) {
                     Text(if (u.state.mode == "wfm") stringResource(R.string.shack_mode_wfm) else modeWord(u.state.mode), fontSize = 15.sp,
                         fontWeight = FontWeight.Medium, color = Color(0xFF06202C), maxLines = 1,
                         modifier = Modifier.clip(RoundedCornerShape(7.dp)).background(Accent).padding(horizontal = 9.dp, vertical = 3.dp))
+                    rds?.ptyName?.let { Text(it, fontSize = 15.sp, color = Color(0xFFD6DEE6), maxLines = 1) }
                     u.currentBand?.let { b ->
                         Text(bandChipText(u, b), fontSize = 17.sp, color = Color(0xFFD6DEE6), maxLines = 1, overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.widthIn(max = 300.dp))
@@ -153,6 +169,8 @@ internal fun TvRadioReadout(e: EngineSession, u: EngineUi) {
 internal fun TvRadioRow(
     e: EngineSession, u: EngineUi, antenna: AntennaChoice?, first: FocusRequester,
     onBands: () -> Unit, onMode: () -> Unit, onAntenna: () -> Unit, onUp: () -> Unit, modifier: Modifier = Modifier,
+    /** The FM picker, offered in the row while the dial is in Broadcast FM. */
+    onStations: (() -> Unit)? = null,
     /** Focus is on the scope (the keys' surface): the hint says Left and Right tune. */
     onSurface: Boolean = true,
 ) {
@@ -169,8 +187,11 @@ internal fun TvRadioRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically,
     ) {
         TvItem(onClick = onBands, focus = first) { Text(stringResource(R.string.shack_tv_bands), fontSize = 17.sp) }
+        if (onStations != null && u.dab == null) TvItem(onClick = onStations) {
+            Text(stringResource(R.string.shack_stations), fontSize = 17.sp, color = Accent)
+        }
         // A DAB session holding the receiver - ours (its list is up) or another device's - stops from here.
-        if (u.state.rxOwner != null || u.dab != null) TvItem(onClick = { if (u.dab != null) e.closeDab() else e.stopReceiverOwner() }) {
+        if (u.holder != null || u.dab != null) TvItem(onClick = { if (u.dab != null) e.closeDab() else e.stopReceiverOwner() }) {
             Text(stringResource(R.string.shack_dab_stop), fontSize = 17.sp, color = PolishAmber)
         }
         if (u.dab == null) {
@@ -219,7 +240,13 @@ internal fun TvRadioRow(
                     modifier = Modifier.padding(horizontal = 12.dp).widthIn(min = 100.dp))
                 Text("▶", fontSize = 18.sp, color = Accent)
             }
-            if (u.dabScan == null) TvItem(onClick = { if (u.viewOnly) e.note(refused) else e.dabScan() }) {
+            // Radio's own scan where it keeps the list (Stations.dabSource); Remote's block scan otherwise.
+            val server = Stations.dabSource(u.dabList, u.dabListMissing) == DabSource.SERVER && u.dabList != null
+            if (server) {
+                if (u.state.bandScan == null) TvItem(onClick = { if (u.viewOnly) e.note(refused) else e.scanNow(Stations.DAB) }) {
+                    Text(stringResource(R.string.shack_scan_now), fontSize = 17.sp, maxLines = 1)
+                }
+            } else if (u.dabScan == null) TvItem(onClick = { if (u.viewOnly) e.note(refused) else e.dabScan() }) {
                 Text(stringResource(R.string.shack_dab_scan), fontSize = 17.sp, maxLines = 1)
             } else TvItem(onClick = { e.dabScanStop() }) {
                 Text(stringResource(R.string.shack_dab_scan_stop), fontSize = 17.sp, maxLines = 1)
@@ -235,7 +262,9 @@ internal fun TvRadioRow(
         }
         // Two short lines, as TvPolish: what Left and Right do where focus is now, then the channel keys.
         // It takes what the row leaves, so a long item squeezes the hint rather than pushing it off the screen.
-        Column(Modifier.weight(1f), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        // In Broadcast FM the row carries Stations too and has no room left for the hint, which would only be cut.
+        if (onStations != null && u.dab == null) Spacer(Modifier.weight(1f))
+        else Column(Modifier.weight(1f), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
             val lr = when {
                 onStep && u.dab != null -> stringResource(R.string.shack_tv_block_keys)
                 onStep -> stringResource(R.string.shack_tv_keys_step)

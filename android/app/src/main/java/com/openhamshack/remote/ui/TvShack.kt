@@ -254,6 +254,19 @@ internal fun channelText(hz: Double, tag: String): String {
 @Composable
 internal fun channelText(hz: Double): String = channelText(hz, localeTag())
 
+/**
+ * When a band scan was made or is next due, as TvPolishFm says it: the
+ * weekday and the time in this device's zone ("Sunday 03:12"), from Radio's
+ * ISO UTC; the text as given if it is not one.
+ */
+internal fun scanWhen(iso: String, tag: String, zone: java.time.ZoneId): String = runCatching {
+    val t = java.time.Instant.parse(iso).atZone(zone)
+    java.time.format.DateTimeFormatter.ofPattern("EEEE HH:mm", java.util.Locale.forLanguageTag(tag)).format(t)
+}.getOrDefault(iso)
+
+@Composable
+internal fun scanWhen(iso: String): String = scanWhen(iso, localeTag(), java.time.ZoneId.systemDefault())
+
 @Composable
 internal fun stepText(hz: Int): String = stepText(hz, localeTag())
 

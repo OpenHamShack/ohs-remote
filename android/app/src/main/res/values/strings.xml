@@ -299,6 +299,33 @@
     <string name="shack_local_view_only">Your own frequencies need the Control level for this app.</string>
     <string name="shack_local_keys_ok">OK</string>
     <string name="shack_local_hint">tunes, with its mode and step</string>
+    <!-- Radio's station lists and RDS (Brian's TvPolishFm mockup). -->
+    <string name="shack_stations">Stations</string>
+    <string name="shack_fm_heading">RADIO · FM</string>
+    <string name="shack_fm_title">FM stations</string>
+    <string name="shack_dab_list_title">DAB stations</string>
+    <!-- %1$s when the list was made, %2$s when the next scan is due ("Sunday 03:12"). -->
+    <string name="shack_stations_from">Station list from the scan on %1$s · next due %2$s</string>
+    <!-- %1$s when the list was made, with no nightly scan due. -->
+    <string name="shack_stations_from_only">Station list from the scan on %1$s</string>
+    <string name="shack_scan_now">Scan now</string>
+    <string name="shack_scan_warning">Any change stops the scan, and Radio puts everything back as it was.</string>
+    <string name="shack_sort_az">A–Z</string>
+    <string name="shack_sort_mhz">MHz</string>
+    <string name="shack_genre_all">All</string>
+    <string name="shack_rds_heading">NOW PLAYING · RDS</string>
+    <string name="shack_stereo">Stereo</string>
+    <!-- RDS traffic flags: the station carries traffic news (TP), traffic news is on now (TA). -->
+    <string name="shack_tp">TP</string>
+    <string name="shack_ta">TA</string>
+    <!-- A station without RDS, named by its frequency: %1$s the frequency. -->
+    <string name="shack_fm_no_rds">%1$s MHz</string>
+    <!-- A tile's second line: %1$s the frequency, %2$s the programme type ("Pop music"). -->
+    <string name="shack_fm_tile_sub">%1$s MHz · %2$s</string>
+    <string name="shack_fm_tile_freq">%1$s MHz</string>
+    <string name="shack_tune_by_freq">Tune by frequency</string>
+    <string name="shack_fm_hint">tunes to the station</string>
+    <string name="shack_stations_empty">The scan found no stations.</string>
     <!-- The TV polish (Brian's TvPolish mockups). Small spaced capitals over a panel. -->
     <string name="shack_signal_heading">SIGNAL</string>
     <string name="shack_radio_heading">RADIO</string>

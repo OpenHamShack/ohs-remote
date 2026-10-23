@@ -161,6 +161,11 @@ class EngineClient(val url: String, private val controller: ShackController) {
      * server's code and sentence (409 decoder_unavailable without faad2).
      */
     suspend fun decoders(): JSONObject = get("api/decoders")
+
+    /** Radio's station lists from its band scans, and a scan now (SERVER-API "Station lists"); NB answers 404. */
+    suspend fun fmStations(): JSONObject = get("api/fm/stations")
+    suspend fun dabStations(): JSONObject = get("api/dab/stations")
+    suspend fun scan(body: JSONObject): JSONObject = postJson("api/scan", body)
     suspend fun decoderStart(body: JSONObject): JSONObject = postJson("api/decoders/sessions", body)
     suspend fun decoderPoll(id: String, since: Int): JSONObject = get("api/decoders/sessions/$id?since=$since")
     suspend fun decoderParams(id: String, params: JSONObject): JSONObject =

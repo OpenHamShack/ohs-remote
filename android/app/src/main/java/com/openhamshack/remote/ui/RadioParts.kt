@@ -175,10 +175,18 @@ internal fun SMeterLine(u: EngineUi, barHeight: Dp = 8.dp, textSize: TextUnit = 
 internal fun RadioReadout(
     u: EngineUi, antenna: AntennaChoice?, row: Boolean, digits: TextUnit, unit: TextUnit,
     onType: () -> Unit, onMode: () -> Unit, onBands: () -> Unit, onAntenna: () -> Unit, modifier: Modifier = Modifier,
+    /** The FM picker, offered as a chip while the dial is in Broadcast FM; null: not offered. */
+    onStations: (() -> Unit)? = null,
 ) {
     val (number, unitWord) = dialParts(u.dialHz)
+    // A wide FM station's RDS name takes the frequency's place (TvPolishFm), the frequency under it with RadioText.
+    val rds = u.state.rds?.takeIf { u.state.mode == "wfm" && it.name != null }
     val dial = @Composable { m: Modifier ->
-        Row(m, verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (rds != null) Column(m.clickable(onClick = onType).testTag("dial"), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            BasicText(rds.name.orEmpty(), style = TextStyle(fontWeight = FontWeight.Bold, color = Color.White), maxLines = 1, softWrap = false,
+                autoSize = TextAutoSize.StepBased(minFontSize = 22.sp, maxFontSize = digits, stepSize = 2.sp), modifier = Modifier.testTag("rdsName"))
+            RdsLines(u, rds)
+        } else Row(m, verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             BasicText(
                 number,
                 style = TextStyle(fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace,
@@ -202,6 +210,9 @@ internal fun RadioReadout(
                         modifier = Modifier.widthIn(max = 180.dp))
                     if (b.rxTag) RxTag()
                 }
+            }
+            if (onStations != null) ReadoutChip(false, onStations, "stations") {
+                Text(stringResource(R.string.shack_chip_open, stringResource(R.string.shack_stations)), color = Accent, fontSize = 14.sp)
             }
             // The ▾ outside the name: a long label ("Antenna C — Loop Antenna") is cut, never the sign that it opens.
             if (antenna != null) ReadoutChip(false, onAntenna, "antenna") {

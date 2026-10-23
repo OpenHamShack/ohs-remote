@@ -172,7 +172,9 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
     var choice by remember { mutableStateOf<TxChoice?>(null) }
     // Radio's local frequencies: a screen over the radio while open (the Local item in the band picker).
     val localOpen = u.local != null
-    val covered = typing != null || logOpen || full || askLine || localOpen || calTyping
+    // Radio's FM picker (TvPolishFm): a screen over the radio, from the row's Stations in Broadcast FM.
+    var fmOpen by remember { mutableStateOf(false) }
+    val covered = typing != null || logOpen || full || askLine || localOpen || calTyping || fmOpen
     // DAB's station list: open while the DAB area is (Ch± or Bands onto it opens it). Radio's
     // since the overhaul is in the scope's place, not over it, so it is not an overlay.
     val dabOpen = u.dab != null
@@ -188,6 +190,7 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
     val firstDab = remember { FocusRequester() }
     val rowFirst = remember { FocusRequester() }
     val localFirst = remember { FocusRequester() }
+    val fmFirst = remember { FocusRequester() }
     val pickerFocus = remember { FocusRequester() }
     val panelFocus = remember { FocusRequester() }
     var panelFocused by remember { mutableStateOf(false) }
@@ -279,6 +282,9 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
     // stopped) and returns to the scope, before BACK would leave the screen.
     BackHandler(enabled = radio && dabOpen && !inert && !keys.anyOverlay) { e.closeDab() }
     BackHandler(enabled = localOpen && !keys.anyOverlay) { e.closeLocal() }
+    BackHandler(enabled = fmOpen && typing == null && !keys.anyOverlay) { fmOpen = false }
+    // DAB's picker comes from Radio's own list where it has one: read it as DAB opens.
+    LaunchedEffect(dabOpen) { if (dabOpen && u.dabList == null && !u.dabListMissing) e.loadDabList() }
     // The face's own overlays close before the keys' stack and before leaving: registered after it, so innermost.
     BackHandler(enabled = picker != null || controls || bandsPanel) {
         when {
@@ -440,6 +446,7 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
                     onAntenna = { antennaPanel = true },
                     onUp = { runCatching { if (dabOpen) firstDab.requestFocus() else tuner.requestFocus() } },
                     onSurface = keys.onSurface,
+                    onStations = if (u.currentBand?.area?.id == "fm-broadcast") ({ fmOpen = true }) else null,
                     modifier = Modifier.fillMaxWidth().padding(top = 14.dp))
                 u.problem?.let { p ->
                     Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -668,6 +675,7 @@ internal fun TvEngine(e: EngineSession, onBack: () -> Unit, onRepair: () -> Unit
         }
 
         if (localOpen) TvLocalScreen(e, u, localFirst, onClose = { e.closeLocal() }, modifier = Modifier.fillMaxSize())
+        if (fmOpen) TvFmScreen(e, u, fmFirst, onClose = { fmOpen = false }, onType = { fmOpen = false; typing = "" }, modifier = Modifier.fillMaxSize())
 
         // On the air: what the server says is going on, for the red overlay.
         val auto = u.status?.autoTx

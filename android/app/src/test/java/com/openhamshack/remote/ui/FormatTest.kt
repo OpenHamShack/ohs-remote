@@ -47,6 +47,9 @@ class FormatTest {
         assertEquals("1\u00a0kHz", reachEnd(1_000.0, "en-GB"))
         assertEquals("2\u00a0GHz", reachEnd(2e9, "en-GB"))
         assertEquals("6.1\u00a0GHz", reachEnd(6.1e9, "en-GB"))
+        // When a band scan was made, in the device's zone.
+        assertEquals("Monday 03:00", scanWhen("2026-11-02T03:00:41Z", "en-GB", java.time.ZoneId.of("Europe/London")))
+        assertEquals("not a time", scanWhen("not a time", "en-GB", java.time.ZoneId.of("UTC")))
         // A local frequency as a channel list reads it.
         assertEquals("118.700", channelText(118_700_000.0, "en-GB"))
         assertEquals("446.00625", channelText(446_006_250.0, "en-GB"))
